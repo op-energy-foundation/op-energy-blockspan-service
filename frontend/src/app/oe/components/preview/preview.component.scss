@@ -1,0 +1,13 @@
+.preview-component {
+  padding: 100px;
+
+  a {
+    cursor: pointer;
+    color: #1bd8f4;
+
+    &:hover {
+      color: #09a3ba;
+      text-decoration: underline;
+    }
+  }
+}
