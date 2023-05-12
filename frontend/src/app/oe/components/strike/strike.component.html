@@ -1,0 +1,20 @@
+<div class="strike-container">
+  <svg-icon
+    *ngIf="strikeType === 'Strike_Boiling'"
+    class="smoke"
+    src="./resources/smoke.svg"
+    [svgStyle]="{'width.px':40,'height.px':40,'fill':'#e0e0e0'}">
+  </svg-icon>
+  <a class="strike-container--boiler" [routerLink]="strikeDetailLink()">
+    <span *ngIf="isUnknown">?????</span>
+    <ng-container *ngIf="!isUnknown">
+      <fa-icon *ngFor="let i of iconArray" class="left fire" [icon]="['fas', 'fire']" [fixedWidth]="true"></fa-icon>
+      <span *ngIf="totalIconCount > maxCount" class="ml-1">+{{ totalIconCount - maxCount }}</span>
+    </ng-container>
+  </a>
+  <svg-icon
+    src="./resources/pipe.svg"
+    [svgStyle]="{'width.px':30,'height.px':40,'fill':'#e0e0e0'}">
+  </svg-icon>
+  <app-base-box [type]="strikeType" [totalIconCount]="totalIconCountWithStrike" [fromTime]="fromBlock.mediantime" [toTime]="strike.nLockTime" [isUnknown]="!timeDiffWithStrike" [link]="strikeDetailLink()"></app-base-box>
+</div>

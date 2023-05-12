@@ -1,0 +1,134 @@
+:host {
+  min-width: 150px;
+  height: 100%;
+}
+
+.tank-box {
+  width: 100%;
+  min-width: 100px;
+  min-height: 200px;
+  height: 100%;
+
+  &--top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 60%;
+    height: 30%;
+    background-color: red;
+    margin: auto;
+    padding: 10px;
+    border: 1px solid black;
+
+    fa-icon {
+      color: yellow;
+    }
+  }
+
+  &--middle {
+    position: relative;
+    height: 30%;
+
+    .to-block,
+    .from-block {
+      height: 50%;
+      border: 1px solid black;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      font-weight: 700;
+    }
+
+    .span-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      font-weight: bold;
+      position: absolute;
+      width: 80%;
+      height: 30%;
+      background-color: orange;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%);
+      z-index: 1;
+      border: 1px solid black;
+    }
+  }
+
+  &--bottom {
+    height: 50%;
+    background-color: red;
+    padding: 25px;
+    border: 1px solid black;
+
+    > div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background-color: orange;
+      color: black;
+      font-weight: bold;
+      border: 1px solid black;
+    }
+  }
+
+  &--footer {
+    color: black;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid black;
+  }
+
+  &.Strike {
+    .tank-box--top,
+    .tank-box--middle,
+    .tank-box--bottom,
+    .tank-box--footer {
+      background-color: #6fa8dc !important;
+    }
+
+    .tank-box--top {
+      fa-icon {
+        color: #cadffb;
+      }
+    }
+  }
+
+  &.Strike_Boiling {
+    .tank-box--top {
+      background-color: #eeeeee !important;
+
+      fa-icon {
+        color: #fff;
+      }
+    }
+
+    .tank-box--middle {
+      .to-block,
+      .from-block {
+        background-color: #eeeeee !important;
+      }
+    }
+
+    .tank-box--bottom {
+      background-color: #eeeeee !important;
+    }
+  }
+}
+
+.is-link {
+  color: #1bd8f4;
+  cursor: pointer;
+
+  &:hover {
+    color: #09a3ba;
+    text-decoration: underline;
+  }
+}

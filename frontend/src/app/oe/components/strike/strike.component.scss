@@ -1,0 +1,33 @@
+.strike-container {
+  position: relative;
+  display: flex;
+  height: 100%;
+
+  &--boiler {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100px;
+    min-width: 100px;
+    height: 50%;
+    background-color: red;
+    color: yellow;
+    padding: 15px;
+  }
+
+  svg-icon {
+    position: absolute;
+    top: 20%;
+    left: 100px;
+    z-index: -1;
+    transform: rotate(90deg);
+
+    &.smoke {
+      top: -45px;
+      right: 25%;
+      left: auto;
+      z-index: 0;
+    }
+  }
+}
