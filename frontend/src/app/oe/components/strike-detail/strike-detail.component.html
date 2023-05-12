@@ -1,0 +1,135 @@
+<div *ngIf="fromBlock && toBlock" class="observed-blockspan-detail">
+  <div class="observed-blockspan-detail--top">
+    <div class="blockspan">
+      <app-blockspan *ngIf="fromBlock && toBlock" [fromBlock]="fromBlock" [toBlock]="toBlock"></app-blockspan>
+      <div>
+        <app-base-box-hor [span]="span" [fromTime]="fromBlock.mediantime" [toTime]="toBlock.mediantime"
+          [link]="energyDetailLink()"></app-base-box-hor>
+        <app-base-box-hor [span]="span" [type]="strikeType" [fromTime]="fromBlock.mediantime"
+          [toTime]="strike.nLockTime" color="#eeeeee" [link]="strikeDetailLink()"></app-base-box-hor>
+      </div>
+    </div>
+    <div class="blockspan-table">
+      <div *ngIf="canGuess">
+        <h3 class="text-center mt-4 mb-4">Guess</h3>
+        <div class="guess-btns">
+          <div class="guess-btns--btn hot" [class.active]="currentActiveGuess === 'fast'" (click)="guess('fast')">
+            <fa-icon [icon]="['fas', 'burn']" [fixedWidth]="true"></fa-icon>
+            <div>Hot</div>
+          </div>
+          <div class="guess-btns--btn cold" [class.active]="currentActiveGuess === 'slow'" (click)="guess('slow')">
+            <fa-icon [icon]="['fas', 'snowflake']" [fixedWidth]="true"></fa-icon>
+            <div>Cold</div>
+          </div>
+        </div>
+      </div>
+      <!-- <h3>Guesses</h3> -->
+      <div class="content">
+        <table class="table table-borderless table-striped">
+          <tbody>
+            <tr>
+              <td>User</td>
+              <td>Guess</td>
+              <td>Guess Time</td>
+            </tr>
+            <tr *ngFor="let guess of slowFastGuesses">
+              <td>{{ guess.userName }}</td>
+              <td>{{ guess.guess }}</td>
+              <td>{{ guess.creationTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- <div class="blockspan-table">
+      <h3>Strike < {{ fromBlock.height }} - {{ toBlock.height || toBlock }} / {{ strikeElapsedTime }} ></h3>
+      <div class="content">
+        <table class="table table-borderless table-striped">
+          <tbody>
+            <tr>
+              <td></td>
+              <td>Block</td>
+              <td>Mediantime (UTC)</td>
+              <td>Mediantime (Posix Seconds)</td>
+              <td>Energy</td>
+            </tr>
+            <tr>
+              <td>From value</td>
+              <td>{{ fromBlock.height }}</td>
+              <td>{{ fromBlock.mediantime * 1000 | date:'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ fromBlock.mediantime }}</td>
+              <td><div></div></td>
+            </tr>
+            <tr>
+              <td>To value</td>
+              <td>{{ toBlock.height || toBlock }}</td>
+              <td>
+                <span *ngIf="toBlock.mediantime">{{ toBlock.mediantime * 1000 | date:'yyyy-MM-dd HH:mm' }}</span>
+                <span *ngIf="!toBlock.mediantime">?</span>
+              </td>
+              <td>
+                <span *ngIf="toBlock.mediantime">{{ toBlock.mediantime }}</span>
+                <span *ngIf="!toBlock.mediantime">?</span>
+              </td>
+              <td><div></div></td>
+            </tr>
+            <tr>
+              <td>Strike</td>
+              <td>{{ strike.blockHeight }}</td>
+              <td>{{ strike.nLockTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ strike.nLockTime }}</td>
+              <td><div></div></td>
+            </tr>
+            <tr>
+              <td>Blockspan Time</td>
+              <td>
+                <span *ngIf="toBlock.height">{{ toBlock.height - fromBlock.height }}</span>
+                <span *ngIf="!toBlock.height">{{ toBlock - fromBlock.height }}</span>
+              </td>
+              <td>
+                <span *ngIf="toBlock.mediantime">{{ toHHMMSS(toBlock.mediantime - fromBlock.mediantime) }}</span>
+                <span *ngIf="!toBlock.mediantime">?</span>
+              </td>
+              <td>{{ timeDiff }}</td>
+              <td>{{ energyDiff | number }} %</td>
+            </tr>
+            <tr>
+              <td>Strike Time</td>
+              <td>{{ strike.blockHeight - fromBlock.height }}</td>
+              <td>{{ toHHMMSS(strike.nLockTime - fromBlock.mediantime) }}</td>
+              <td>{{ strikeElapsedTime }}</td>
+              <td>0 %</td>
+            </tr>
+            <tr>
+              <td>OUTCOME</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <div *ngIf="toBlock.mediantime" class="outcome" [class.hot]="toBlock.mediantime < strike.nLockTime">HOTTER</div>
+                <div *ngIf="!toBlock.mediantime">?</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Guesses</h3>
+      <div class="content">
+        <table class="table table-borderless table-striped">
+          <tbody>
+            <tr>
+              <td>User</td>
+              <td>Guess</td>
+              <td>Guess Time</td>
+            </tr>
+            <tr *ngFor="let guess of slowFastGuesses">
+              <td>{{ guess.userName }}</td>
+              <td>{{ guess.guess }}</td>
+              <td>{{ guess.creationTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div> -->
+  </div>
+</div>

@@ -1,3 +1,5 @@
+import { BaseBoxHorComponent } from './components/base-box-hor/base-box-hor.component';
+import { StrikeDetailComponent } from './components/strike-detail/strike-detail.component';
 import { NgModule } from '@angular/core';
 import { ToastrModule } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
@@ -29,6 +31,8 @@ import { OpEnergyApiService } from './services/oe-energy.service';
     StrikeComponent,
     BaseBoxComponent,
     EnergyComponent,
+    StrikeDetailComponent,
+    BaseBoxHorComponent,
   ],
   imports: [
     CommonModule,
@@ -47,11 +51,11 @@ import { OpEnergyApiService } from './services/oe-energy.service';
     StrikeComponent,
     BaseBoxComponent,
     EnergyComponent,
+    StrikeDetailComponent,
+    BaseBoxHorComponent,
   ],
   exports: [ToastrModule, FontAwesomeModule],
 })
 export class OeEnergyModule {
-  constructor(library: FaIconLibrary) {
-    library.addIcons();
-  }
+  constructor(library: FaIconLibrary) {}
 }
