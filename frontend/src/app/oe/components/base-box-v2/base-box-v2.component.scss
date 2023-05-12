@@ -1,0 +1,105 @@
+:host {
+  width: 100%;
+  height: 100%;
+}
+
+.tank-box {
+  display: flex;
+  width: 100%;
+  min-width: 100px;
+  min-height: 200px;
+  height: 100%;
+
+  @media (max-width: 420px) {
+    // flex-direction: column;
+  }
+
+  &--middle {
+    position: relative;
+    min-width: 170px;
+
+    .to-block,
+    .from-block {
+      height: 50%;
+      border: 1px solid black;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      font-weight: 700;
+
+      span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: black;
+        font-weight: bold;
+        background-color: orange;
+        border: 1px solid black;
+        padding: 5px;
+        margin: 0 5px;
+      }
+    }
+
+    .span-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      font-weight: bold;
+      position: absolute;
+      width: 50%;
+      height: 30%;
+      background-color: orange;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%);
+      z-index: 1;
+      border: 1px solid black;
+    }
+
+    .footer {
+      color: black;
+      text-align: center;
+      font-weight: bold;
+      border: 1px solid black;
+    }
+  }
+
+  &.Strike {
+    .tank-box--top,
+    .tank-box--middle,
+    .tank-box--bottom,
+    .tank-box--footer {
+      background-color: #6fa8dc !important;
+    }
+
+    .tank-box--top {
+      fa-icon {
+        color: #cadffb;
+      }
+    }
+  }
+
+  &.Strike_Boiling {
+    .tank-box--top {
+      background-color: #eeeeee !important;
+
+      fa-icon {
+        color: #fff;
+      }
+    }
+
+    .tank-box--middle {
+      .to-block,
+      .from-block {
+        background-color: #eeeeee !important;
+      }
+    }
+
+    .tank-box--bottom {
+      background-color: #eeeeee !important;
+    }
+  }
+}

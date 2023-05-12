@@ -52,3 +52,9 @@ body {
   min-width: 375px;
   padding-bottom: 60px;
 }
+
+@media (max-width: 767.98px) {
+  .box {
+    padding: 0.75rem;
+  }
+}

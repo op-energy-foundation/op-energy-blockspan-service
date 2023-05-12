@@ -96,7 +96,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ope:build"
+            "browserTarget": "ope:build",
+            "proxyConfig": "proxy.conf.js"
           },
           "configurations": {
             "production": {
@@ -104,10 +105,6 @@
             },
             "local": {
               "proxyConfig": "proxy.conf.local.js",
-              "verbose": true
-            },
-            "mixed": {
-              "proxyConfig": "proxy.conf.mixed.js",
               "verbose": true
             },
             "staging": {
