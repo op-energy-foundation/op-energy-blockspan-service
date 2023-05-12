@@ -27,7 +27,7 @@ export class OeStateService {
   timeSlowFastGuessesOutcome$ = new ReplaySubject<SlowFastGuessOutcome>(1);
   // latestReceivedBlock$ = new ReplaySubject<BlockExtended>(1); // this object will only contain the last block received from the backend. This block can be considered as the current tip
   latestReceivedBlockHeight = -1; // plain  block height of the latest recevied block. Need this value to handle the case when backend sends newly found block
-
+  latestBlockHeight = -1;
   private apiBaseUrl: string; // base URL is protocol, hostname, and port
   private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
   constructor() {

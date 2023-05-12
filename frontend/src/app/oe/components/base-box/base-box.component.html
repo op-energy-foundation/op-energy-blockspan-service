@@ -1,0 +1,25 @@
+<div class="tank-box {{type}}" [ngClass]="{'is-link': link}" (click)="navigateTo()">
+  <div class="tank-box--top" [ngStyle]="{'background-color': this.color}">
+    <span *ngIf="isUnknown">?????</span>
+    <ng-container *ngIf="!isUnknown">
+      0%
+    </ng-container>
+  </div>
+  <div *ngIf="!isDetailed" class="tank-box--bottom" [ngStyle]="{'background-color': this.color}">
+    <div>{{ nbdr }}</div>
+  </div>
+  <ng-container *ngIf="isDetailed">
+    <div class="tank-box--middle" [ngStyle]="{'background-color': this.color}">
+      <div class="to-block">{{ toTime }}</div>
+      <div class="span-block">{{ toTime - fromTime || '?' }}</div>
+      <div class="from-block">{{ fromTime }}</div>
+    </div>
+    <div class="tank-box--middle" [ngStyle]="{'background-color': this.color}">
+      <div class="to-block">{{ toTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</div>
+      <div class="span-block">{{ nbdr || '?' }}</div>
+      <div class="from-block">{{ fromTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</div>
+    </div>
+    <div class="tank-box--footer" [ngStyle]="{'background-color': this.color}">utc time</div>
+  </ng-container>
+  <div class="tank-box--footer" [ngStyle]="{'background-color': this.color}">{{ footerText }}</div>
+</div>

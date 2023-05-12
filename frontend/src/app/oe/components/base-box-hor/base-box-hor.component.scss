@@ -1,0 +1,127 @@
+:host {
+  min-width: 150px;
+  height: 100%;
+}
+
+.base-box-hor {
+  display: flex;
+  color: #000;
+  width: 100%;
+  min-width: 100px;
+  height: 100%;
+
+  &--nbdr {
+    min-width: 300px !important;
+
+    .main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  > div {
+    text-align: center;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+
+    .main {
+      flex: 1;
+      position: relative;
+
+      > span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
+        font-weight: 700;
+        background-color: orange;
+        border: 1px solid black;
+        padding: 3px;
+        margin: 0 6px;
+      }
+
+      .to-block {
+        height: 50%;
+        padding: 10px 0 30px;
+      }
+
+      .from-block {
+        height: 50%;
+        padding: 30px 0 10px;
+      }
+
+      .span-block {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
+        font-weight: 700;
+        position: absolute;
+        width: 80%;
+        height: 30%;
+        background-color: orange;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%) translateY(-50%);
+        z-index: 1;
+        border: 1px solid black;
+      }
+    }
+  }
+
+  .to-block,
+  .from-block,
+  .footer {
+    border: 1px solid #000;
+  }
+
+  &--nbdr {
+    border: 1px solid #000;
+  }
+
+  &.Strike {
+    .tank-box--top,
+    .tank-box--middle,
+    .tank-box--bottom,
+    .tank-box--footer {
+      background-color: #6fa8dc !important;
+    }
+
+    .tank-box--top {
+      fa-icon {
+        color: #cadffb;
+      }
+    }
+  }
+
+  &.Strike_Boiling {
+    .tank-box--top {
+      background-color: #eeeeee !important;
+
+      fa-icon {
+        color: #fff;
+      }
+    }
+
+    .tank-box--middle {
+      .to-block,
+      .from-block {
+        background-color: #eeeeee !important;
+      }
+    }
+
+    .tank-box--bottom {
+      background-color: #eeeeee !important;
+    }
+  }
+}
+
+.is-link {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
