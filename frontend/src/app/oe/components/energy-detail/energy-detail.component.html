@@ -1,0 +1,21 @@
+<div class="observed-blockspan-detail">
+  <div class="observed-blockspan-detail--top" *ngIf="fromBlock && toBlock">
+    <div class="blockspan">
+      <div class="d-flex">
+        <div class="energy-container">
+          <app-blockspan *ngIf="fromBlock && toBlock" [fromBlock]="fromBlock" [toBlock]="toBlock"></app-blockspan>
+          <app-base-box-v2 [span]="span" [fromTime]="fromBlock.mediantime"
+            [toTime]="toBlock.mediantime"></app-base-box-v2>
+        </div>
+      </div>
+    </div>
+    <div class="blockspan-table">
+      <div>
+        <div>average: {{ average || '???' }}</div>
+        <div>stddev: {{ stddev || '???' }}</div>
+        <div>last 100 blockspans</div>
+      </div>
+      <div class="footer">statistics</div>
+    </div>
+  </div>
+</div>

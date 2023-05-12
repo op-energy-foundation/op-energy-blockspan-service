@@ -1,0 +1,19 @@
+<a class="tank-box {{type}}" [routerLink]="link">
+  <div class="tank-box--middle" [ngStyle]="{'background-color': this.color}">
+    <div class="to-block">{{ (toTime * 1000 | date:'yyyy-MM-dd HH:mm') ?? '?' }}</div>
+    <div class="span-block">{{ timeSpan || '?' }}</div>
+    <div class="from-block">{{ fromTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</div>
+    <div class="footer" [ngStyle]="{'background-color': this.color}">utc time</div>
+  </div>
+  <div class="tank-box--middle" [ngStyle]="{'background-color': this.color}">
+    <div class="to-block">{{ toTime ?? '?' }}</div>
+    <div class="span-block">{{ timeDiff || '?' }}</div>
+    <div class="from-block">{{ fromTime }}</div>
+    <div class="footer" [ngStyle]="{'background-color': this.color}">seconds</div>
+  </div>
+  <div class="tank-box--middle" style="min-width: 300px;" [ngStyle]="{'background-color': this.color}">
+    <div class="to-block" style="height: 100%"><span>{{ span }}</span> x 600 x 100 / <span>{{ timeDiff || '?' }}</span>
+      = {{ nbdr }}</div>
+    <div class="footer" [ngStyle]="{'background-color': this.color}">normalized block discovery rate</div>
+  </div>
+</a>
