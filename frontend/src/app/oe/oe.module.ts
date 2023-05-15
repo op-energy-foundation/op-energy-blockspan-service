@@ -25,6 +25,8 @@ import { OeEnergyApiService } from './services/oe-energy.service';
 import { BlockspansHomeComponent } from './components/blockspans-home/blockspans-home.component';
 import { WebsocketService } from './services/websocket.service';
 import { OeStateService } from './services/state.service';
+import { faBook } from '@fortawesome/free-solid-svg-icons';
+import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +44,7 @@ import { OeStateService } from './services/state.service';
     StrikeSummaryComponent,
     BlockspanNavigatorComponent,
     BlockspansHomeComponent,
+    OeDocsComponent
   ],
   imports: [
     CommonModule,
@@ -68,9 +71,12 @@ import { OeStateService } from './services/state.service';
     StrikeSummaryComponent,
     BlockspanNavigatorComponent,
     BlockspansHomeComponent,
+    OeDocsComponent
   ],
   exports: [ToastrModule, FontAwesomeModule],
 })
 export class OeEnergyModule {
-  constructor(library: FaIconLibrary) {}
+  constructor(library: FaIconLibrary) {
+    library.addIcons(faBook);
+  }
 }

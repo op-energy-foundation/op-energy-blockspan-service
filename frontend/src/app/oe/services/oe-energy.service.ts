@@ -10,6 +10,7 @@ import {
   BlockSpan,
   BlockHeader,
   Block,
+  SwaggerJson,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -211,4 +212,13 @@ export class OeEnergyApiService {
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockspanlist/${startBlockHeight}/${span}/${numberOfSpan}`
     );
   }
+
+  // returns swagger API json
+  $getSwaggerFile(): Observable<SwaggerJson> {
+    return this.httpClient.get<SwaggerJson>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/swagger.json',
+      {}
+    );
+  }
+
 }

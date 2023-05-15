@@ -107,3 +107,8 @@ export interface OpEnergyWebsocketResponse extends WebsocketResponse {
   checkedAccountToken?: string;
   declinedAccountSecret?: string;
 }
+
+
+export interface SwaggerJson {
+  [key: string]: string;
+}

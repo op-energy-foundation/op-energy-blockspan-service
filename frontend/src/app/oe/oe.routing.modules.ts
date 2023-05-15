@@ -1,3 +1,4 @@
+import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 import { BlockspansHomeComponent } from './components/blockspans-home/blockspans-home.component';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
@@ -47,6 +48,10 @@ const routes: Routes = [
         path: 'preview-page',
         component: PreviewComponent,
       },
+      {
+        path: 'docs',
+        component: OeDocsComponent
+      }
     ],
   },
   {
