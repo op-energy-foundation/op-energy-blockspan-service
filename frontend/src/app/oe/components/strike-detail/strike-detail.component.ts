@@ -1,4 +1,4 @@
-import { Block } from './../../interfaces/op-energy.interface';
+import { Block } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
@@ -9,9 +9,9 @@ import { ToastrService } from 'ngx-toastr';
 import {
   SlowFastGuess,
   TimeStrike,
-} from 'src/app/oe/interfaces/op-energy.interface';
+} from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import { OpEnergyApiService } from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 
 @Component({
@@ -100,7 +100,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private modalService: NgbModal,
     private toastr: ToastrService,
-    private opEnergyApiService: OpEnergyApiService,
+    private oeEnergyApiService: OeEnergyApiService,
     public stateService: OeStateService
   ) {}
 
@@ -161,10 +161,10 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
             }
 
             return combineLatest([
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(fromBlockHeight)
                 .pipe(catchError(() => of(fromBlockHeight))),
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(toBlockHeight)
                 .pipe(catchError(() => of(toBlockHeight))),
             ]);
@@ -201,7 +201,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   getGuesses() {
-    this.opEnergyApiService
+    this.oeEnergyApiService
       .$listSlowFastGuesses(this.strike)
       .subscribe((slowFastGuess: SlowFastGuess[]) => {
         this.slowFastGuesses = slowFastGuess;
@@ -240,7 +240,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   guess(guess: 'slow' | 'fast') {
     this.currentActiveGuess = guess;
-    this.opEnergyApiService
+    this.oeEnergyApiService
       .$slowFastGuess(guess, this.strike)
       .subscribe((slowFastGuess: SlowFastGuess) => {
         this.slowFastGuesses = [...this.slowFastGuesses, slowFastGuess];

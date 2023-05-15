@@ -7,7 +7,7 @@ import {
   Block,
   OpEnergyWebsocketResponse,
   WebsocketResponse,
-} from '../interfaces/op-energy.interface';
+} from '../interfaces/oe-energy.interface';
 import { OeStateService } from './state.service';
 import { environment } from '../../../environments/environment';
 

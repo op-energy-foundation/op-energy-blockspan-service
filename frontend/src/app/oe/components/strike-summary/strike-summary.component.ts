@@ -1,4 +1,4 @@
-import { Block } from './../../interfaces/op-energy.interface';
+import { Block } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
@@ -8,9 +8,9 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   TimeStrike,
   NavigationObject,
-} from 'src/app/oe/interfaces/op-energy.interface';
+} from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import { OpEnergyApiService } from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 
 @Component({
@@ -58,7 +58,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
     private location: Location,
     private router: Router,
     private modalService: NgbModal,
-    private opEnergyApiService: OpEnergyApiService,
+    private oeEnergyApiService: OeEnergyApiService,
     private stateService: OeStateService
   ) {}
 
@@ -98,8 +98,8 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
             return of([fromBlockInCache, toBlockInCache]);
           }
           return combineLatest([
-            this.opEnergyApiService.$getBlockByHeight(fromBlockHeight),
-            this.opEnergyApiService
+            this.oeEnergyApiService.$getBlockByHeight(fromBlockHeight),
+            this.oeEnergyApiService
               .$getBlockByHeight(toBlockHeight)
               .pipe(catchError(() => of(toBlockHeight))),
           ]);
@@ -136,7 +136,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   }
 
   getTimeStrikes(): void {
-    this.opEnergyApiService
+    this.oeEnergyApiService
       .$listTimeStrikesByBlockHeight(this.toBlock.height)
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map((strike) => ({

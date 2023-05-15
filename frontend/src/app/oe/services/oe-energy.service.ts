@@ -10,7 +10,7 @@ import {
   BlockSpan,
   BlockHeader,
   Block,
-} from '../interfaces/op-energy.interface';
+} from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
 import { environment } from '../../../environments/environment';
@@ -18,12 +18,12 @@ import { environment } from '../../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class OpEnergyApiService {
+export class OeEnergyApiService {
   private apiBaseUrl: string; // base URL is protocol, hostname, and port
   private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
   constructor(
     private httpClient: HttpClient,
-    private opEnergyStateService: OeStateService
+    private oeEnergyStateService: OeStateService
   ) {
     this.apiBaseUrl = environment.baseUrl; // use relative URL by default
     this.apiBasePath = '';
@@ -40,7 +40,7 @@ export class OpEnergyApiService {
   ): Observable<TimeStrike> {
     var accountToken;
     // get account token from the state service
-    let subscription = this.opEnergyStateService.$accountToken.subscribe(
+    let subscription = this.oeEnergyStateService.$accountToken.subscribe(
       (newAccountToken) => {
         accountToken = newAccountToken;
       }
@@ -91,7 +91,7 @@ export class OpEnergyApiService {
     guess: 'slow' | 'fast',
     timeStrike: TimeStrike
   ): Observable<SlowFastGuess> {
-    return this.opEnergyStateService.$accountToken.pipe(take(1)).pipe(
+    return this.oeEnergyStateService.$accountToken.pipe(take(1)).pipe(
       switchMap((newAccountToken) => {
         let params = {
           account_token: newAccountToken,
@@ -132,7 +132,7 @@ export class OpEnergyApiService {
   // - lockedBlockHeight: height of the locked block number
   // - medianSeconds: value of locked block's median time to guess
   $updateUserDisplayName(displayName: string): Observable<string> {
-    return this.opEnergyStateService.$accountToken.pipe(take(1)).pipe(
+    return this.oeEnergyStateService.$accountToken.pipe(take(1)).pipe(
       switchMap((newAccountToken) => {
         let params = {
           account_token: newAccountToken,
@@ -163,7 +163,7 @@ export class OpEnergyApiService {
   $listSlowFastResults(
     timeStrikesHistory: TimeStrikesHistory
   ): Observable<SlowFastResult | null> {
-    return this.opEnergyStateService.$accountToken.pipe(take(1)).pipe(
+    return this.oeEnergyStateService.$accountToken.pipe(take(1)).pipe(
       switchMap((newAccountToken) => {
         let params = {
           account_token: newAccountToken,
