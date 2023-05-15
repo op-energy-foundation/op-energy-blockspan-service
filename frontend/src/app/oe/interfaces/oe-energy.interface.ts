@@ -10,6 +10,7 @@ export interface Block {
   reward: number;
   chainwork: string;
   mediantime: number;
+  stage?: number;
 }
 
 export interface TimeStrike {
@@ -86,4 +87,27 @@ export interface BlockHeader {
   reward: number;
   chainwork: string;
   mediantime: number;
+}
+
+export interface WebsocketResponse {
+  block?: Block;
+  blocks?: Block[];
+  action?: string;
+  data?: string[];
+}
+export interface OeEnergyWebsocketResponse extends WebsocketResponse {
+  'track-time-strikes'?: 'start' | 'stop';
+  'track-time-strike-start'?: TimeStrike;
+  'track-time-strike-stop'?: TimeStrike;
+  timeStrike?: TimeStrike;
+  timeSlowFastGuess?: SlowFastGuess;
+  timeSlowFastGuessOutcome?: SlowFastGuessOutcome;
+  generatedAccountSecret?: string;
+  generatedAccountToken?: string;
+  checkedAccountToken?: string;
+  declinedAccountSecret?: string;
+}
+
+export interface SwaggerJson {
+  [key: string]: string;
 }

@@ -3,9 +3,16 @@
     <div class="blockspan">
       <div class="d-flex">
         <div class="energy-container">
-          <app-blockspan *ngIf="fromBlock && toBlock" [fromBlock]="fromBlock" [toBlock]="toBlock"></app-blockspan>
-          <app-base-box-v2 [span]="span" [fromTime]="fromBlock.mediantime"
-            [toTime]="toBlock.mediantime"></app-base-box-v2>
+          <app-blockspan
+            *ngIf="fromBlock && toBlock"
+            [fromBlock]="fromBlock"
+            [toBlock]="toBlock"
+          ></app-blockspan>
+          <app-base-box-v2
+            [span]="span"
+            [fromTime]="fromBlock.mediantime"
+            [toTime]="toBlock.mediantime"
+          ></app-base-box-v2>
         </div>
       </div>
     </div>

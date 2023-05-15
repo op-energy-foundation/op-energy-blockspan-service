@@ -1,15 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { switchMap, catchError } from 'rxjs/operators';
+import { switchMap, catchError, take } from 'rxjs/operators';
 import { combineLatest, Observable, of, Subscription } from 'rxjs';
 import {
   Block,
   EnergyNbdrStatistics,
   TimeStrike,
-} from 'src/app/oe/interfaces/op-energy.interface';
+} from 'src/app/oe/interfaces/oe-energy.interface';
 import { ToastrService } from 'ngx-toastr';
-import { OpEnergyApiService } from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { BlockTypes } from '../../types/constant';
+import { OeStateService } from '../../services/state.service';
 
 @Component({
   selector: 'app-energy-detail',
@@ -61,8 +62,9 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private opEnergyApiService: OpEnergyApiService,
-    private toastr: ToastrService
+    private oeEnergyApiService: OeEnergyApiService,
+    private toastr: ToastrService,
+    private stateService: OeStateService
   ) {}
 
   ngOnInit() {
@@ -103,10 +105,10 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
               return of([fromBlockInCache, toBlockInCache]);
             }
             return combineLatest([
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(fromBlockHeight)
                 .pipe(catchError(() => of(fromBlockHeight))),
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(toBlockHeight)
                 .pipe(catchError(() => of(toBlockHeight))),
             ]);
@@ -126,7 +128,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
         this.nextBlockHeight = fromBlock.height + 1;
         this.setNextAndPreviousBlockLink();
 
-        this.opEnergyApiService
+        this.oeEnergyApiService
           .$getNbdrStatistics(fromBlock.height - this.span * 100, this.span)
           .subscribe({
             next: (data: EnergyNbdrStatistics) => {
@@ -141,9 +143,9 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
         this.isLoadingBlock = false;
         this.isLoadingTransactions = true;
 
-        /* this.stateService.$accountToken.pipe(take(1)).subscribe(res => {
-        this.getTimeStrikes();
-      }) */
+        this.stateService.$accountToken.pipe(take(1)).subscribe((res) => {
+          this.getTimeStrikes();
+        });
       })),
       (error) => {
         this.error = error;
@@ -156,14 +158,13 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
   }
 
   getTimeStrikes() {
-    this.opEnergyApiService
+    this.oeEnergyApiService
       .$listTimeStrikesByBlockHeight(this.toBlock.height)
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map((strike) => ({
           ...strike,
           elapsedTime: strike.nLockTime - this.fromBlock.mediantime,
         }));
-        console.log(111111111, this.timeStrikes);
       });
   }
 

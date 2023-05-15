@@ -1,16 +1,13 @@
 import { Injectable } from '@angular/core';
-import {
-  ReplaySubject,
-  BehaviorSubject,
-  Subject,
-  fromEvent,
-  Observable,
-} from 'rxjs';
+import { ReplaySubject } from 'rxjs';
 import {
   TimeStrike,
   SlowFastGuess,
   SlowFastGuessOutcome,
-} from '../interfaces/op-energy.interface';
+  OeEnergyWebsocketResponse,
+  Block,
+} from '../interfaces/oe-energy.interface';
+import { WebsocketService } from './websocket.service';
 
 @Injectable({
   providedIn: 'root',
@@ -25,51 +22,56 @@ export class OeStateService {
   timeStrikes$ = new ReplaySubject<TimeStrike>(1);
   timeSlowFastGuesses$ = new ReplaySubject<SlowFastGuess>(1);
   timeSlowFastGuessesOutcome$ = new ReplaySubject<SlowFastGuessOutcome>(1);
-  // latestReceivedBlock$ = new ReplaySubject<BlockExtended>(1); // this object will only contain the last block received from the backend. This block can be considered as the current tip
+  latestReceivedBlock$ = new ReplaySubject<Block>(1); // this object will only contain the last block received from the backend. This block can be considered as the current tip
   latestReceivedBlockHeight = -1; // plain  block height of the latest recevied block. Need this value to handle the case when backend sends newly found block
   latestBlockHeight = -1;
   private apiBaseUrl: string; // base URL is protocol, hostname, and port
-  private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
   constructor() {
     this.apiBaseUrl = ''; // use relative URL by default
   }
 
   /* 
   callback which will be called by websocket service
-  handleWebsocketResponse( websocketService: WebsocketService, response: OpEnergyWebsocketResponse) {
-
-    if( response['oe-newest-confirmed-block'] && response['oe-newest-confirmed-block'].height !== undefined) {
-      this.latestReceivedBlockHeight = response['oe-newest-confirmed-block'].height;
+  */
+  handleWebsocketResponse(
+    websocketService: WebsocketService,
+    response: OeEnergyWebsocketResponse
+  ): void {
+    if (
+      response['oe-newest-confirmed-block'] &&
+      response['oe-newest-confirmed-block'].height !== undefined
+    ) {
+      this.latestReceivedBlockHeight =
+        response['oe-newest-confirmed-block'].height;
       const block = response['oe-newest-confirmed-block'];
-      this.latestReceivedBlock$.next( block);
+      this.latestReceivedBlock$.next(block);
     }
 
-
-    if( response.declinedAccountSecret) {
+    if (response.declinedAccountSecret) {
       websocketService.want(['generatedaccounttoken']);
     }
-    if( response.checkedAccountToken) {
+    if (response.checkedAccountToken) {
       this.accountTokenState = 'checked';
-      this.$accountToken.next( response.checkedAccountToken);
-      this.$showAccountURLWarning.next( false);
+      this.$accountToken.next(response.checkedAccountToken);
+      this.$showAccountURLWarning.next(false);
     }
-    if( response.generatedAccountSecret  && response.generatedAccountToken) {
+    if (response.generatedAccountSecret && response.generatedAccountToken) {
       this.accountTokenState = 'generated';
-      this.$accountSecret.next( response.generatedAccountSecret);
-      this.$accountToken.next( response.generatedAccountToken);
-      this.$showAccountURLWarning.next( true);
+      this.$accountSecret.next(response.generatedAccountSecret);
+      this.$accountToken.next(response.generatedAccountToken);
+      this.$showAccountURLWarning.next(true);
     }
-    if ( response.timeStrike) {
+    if (response.timeStrike) {
       const ts = response.timeStrike;
-      this.timeStrikes$.next( ts);
+      this.timeStrikes$.next(ts);
     }
-    if ( response.timeSlowFastGuess) {
+    if (response.timeSlowFastGuess) {
       const slowFastGuess = response.timeSlowFastGuess;
-      this.timeSlowFastGuesses$.next( slowFastGuess);
+      this.timeSlowFastGuesses$.next(slowFastGuess);
     }
-    if ( response.timeSlowFastGuessOutcome) {
+    if (response.timeSlowFastGuessOutcome) {
       const slowFastGuessOutcome = response.timeSlowFastGuessOutcome;
-      this.timeSlowFastGuessesOutcome$.next( slowFastGuessOutcome);
+      this.timeSlowFastGuessesOutcome$.next(slowFastGuessOutcome);
     }
-  } */
+  }
 }

@@ -6,7 +6,7 @@ import {
   Input,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Block } from '../../interfaces/op-energy.interface';
+import { Block } from '../../interfaces/oe-energy.interface';
 
 @Component({
   selector: 'app-energy',

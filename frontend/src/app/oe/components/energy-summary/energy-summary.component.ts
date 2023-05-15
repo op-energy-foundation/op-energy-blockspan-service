@@ -3,8 +3,8 @@ import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap, catchError } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { BlockTypes } from '../../types/constant';
-import { Block, TimeStrike } from './../../interfaces/op-energy.interface';
-import { OpEnergyApiService } from '../../services/oe-energy.service';
+import { Block, TimeStrike } from '../../interfaces/oe-energy.interface';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
 
 @Component({
   selector: 'app-energy-summary',
@@ -32,7 +32,7 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private opEnergyApiService: OpEnergyApiService
+    private oeEnergyApiService: OeEnergyApiService
   ) {}
 
   ngOnInit() {
@@ -85,10 +85,10 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
             }
 
             return combineLatest([
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(fromBlockHeight)
                 .pipe(catchError(() => of(fromBlockHeight))),
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(toBlockHeight)
                 .pipe(catchError(() => of(toBlockHeight))),
             ]);
@@ -126,7 +126,7 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
   }
 
   /* getTimeStrikes() {
-    this.opEnergyApiService.$listTimeStrikesByBlockHeight(this.toBlock.height)
+    this.oeEnergyApiService.$listTimeStrikesByBlockHeight(this.toBlock.height)
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map(strike => ({
           ...strike,
