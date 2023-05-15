@@ -1,24 +1,49 @@
 <div *ngIf="fromBlock && toBlock" class="observed-blockspan-detail">
   <div class="observed-blockspan-detail--top">
     <div class="blockspan">
-      <app-blockspan *ngIf="fromBlock && toBlock" [fromBlock]="fromBlock" [toBlock]="toBlock"></app-blockspan>
+      <app-blockspan
+        *ngIf="fromBlock && toBlock"
+        [fromBlock]="fromBlock"
+        [toBlock]="toBlock"
+      ></app-blockspan>
       <div>
-        <app-base-box-hor [span]="span" [fromTime]="fromBlock.mediantime" [toTime]="toBlock.mediantime"
-          [link]="energyDetailLink()"></app-base-box-hor>
-        <app-base-box-hor [span]="span" [type]="strikeType" [fromTime]="fromBlock.mediantime"
-          [toTime]="strike.nLockTime" color="#eeeeee" [link]="strikeDetailLink()"></app-base-box-hor>
+        <app-base-box-hor
+          [span]="span"
+          [fromTime]="fromBlock.mediantime"
+          [toTime]="toBlock.mediantime"
+          [link]="energyDetailLink()"
+        ></app-base-box-hor>
+        <app-base-box-hor
+          [span]="span"
+          [type]="strikeType"
+          [fromTime]="fromBlock.mediantime"
+          [toTime]="strike.nLockTime"
+          color="#eeeeee"
+          [link]="strikeDetailLink()"
+        ></app-base-box-hor>
       </div>
     </div>
     <div class="blockspan-table">
       <div *ngIf="canGuess">
         <h3 class="text-center mt-4 mb-4">Guess</h3>
         <div class="guess-btns">
-          <div class="guess-btns--btn hot" [class.active]="currentActiveGuess === 'fast'" (click)="guess('fast')">
+          <div
+            class="guess-btns--btn hot"
+            [class.active]="currentActiveGuess === 'fast'"
+            (click)="guess('fast')"
+          >
             <fa-icon [icon]="['fas', 'burn']" [fixedWidth]="true"></fa-icon>
             <div>Hot</div>
           </div>
-          <div class="guess-btns--btn cold" [class.active]="currentActiveGuess === 'slow'" (click)="guess('slow')">
-            <fa-icon [icon]="['fas', 'snowflake']" [fixedWidth]="true"></fa-icon>
+          <div
+            class="guess-btns--btn cold"
+            [class.active]="currentActiveGuess === 'slow'"
+            (click)="guess('slow')"
+          >
+            <fa-icon
+              [icon]="['fas', 'snowflake']"
+              [fixedWidth]="true"
+            ></fa-icon>
             <div>Cold</div>
           </div>
         </div>
@@ -35,7 +60,9 @@
             <tr *ngFor="let guess of slowFastGuesses">
               <td>{{ guess.userName }}</td>
               <td>{{ guess.guess }}</td>
-              <td>{{ guess.creationTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</td>
+              <td>
+                {{ guess.creationTime * 1000 | date: 'yyyy-MM-dd HH:mm' }}
+              </td>
             </tr>
           </tbody>
         </table>

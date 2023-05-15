@@ -4,7 +4,7 @@ import {
   TimeStrike,
   SlowFastGuess,
   SlowFastGuessOutcome,
-  OpEnergyWebsocketResponse,
+  OeEnergyWebsocketResponse,
   Block,
 } from '../interfaces/oe-energy.interface';
 import { WebsocketService } from './websocket.service';
@@ -35,7 +35,7 @@ export class OeStateService {
   */
   handleWebsocketResponse(
     websocketService: WebsocketService,
-    response: OpEnergyWebsocketResponse
+    response: OeEnergyWebsocketResponse
   ): void {
     if (
       response['oe-newest-confirmed-block'] &&

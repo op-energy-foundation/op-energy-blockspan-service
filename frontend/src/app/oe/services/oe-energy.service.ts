@@ -220,5 +220,4 @@ export class OeEnergyApiService {
       {}
     );
   }
-
 }

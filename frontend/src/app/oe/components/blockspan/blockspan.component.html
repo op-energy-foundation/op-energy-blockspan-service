@@ -1,10 +1,18 @@
 <div class="blockspan">
   <a class="to-block dummy"></a>
-  <div class="to-block" [ngClass]="{'is-link': toDetailLink}" (click)="navigateTo(toDetailLink)">
+  <div
+    class="to-block"
+    [ngClass]="{ 'is-link': toDetailLink }"
+    (click)="navigateTo(toDetailLink)"
+  >
     {{ toBlock.height || toBlock }}
   </div>
   <div class="span-block">{{ span || '?' }}</div>
-  <div class="from-block" [ngClass]="{'is-link': fromDetailLink}" (click)="navigateTo(fromDetailLink)">
+  <div
+    class="from-block"
+    [ngClass]="{ 'is-link': fromDetailLink }"
+    (click)="navigateTo(fromDetailLink)"
+  >
     {{ fromBlock.height || fromBlock }}
   </div>
   <div class="footer">block</div>

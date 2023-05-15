@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
 })
 export class OeMasterPageComponent {
   navCollapsed = false;
-  
+
   collapse(): void {
     this.navCollapsed = !this.navCollapsed;
   }

@@ -95,7 +95,7 @@ export interface WebsocketResponse {
   action?: string;
   data?: string[];
 }
-export interface OpEnergyWebsocketResponse extends WebsocketResponse {
+export interface OeEnergyWebsocketResponse extends WebsocketResponse {
   'track-time-strikes'?: 'start' | 'stop';
   'track-time-strike-start'?: TimeStrike;
   'track-time-strike-stop'?: TimeStrike;
@@ -107,7 +107,6 @@ export interface OpEnergyWebsocketResponse extends WebsocketResponse {
   checkedAccountToken?: string;
   declinedAccountSecret?: string;
 }
-
 
 export interface SwaggerJson {
   [key: string]: string;
