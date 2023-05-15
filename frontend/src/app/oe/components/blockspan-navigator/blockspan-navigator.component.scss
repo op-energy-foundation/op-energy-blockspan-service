@@ -1,0 +1,36 @@
+.tetris-blockspan {
+  width: max-content;
+  height: 100%;
+
+  .to-block,
+  .from-block {
+    position: relative;
+    width: 60%;
+    height: 4rem;
+    background-color: yellow;
+    border: 1px solid black;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: 700;
+    padding: 0 30px;
+
+    .span-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      background-color: orange;
+      bottom: -25%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      border: 1px solid black;
+      padding: 3px;
+    }
+  }
+}

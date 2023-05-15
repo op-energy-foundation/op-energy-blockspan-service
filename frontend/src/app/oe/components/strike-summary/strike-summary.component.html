@@ -1,0 +1,13 @@
+<div class="observed-blockspan-detail">
+  <div class="observed-blockspan-detail--top" *ngIf="fromBlock && toBlock">
+    <div class="blockspan">
+      <div style="margin-bottom: 110px;" class="d-flex">
+        <app-energy [fromBlock]="fromBlock" [toBlock]="toBlock"></app-energy>
+        <app-base-box [span]="span" [fromTime]="fromBlock.mediantime" [toTime]="toBlock.mediantime" color="#eeeeee"
+          [link]="strikeDetailLink"></app-base-box>
+        <svg-icon class="pipe" src="./resources/pipe.svg" [svgStyle]="{'width.px':60,'height.px':60,'fill':'#e0e0e0'}">
+        </svg-icon>
+      </div>
+    </div>
+  </div>
+</div>

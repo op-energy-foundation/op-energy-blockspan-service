@@ -1,0 +1,97 @@
+.observed-blockspan-detail {
+  margin-top: 100px;
+
+  &--top {
+    display: flex;
+    justify-content: center;
+    gap: 150px;
+
+    .blockspan {
+      min-width: 250px;
+      max-width: 400px;
+
+      > div {
+        height: 300px;
+
+        .show-strikes {
+          cursor: pointer;
+          text-align: center;
+          text-decoration: underline;
+          color: #00e7ff;
+          margin-top: 65px;
+        }
+      }
+
+      .app-strike {
+        margin: 80px 0;
+      }
+    }
+
+    .blockspan-table {
+      .content {
+        word-wrap: break-word;
+        background-color: #24273e;
+        background-clip: border-box;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        box-shadow: 0.125rem 0.125rem 0.25rem #00000013;
+
+        .table {
+          tr {
+            white-space: initial;
+          }
+
+          td {
+            word-break: break-all;
+            max-width: 300px;
+          }
+        }
+      }
+    }
+
+    ::ng-deep {
+      app-blockspan {
+        height: 50% !important;
+
+        .to-block.dummy {
+          display: none;
+        }
+
+        .to-block,
+        .from-block {
+          height: 50% !important;
+        }
+
+        .span-block {
+          height: 30% !important;
+          top: 50% !important;
+        }
+      }
+
+      app-base-box {
+        .tank-box--top {
+          height: 50%;
+        }
+      }
+    }
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: center;
+      gap: 50px;
+
+      .blockspan-table {
+        width: 100%;
+        padding: 20px;
+
+        .content {
+          width: 100%;
+          overflow: auto;
+
+          .table td {
+            min-width: 150px;
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,17 +6,18 @@ import { OpEnergyApiService } from './oe/services/oe-energy.service';
 import { OeEnergyModule } from './oe/oe.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { WebsocketService } from './oe/services/websocket.service';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    AppRoutingModule,
     HttpClientModule,
     BrowserAnimationsModule,
     OeEnergyModule,
+    AppRoutingModule,
   ],
-  providers: [OpEnergyApiService],
+  providers: [WebsocketService, OpEnergyApiService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
