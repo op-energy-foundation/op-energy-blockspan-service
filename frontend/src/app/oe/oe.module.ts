@@ -21,7 +21,7 @@ import { OeMasterPageComponent } from './components/oe-master-page/oe-master-pag
 import { PreviewComponent } from './components/preview/preview.component';
 import { OeRoutingModule } from './oe.routing.modules';
 import { EnergyDetailComponent } from './components/energy-detail/energy-detail.component';
-import { OpEnergyApiService } from './services/oe-energy.service';
+import { OeEnergyApiService } from './services/oe-energy.service';
 import { BlockspansHomeComponent } from './components/blockspans-home/blockspans-home.component';
 import { WebsocketService } from './services/websocket.service';
 import { OeStateService } from './services/state.service';
@@ -53,7 +53,7 @@ import { OeStateService } from './services/state.service';
   ],
   providers: [
     WebsocketService,
-    OpEnergyApiService,
+    OeEnergyApiService,
     OeStateService,
     PreviewComponent,
     BlockspanComponent,

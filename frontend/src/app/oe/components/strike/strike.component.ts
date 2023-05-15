@@ -6,8 +6,8 @@ import {
   Input,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { TimeStrike } from 'src/app/oe/interfaces/op-energy.interface';
-import { Block } from './../../interfaces/op-energy.interface';
+import { TimeStrike } from 'src/app/oe/interfaces/oe-energy.interface';
+import { Block } from '../../interfaces/oe-energy.interface';
 
 export const MAX_COUNT = 14;
 

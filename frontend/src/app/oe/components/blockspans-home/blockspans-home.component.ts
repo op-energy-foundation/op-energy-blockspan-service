@@ -4,13 +4,11 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  NgModule,
-  HostListener,
   ViewChild,
   ElementRef,
 } from '@angular/core';
 import { Location } from '@angular/common';
-import { forkJoin, Observable, Subscription, of, lastValueFrom } from 'rxjs';
+import { forkJoin, Subscription, of, lastValueFrom } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { switchMap, take } from 'rxjs/operators';
@@ -18,9 +16,9 @@ import { OeStateService } from 'src/app/oe/services/state.service';
 import {
   TimeStrike,
   BlockSpan,
-} from 'src/app/oe/interfaces/op-energy.interface';
-import { Block } from './../../interfaces/op-energy.interface';
-import { OpEnergyApiService } from '../../services/oe-energy.service';
+} from 'src/app/oe/interfaces/oe-energy.interface';
+import { Block } from '../../interfaces/oe-energy.interface';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { environment } from '../../../../environments/environment';
 
 interface PastBlock extends Block {
@@ -71,7 +69,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private cd: ChangeDetectorRef,
-    private opEnergyApiService: OpEnergyApiService
+    private oeEnergyApiService: OeEnergyApiService
   ) {}
 
   ngOnInit() {
@@ -121,7 +119,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
     let blockSpanList = [];
     try {
       blockSpanList = await lastValueFrom(
-        this.opEnergyApiService.$getBlockSpanList(
+        this.oeEnergyApiService.$getBlockSpanList(
           tipBlock - span * numberOfSpan,
           span,
           numberOfSpan
@@ -138,7 +136,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
     this.pastBlocks = [];
     forkJoin(
       blockNumbers.map((blockNo) =>
-        this.opEnergyApiService.$getBlockByHeight(blockNo)
+        this.oeEnergyApiService.$getBlockByHeight(blockNo)
       )
     )
       .pipe(take(1))
@@ -169,7 +167,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
   }
 
   getTimeStrikes() {
-    this.opEnergyApiService
+    this.oeEnergyApiService
       .$listTimeStrikes()
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map((strike) => ({
@@ -254,7 +252,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
   addStrike(strike) {
     const nLockTime =
       this.pastBlocks[0].mediantime + Number(strike.elapsedTime);
-    this.opEnergyApiService
+    this.oeEnergyApiService
       .$addTimeStrike(strike.blockHeight, nLockTime)
       .subscribe(
         (timeStrike) => {

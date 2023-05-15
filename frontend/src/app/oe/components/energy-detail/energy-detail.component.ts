@@ -6,9 +6,9 @@ import {
   Block,
   EnergyNbdrStatistics,
   TimeStrike,
-} from 'src/app/oe/interfaces/op-energy.interface';
+} from 'src/app/oe/interfaces/oe-energy.interface';
 import { ToastrService } from 'ngx-toastr';
-import { OpEnergyApiService } from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { BlockTypes } from '../../types/constant';
 import { OeStateService } from '../../services/state.service';
 
@@ -62,7 +62,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private opEnergyApiService: OpEnergyApiService,
+    private oeEnergyApiService: OeEnergyApiService,
     private toastr: ToastrService,
     private stateService: OeStateService
   ) {}
@@ -105,10 +105,10 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
               return of([fromBlockInCache, toBlockInCache]);
             }
             return combineLatest([
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(fromBlockHeight)
                 .pipe(catchError(() => of(fromBlockHeight))),
-              this.opEnergyApiService
+              this.oeEnergyApiService
                 .$getBlockByHeight(toBlockHeight)
                 .pipe(catchError(() => of(toBlockHeight))),
             ]);
@@ -128,7 +128,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
         this.nextBlockHeight = fromBlock.height + 1;
         this.setNextAndPreviousBlockLink();
 
-        this.opEnergyApiService
+        this.oeEnergyApiService
           .$getNbdrStatistics(fromBlock.height - this.span * 100, this.span)
           .subscribe({
             next: (data: EnergyNbdrStatistics) => {
@@ -158,7 +158,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
   }
 
   getTimeStrikes() {
-    this.opEnergyApiService
+    this.oeEnergyApiService
       .$listTimeStrikesByBlockHeight(this.toBlock.height)
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map((strike) => ({

@@ -6,7 +6,7 @@ import {
   SlowFastGuessOutcome,
   OpEnergyWebsocketResponse,
   Block,
-} from '../interfaces/op-energy.interface';
+} from '../interfaces/oe-energy.interface';
 import { WebsocketService } from './websocket.service';
 
 @Injectable({
