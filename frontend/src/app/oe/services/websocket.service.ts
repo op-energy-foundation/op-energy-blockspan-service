@@ -5,7 +5,7 @@ import { take } from 'rxjs/operators';
 import { TransferState, makeStateKey } from '@angular/platform-browser';
 import {
   Block,
-  OpEnergyWebsocketResponse,
+  OeEnergyWebsocketResponse,
   WebsocketResponse,
 } from '../interfaces/oe-energy.interface';
 import { OeStateService } from './state.service';
@@ -33,7 +33,7 @@ export class WebsocketService {
   private onlineCheckTimeoutTwo: number;
   private subscription: Subscription;
 
-  constructor(private opEnergyStateService: OeStateService) {
+  constructor(private oeEnergyStateService: OeStateService) {
     this.websocketSubject = webSocket<WebsocketResponse>(this.webSocketUrl);
     this.startSubscription();
   }
@@ -46,7 +46,7 @@ export class WebsocketService {
       // this.stateService.connectionState$.next(1);
     }
     this.subscription = this.websocketSubject.subscribe(
-      (response: OpEnergyWebsocketResponse) => {
+      (response: OeEnergyWebsocketResponse) => {
         this.handleResponse(response);
 
         if (this.goneOffline === true) {
@@ -108,22 +108,22 @@ export class WebsocketService {
     }, OFFLINE_PING_CHECK_AFTER_MS);
   }
 
-  handleResponse(response: OpEnergyWebsocketResponse) {
-    // op-energy hook
-    this.opEnergyStateService.handleWebsocketResponse(this, response);
+  handleResponse(response: OeEnergyWebsocketResponse) {
+    // oe-energy hook
+    this.oeEnergyStateService.handleWebsocketResponse(this, response);
 
     if (response.blocks && response.blocks.length) {
       const blocks = response.blocks;
       blocks.forEach((block: Block) => {
-        if (block.height > this.opEnergyStateService.latestBlockHeight) {
-          this.opEnergyStateService.latestBlockHeight = block.height;
+        if (block.height > this.oeEnergyStateService.latestBlockHeight) {
+          this.oeEnergyStateService.latestBlockHeight = block.height;
         }
       });
     }
 
     if (response.block) {
-      if (response.block.height > this.opEnergyStateService.latestBlockHeight) {
-        this.opEnergyStateService.latestBlockHeight = response.block.height;
+      if (response.block.height > this.oeEnergyStateService.latestBlockHeight) {
+        this.oeEnergyStateService.latestBlockHeight = response.block.height;
       }
     }
   }

@@ -50,8 +50,8 @@ const routes: Routes = [
       },
       {
         path: 'docs',
-        component: OeDocsComponent
-      }
+        component: OeDocsComponent,
+      },
     ],
   },
   {

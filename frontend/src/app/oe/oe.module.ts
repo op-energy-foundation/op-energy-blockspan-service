@@ -44,7 +44,7 @@ import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
     StrikeSummaryComponent,
     BlockspanNavigatorComponent,
     BlockspansHomeComponent,
-    OeDocsComponent
+    OeDocsComponent,
   ],
   imports: [
     CommonModule,
@@ -71,7 +71,7 @@ import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
     StrikeSummaryComponent,
     BlockspanNavigatorComponent,
     BlockspansHomeComponent,
-    OeDocsComponent
+    OeDocsComponent,
   ],
   exports: [ToastrModule, FontAwesomeModule],
 })

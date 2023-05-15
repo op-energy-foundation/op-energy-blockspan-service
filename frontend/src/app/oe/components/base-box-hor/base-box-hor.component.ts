@@ -33,10 +33,7 @@ export class BaseBoxHorComponent implements OnInit, OnDestroy {
     return ((600 * 100 * this.span) / (this.toTime - this.fromTime)).toFixed(2);
   }
 
-  constructor(
-    private route: ActivatedRoute,
-    public router: Router
-  ) {}
+  constructor(private route: ActivatedRoute, public router: Router) {}
 
   ngOnInit(): void {}
 

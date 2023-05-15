@@ -5,7 +5,7 @@ export enum TextSelectionTypes {
 }
 
 export enum ArrowDirections {
-  LEFT= 'ArrowLeft',
+  LEFT = 'ArrowLeft',
   RIGHT = 'ArrowRight',
 }
 

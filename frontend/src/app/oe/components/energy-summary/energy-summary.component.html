@@ -1,12 +1,16 @@
 <div class="observed-blockspan-detail">
   <div class="observed-blockspan-detail--top" *ngIf="fromBlock && toBlock">
     <div class="blockspan">
-      <div style="margin-bottom: 110px;">
+      <div style="margin-bottom: 110px">
         <app-energy [fromBlock]="fromBlock" [toBlock]="toBlock"></app-energy>
       </div>
       <ng-container>
         <div class="app-strike" *ngFor="let strike of timeStrikes">
-          <app-strike [fromBlock]="fromBlock" [toBlock]="toBlock" [strike]="strike"></app-strike>
+          <app-strike
+            [fromBlock]="fromBlock"
+            [toBlock]="toBlock"
+            [strike]="strike"
+          ></app-strike>
         </div>
       </ng-container>
     </div>
