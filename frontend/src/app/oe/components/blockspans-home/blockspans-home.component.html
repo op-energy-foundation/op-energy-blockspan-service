@@ -1,0 +1,47 @@
+<div id="blockchain-container" dir="ltr" #blockchainContainer (mousedown)="onMouseDown($event)"
+  (dragstart)="onDragStart($event)">
+  <div class="text-center" class="blockchain-wrapper" [ngStyle]="{'height': 400 * timeStrikes.length + 'px' }">
+    <div class="position-container">
+      <span>
+        <div>
+          <div *ngIf="pastBlocks[0] && lastPastBlock" class="future-blocks">
+            <app-energy [fromBlock]="pastBlocks[0]" [toBlock]="lastPastBlock"></app-energy>
+            <!-- <app-tetris-blockspan-strike *ngFor="let strike of timeStrikes" [fromBlock]="pastBlocks[0].height" [toBlock]="strike.blockHeight" [elapsedTime]="strike.elapsedTime"></app-tetris-blockspan-strike> -->
+          </div>
+          <div>
+            <!-- <app-tetris-add-strike
+              *ngIf="pastBlocks[0] && pastBlocks" [fromBlock]="pastBlocks[0].height" [span]="span + 1" [strike]="initStrike"
+              (emitAdd)="addStrike($event)">
+            </app-tetris-add-strike> -->
+          </div>
+          <div>
+            <app-blockspan-navigator *ngIf="pastBlocks[0] && pastBlocks" [fromBlock]="pastBlocks[1].height - 1"
+              [span]="span + 1" (emitGo)="blockspanChange($event)">
+            </app-blockspan-navigator>
+          </div>
+          <div class="blocks-container blockchain-blocks-container"
+            *ngIf="pastBlocks.length; else loadingBlocksTemplate">
+            <div *ngFor="let i of indexArray;">
+              <app-energy *ngIf="pastBlocks[i - 1] && pastBlocks[i]" [fromBlock]="pastBlocks[i]"
+                [toBlock]="pastBlocks[i - 1]" [ngStyle]="blockStyles[(i - 1) / 2]"
+                (click)="goDetail(pastBlocks[i], pastBlocks[i - 1])"></app-energy>
+            </div>
+            <div [hidden]="!arrowVisible" id="arrow-up" [style.transition]="transition"
+              [ngStyle]="{'left': arrowLeftPx + 'px' }"></div>
+          </div>
+          <ng-template #loadingBlocksTemplate>
+            <div class="blocks-container">
+              <div class="flashing">
+                <div *ngFor="let block of emptyBlocks; let i = index; trackBy: trackByBlocksFn">
+                  <div class="text-center bitcoin-block mined-block" id="bitcoin-block-{{ block.height }}"
+                    [ngStyle]="emptyBlockStyles[i]"></div>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </div>
+        <div id="divider"></div>
+      </span>
+    </div>
+  </div>
+</div>

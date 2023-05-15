@@ -1,9 +1,12 @@
+import { BlockspanNavigatorComponent } from './components/blockspan-navigator/blockspan-navigator.component';
+import { StrikeSummaryComponent } from './components/strike-summary/strike-summary.component';
 import { BaseBoxHorComponent } from './components/base-box-hor/base-box-hor.component';
 import { StrikeDetailComponent } from './components/strike-detail/strike-detail.component';
 import { NgModule } from '@angular/core';
 import { ToastrModule } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { FormsModule } from '@angular/forms';
 import { EnergyComponent } from './components/energy/energy.component';
 import { BaseBoxComponent } from './components/base-box/base-box.component';
 import { StrikeComponent } from './components/strike/strike.component';
@@ -19,6 +22,9 @@ import { PreviewComponent } from './components/preview/preview.component';
 import { OeRoutingModule } from './oe.routing.modules';
 import { EnergyDetailComponent } from './components/energy-detail/energy-detail.component';
 import { OpEnergyApiService } from './services/oe-energy.service';
+import { BlockspansHomeComponent } from './components/blockspans-home/blockspans-home.component';
+import { WebsocketService } from './services/websocket.service';
+import { OeStateService } from './services/state.service';
 
 @NgModule({
   declarations: [
@@ -33,16 +39,22 @@ import { OpEnergyApiService } from './services/oe-energy.service';
     EnergyComponent,
     StrikeDetailComponent,
     BaseBoxHorComponent,
+    StrikeSummaryComponent,
+    BlockspanNavigatorComponent,
+    BlockspansHomeComponent,
   ],
   imports: [
     CommonModule,
+    FormsModule,
     OeRoutingModule,
     ToastrModule.forRoot(),
     AngularSvgIconModule.forRoot(),
     FontAwesomeModule,
   ],
   providers: [
+    WebsocketService,
     OpEnergyApiService,
+    OeStateService,
     PreviewComponent,
     BlockspanComponent,
     BaseBoxV2Component,
@@ -53,6 +65,9 @@ import { OpEnergyApiService } from './services/oe-energy.service';
     EnergyComponent,
     StrikeDetailComponent,
     BaseBoxHorComponent,
+    StrikeSummaryComponent,
+    BlockspanNavigatorComponent,
+    BlockspansHomeComponent,
   ],
   exports: [ToastrModule, FontAwesomeModule],
 })

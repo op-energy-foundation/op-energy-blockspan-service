@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { switchMap, catchError } from 'rxjs/operators';
+import { switchMap, catchError, take } from 'rxjs/operators';
 import { combineLatest, Observable, of, Subscription } from 'rxjs';
 import {
   Block,
@@ -10,6 +10,7 @@ import {
 import { ToastrService } from 'ngx-toastr';
 import { OpEnergyApiService } from '../../services/oe-energy.service';
 import { BlockTypes } from '../../types/constant';
+import { OeStateService } from '../../services/state.service';
 
 @Component({
   selector: 'app-energy-detail',
@@ -62,7 +63,8 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private opEnergyApiService: OpEnergyApiService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private stateService: OeStateService
   ) {}
 
   ngOnInit() {
@@ -141,9 +143,9 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
         this.isLoadingBlock = false;
         this.isLoadingTransactions = true;
 
-        /* this.stateService.$accountToken.pipe(take(1)).subscribe(res => {
-        this.getTimeStrikes();
-      }) */
+        this.stateService.$accountToken.pipe(take(1)).subscribe((res) => {
+          this.getTimeStrikes();
+        });
       })),
       (error) => {
         this.error = error;
@@ -163,7 +165,6 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
           ...strike,
           elapsedTime: strike.nLockTime - this.fromBlock.mediantime,
         }));
-        console.log(111111111, this.timeStrikes);
       });
   }
 

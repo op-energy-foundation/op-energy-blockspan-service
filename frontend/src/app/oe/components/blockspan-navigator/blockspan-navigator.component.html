@@ -1,0 +1,15 @@
+<div class="tetris-blockspan">
+  <div class="to-block">
+    {{ toBlock }}
+    <div class="span-block">
+      <input type="number" class="form-control text-center" [(ngModel)]="span" min="1">
+    </div>
+  </div>
+  <div class="from-block">
+    <input type="text" class="form-control text-center mt-3" [(ngModel)]="fromBlock">
+  </div>
+
+  <div class="mt-5">
+    <button type="button" class="btn btn-primary d-block w-100" (click)="onGo()" [disabled]="span <= 0">Go</button>
+  </div>
+</div>
