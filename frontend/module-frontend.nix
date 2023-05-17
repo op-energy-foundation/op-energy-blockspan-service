@@ -116,6 +116,10 @@ in
         '';
       in {
       enable = true;
+      appendConfig = ''
+        worker_processes auto;
+        worker_rlimit_nofile 100000;
+      '';
       eventsConfig = ''
         worker_connections 9000;
         multi_accept on;
@@ -312,10 +316,6 @@ in
           ${testnet_locations}
           # here we include possible options to route signet-related requests.
           ${signet_locations}
-        '';
-        appendConfig = ''
-          worker_processes auto;
-          worker_rlimit_nofile 100000;
         '';
       };
     };
