@@ -171,7 +171,7 @@ in
         }
         map $limited_ip $limited_ip_key {
                 1 $binary_remote_addr;
-                0 '';
+                0 \'\';
         }
 
         # rate limit requests
