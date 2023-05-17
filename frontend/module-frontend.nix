@@ -299,11 +299,11 @@ in
                   limit_conn websocket 100;
           }
           location /api/v1 {
-                  limit_req api nodelay;
+                  limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1;
           }
           location /api/ {
-                  limit_req api nodelay;
+                  limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1/;
           }
 
