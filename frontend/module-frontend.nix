@@ -296,14 +296,14 @@ in
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection "Upgrade";
-                  limit_conn zone=websocket;
+                  limit_conn zone=websocket 100;
           }
           location /api/v1 {
-                  limit_req zone=api;
+                  limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1;
           }
           location /api/ {
-                  limit_req zone=api;
+                  limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1/;
           }
 
