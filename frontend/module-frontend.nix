@@ -124,12 +124,8 @@ in
         worker_connections 9000;
         multi_accept on;
       '';
-      serverTokens =
-        let
-          server_tokens_str = builtins.readFile "${pkgs.op-energy-frontend-nginx-config}/server_tokens.txt";
-        in
-        if server_tokens_str == "on" then true else false;
-      clientMaxBodySize = builtins.readFile "${pkgs.op-energy-frontend-nginx-config}/client_max_body_size.txt";
+      serverTokens = false;
+      clientMaxBodySize = "10m";
       commonHttpConfig = ''
         sendfile on;
         tcp_nopush on;
