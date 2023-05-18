@@ -25,8 +25,9 @@ import { OeEnergyApiService } from './services/oe-energy.service';
 import { BlockspansHomeComponent } from './components/blockspans-home/blockspans-home.component';
 import { WebsocketService } from './services/websocket.service';
 import { OeStateService } from './services/state.service';
-import { faBook } from '@fortawesome/free-solid-svg-icons';
+import { faBook, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
+import { AboutComponent } from './components/about/about.component';
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
     BlockspanNavigatorComponent,
     BlockspansHomeComponent,
     OeDocsComponent,
+    AboutComponent,
   ],
   imports: [
     CommonModule,
@@ -72,11 +74,13 @@ import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
     BlockspanNavigatorComponent,
     BlockspansHomeComponent,
     OeDocsComponent,
+    AboutComponent,
   ],
   exports: [ToastrModule, FontAwesomeModule],
 })
 export class OeEnergyModule {
   constructor(library: FaIconLibrary) {
     library.addIcons(faBook);
+    library.addIcons(faInfoCircle);
   }
 }

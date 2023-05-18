@@ -115,38 +115,22 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
   async blockspanChange({ tipBlock, span }): Promise<void> {
     this.span = span;
     const numberOfSpan = this.KEEP_BLOCKS_AMOUNT;
-    const blockNumbers = [];
-    let blockSpanList = [];
-    try {
-      blockSpanList = await lastValueFrom(
-        this.oeEnergyApiService.$getBlockSpanList(
-          tipBlock - span * numberOfSpan,
-          span,
-          numberOfSpan
-        ),
-        { defaultValue: [] }
-      );
-    } catch (error) {
-      this.toastr.error('Cannot fetch block height data!', 'Failed!');
-    }
-    blockSpanList.reverse().forEach((blockSpan: BlockSpan) => {
-      blockNumbers.push(blockSpan.endBlockHeight);
-    });
-    blockNumbers.push(blockSpanList[blockSpanList.length - 1].startBlockHeight);
     this.pastBlocks = [];
-    forkJoin(
-      blockNumbers.map((blockNo) =>
-        this.oeEnergyApiService.$getBlockByHeight(blockNo)
-      )
-    )
+    this.oeEnergyApiService
+      .$getBlocksByBlockSpan(tipBlock - span * numberOfSpan, span, numberOfSpan)
       .pipe(take(1))
+      .pipe(
+        switchMap((blockHeaders: Block[][]) => {
+          let acc: Block[] = [];
+          blockHeaders.reverse().forEach(([startBlock, endBlock]: Block[]) => {
+            return acc.push(endBlock, startBlock);
+          });
+          return [acc]; // I am not sure why subscribe() below will receive argument of type T in case if you return T[]
+        })
+      )
       .subscribe(
         (blocks: any[]) => {
-          const updatedBlocks = [];
-          for (let index = 0; index < blocks.length - 1; index++) {
-            updatedBlocks.push(blocks[index], blocks[index + 1]);
-          }
-          this.pastBlocks = updatedBlocks;
+          this.pastBlocks = blocks;
           this.cd.markForCheck();
           this.lastPastBlock = this.pastBlocks[0];
           this.lastPastBlock = {
