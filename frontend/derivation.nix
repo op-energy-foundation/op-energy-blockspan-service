@@ -89,7 +89,7 @@ let
       mkdir -p $out/en-US
       cp -r dist/ope/browser/* $out/en-US
       mkdir $out/resources/
-      cp -r resources/* $out/resources/
+      cp -r src/resources/* $out/resources/
     '';
     patches = [
 #      ./sync-assets.patch # support offline build
