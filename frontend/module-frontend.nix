@@ -263,6 +263,7 @@ in
 
           # enable browser and proxy caching
           add_header Cache-Control "public, no-transform";
+          add_header 'Access-Control-Allow-Origin' '*' always;
 
           # vary cache if user changes language preference
           add_header Vary Accept-Language;
@@ -297,17 +298,14 @@ in
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection "Upgrade";
                   limit_conn websocket 100;
-                  add_header 'Access-Control-Allow-Origin' '*' always;
           }
           location /api/v1 {
                   limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1;
-                  add_header 'Access-Control-Allow-Origin' '*' always;
           }
           location /api/ {
                   limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1/;
-                  add_header 'Access-Control-Allow-Origin' '*' always;
           }
 
  
