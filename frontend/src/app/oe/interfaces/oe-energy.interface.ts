@@ -111,3 +111,13 @@ export interface OeEnergyWebsocketResponse extends WebsocketResponse {
 export interface SwaggerJson {
   [key: string]: string;
 }
+
+export interface BackendGitHash {
+  gitCommitHash: string;
+}
+
+export interface BlockSpanHeadersNbdr {
+  startBlock: BlockHeader;
+  endBlock: BlockHeader;
+  nbdr: number;
+}
