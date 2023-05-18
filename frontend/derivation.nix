@@ -86,9 +86,10 @@ let
       npm run build
     '';
     installPhase = ''
-      mkdir -p $out
-      cp -r dist/ope/browser/* $out
+      mkdir -p $out/en-US
+      cp -r dist/ope/browser/* $out/en-US
       mkdir $out/resources/
+      cp -r resources/* $out/resources/
     '';
     patches = [
 #      ./sync-assets.patch # support offline build
