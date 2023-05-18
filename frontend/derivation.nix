@@ -88,6 +88,7 @@ let
     installPhase = ''
       mkdir -p $out
       cp -r dist/ope/browser/* $out
+      mkdir $out/resources/
     '';
     patches = [
 #      ./sync-assets.patch # support offline build

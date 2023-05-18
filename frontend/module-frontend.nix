@@ -270,8 +270,11 @@ in
 
           # fallback for all URLs i.e. /address/foo /tx/foo /block/000
           location / {
-                  try_files $uri $uri/ /en-US/index.html =404;
+                  try_files /$lang/$uri /$lang/$uri/ $uri $uri/ /en-US/$uri @index-redirect;
                   expires 10m;
+          }
+          location @index-redirect {
+                  rewrite (.*) /$lang/index.html;
           }
 
           # location block using regex are matched in order
