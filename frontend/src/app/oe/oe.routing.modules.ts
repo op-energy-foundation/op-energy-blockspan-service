@@ -1,3 +1,4 @@
+import { AboutComponent } from './components/about/about.component';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 import { BlockspansHomeComponent } from './components/blockspans-home/blockspans-home.component';
 import { NgModule } from '@angular/core';
@@ -10,6 +11,7 @@ import { StrikeDetailComponent } from './components/strike-detail/strike-detail.
 import { StrikeSummaryComponent } from './components/strike-summary/strike-summary.component';
 
 const routes: Routes = [
+  { path: '', redirectTo: '/preview-page', pathMatch: 'full' },
   {
     path: 'hashstrikes',
     component: OeMasterPageComponent,
@@ -51,6 +53,10 @@ const routes: Routes = [
       {
         path: 'docs',
         component: OeDocsComponent,
+      },
+      {
+        path: 'about',
+        component: AboutComponent,
       },
     ],
   },

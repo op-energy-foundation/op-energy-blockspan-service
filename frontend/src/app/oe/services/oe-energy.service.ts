@@ -11,6 +11,8 @@ import {
   BlockHeader,
   Block,
   SwaggerJson,
+  BackendGitHash,
+  BlockSpanHeadersNbdr,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -218,6 +220,36 @@ export class OeEnergyApiService {
     return this.httpClient.get<SwaggerJson>(
       this.apiBaseUrl + this.apiBasePath + '/api/v1/swagger.json',
       {}
+    );
+  }
+
+  // returns swagger API json
+  $getGitHash(): Observable<BackendGitHash> {
+    return this.httpClient.get<BackendGitHash>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/oe/git-hash',
+      {}
+    );
+  }
+
+  // returns list of start and end block for given blockspan
+  $getBlocksByBlockSpan(
+    startBlockHeight: number,
+    span: number,
+    numberOfSpan: number
+  ): Observable<BlockHeader[][]> {
+    return this.httpClient.get<BlockHeader[][]>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}/${numberOfSpan}`
+    );
+  }
+
+  // return block with nbdr data
+  $getBlocksWithNbdrByBlockSpan(
+    startBlockHeight: number,
+    span: number,
+    numberOfSpan: number
+  ): Observable<BlockSpanHeadersNbdr[]> {
+    return this.httpClient.get<BlockSpanHeadersNbdr[]>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithnbdrbyblockspan/${startBlockHeight}/${span}/${numberOfSpan}`
     );
   }
 }

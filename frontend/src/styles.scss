@@ -16,20 +16,20 @@ $h5-font-size: 1.15rem !default;
 
 $pagination-bg: $body-bg;
 $pagination-border-color: $gray-800;
-$pagination-disabled-bg:           #FFF;
+$pagination-disabled-bg: #fff;
 $pagination-disabled-border-color: #1d1f31;
-$pagination-active-color:          #fff;
-$pagination-active-bg:             #653b9c;
-$pagination-hover-bg:              #12131e;
-$pagination-hover-border-color:     #1d1f31;
-$pagination-disabled-bg:          #1d1f31;
+$pagination-active-color: #fff;
+$pagination-active-bg: #653b9c;
+$pagination-hover-bg: #12131e;
+$pagination-hover-border-color: #1d1f31;
+$pagination-disabled-bg: #1d1f31;
 
-$custom-select-indicator-color: #FFF;
+$custom-select-indicator-color: #fff;
 
-$link-color:                #1bd8f4;
-$link-decoration:           none !default;
-$link-hover-color:          darken($link-color, 15%) !default;
-$link-hover-decoration:     underline !default;
+$link-color: #1bd8f4;
+$link-decoration: none !default;
+$link-hover-color: darken($link-color, 15%) !default;
+$link-hover-decoration: underline !default;
 
 $dropdown-bg: #1d1f31;
 $dropdown-link-color: #fff;
@@ -40,10 +40,11 @@ $dropdown-link-hover-bg: #11131f;
 $dropdown-link-active-color: #fff;
 $dropdown-link-active-bg: #11131f;
 
-@import "~bootstrap/scss/bootstrap";
+@import '~bootstrap/scss/bootstrap';
 @import '~tlite/tlite.css';
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -60,9 +61,9 @@ body {
 }
 
 .form-control {
-  color: #495057
+  color: #495057;
 }
 
 .form-control:focus {
-  color: #000
+  color: #000;
 }
