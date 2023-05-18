@@ -270,7 +270,7 @@ in
 
           # fallback for all URLs i.e. /address/foo /tx/foo /block/000
           location / {
-                  try_files $uri $uri/index.html;
+                  try_files $uri $uri/ /en-US/index.html =404;
                   expires 10m;
           }
 
