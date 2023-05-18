@@ -297,14 +297,17 @@ in
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection "Upgrade";
                   limit_conn websocket 100;
+                  add_header 'Access-Control-Allow-Origin' '*' always;
           }
           location /api/v1 {
                   limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1;
+                  add_header 'Access-Control-Allow-Origin' '*' always;
           }
           location /api/ {
                   limit_req zone=api nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1/;
+                  add_header 'Access-Control-Allow-Origin' '*' always;
           }
 
  
