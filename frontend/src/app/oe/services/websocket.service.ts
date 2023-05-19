@@ -24,7 +24,7 @@ export class WebsocketService {
   private webSocketUrl =
     this.webSocketProtocol +
     '//' +
-    environment.baseUrl.replace(/^https?:\/\//i, '') +
+    document.location.host.replace(/^https?:\/\//i, '') +
     '/api/v1/ws';
   private websocketSubject: WebSocketSubject<WebsocketResponse>;
   private goneOffline = false;

@@ -16,7 +16,6 @@ import {
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
-import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -28,7 +27,8 @@ export class OeEnergyApiService {
     private httpClient: HttpClient,
     private oeEnergyStateService: OeStateService
   ) {
-    this.apiBaseUrl = environment.baseUrl; // use relative URL by default
+    this.apiBaseUrl =
+      document.location.protocol + '//' + document.location.host; // use relative URL by default
     this.apiBasePath = '';
   }
 
