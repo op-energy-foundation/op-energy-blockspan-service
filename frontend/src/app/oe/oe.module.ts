@@ -6,7 +6,7 @@ import { NgModule } from '@angular/core';
 import { ToastrModule } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { EnergyComponent } from './components/energy/energy.component';
 import { BaseBoxComponent } from './components/base-box/base-box.component';
 import { StrikeComponent } from './components/strike/strike.component';
@@ -25,9 +25,19 @@ import { OeEnergyApiService } from './services/oe-energy.service';
 import { BlockspansHomeComponent } from './components/blockspans-home/blockspans-home.component';
 import { WebsocketService } from './services/websocket.service';
 import { OeStateService } from './services/state.service';
-import { faBook, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBook,
+  faChartArea,
+  faDownload,
+  faInfoCircle,
+} from '@fortawesome/free-solid-svg-icons';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 import { AboutComponent } from './components/about/about.component';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
+import { GraphsComponent } from './components/graphs/graphs.component';
+import { NgxEchartsModule } from 'ngx-echarts';
+import * as echarts from 'echarts';
 
 @NgModule({
   declarations: [
@@ -47,14 +57,19 @@ import { AboutComponent } from './components/about/about.component';
     BlockspansHomeComponent,
     OeDocsComponent,
     AboutComponent,
+    GraphsComponent,
+    BlockRatesGraphComponent,
   ],
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     OeRoutingModule,
     ToastrModule.forRoot(),
     AngularSvgIconModule.forRoot(),
     FontAwesomeModule,
+    NgbDropdownModule,
+    NgxEchartsModule.forRoot({ echarts }),
   ],
   providers: [
     WebsocketService,
@@ -76,11 +91,13 @@ import { AboutComponent } from './components/about/about.component';
     OeDocsComponent,
     AboutComponent,
   ],
-  exports: [ToastrModule, FontAwesomeModule],
+  exports: [ToastrModule, AngularSvgIconModule, FontAwesomeModule],
 })
 export class OeEnergyModule {
   constructor(library: FaIconLibrary) {
     library.addIcons(faBook);
     library.addIcons(faInfoCircle);
+    library.addIcons(faChartArea);
+    library.addIcons(faDownload);
   }
 }

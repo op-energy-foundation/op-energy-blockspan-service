@@ -14,6 +14,10 @@
             <a class="nav-link" [routerLink]="['about']" (click)="collapse()"><fa-icon [icon]="['fas', 'info-circle']"
                 [fixedWidth]="true" title="About"></fa-icon></a>
           </li>
+          <li class="nav-item" routerLinkActive="active" id="btn-graphs">
+            <a class="nav-link" [routerLink]="['graphs']" (click)="collapse()"><fa-icon [icon]="['fas', 'chart-area']"
+                [fixedWidth]="true" title="Graphs"></fa-icon></a>
+          </li>
         </ul>
       </div>
     </nav>

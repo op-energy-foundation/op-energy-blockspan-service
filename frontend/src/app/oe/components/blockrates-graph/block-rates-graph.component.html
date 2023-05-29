@@ -1,0 +1,15 @@
+<div class="full-container">
+  <div class="card-header mb-0 mb-md-4">
+    <div class="d-flex d-md-block align-items-baseline">
+      <span>Blockrates: {{blockSpan}}-block Blockspans</span>
+      <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveChart()">
+        <fa-icon [icon]="['fas', 'download']" [fixedWidth]="true"></fa-icon>
+      </button>
+    </div>
+    <div class="chart" echarts [initOpts]="chartInitOptions" [options]="chartOptions" (chartInit)="onChartInit($event)">
+    </div>
+    <div class="text-center loadingGraphs" *ngIf="isLoading">
+      <div class="spinner-border text-light"></div>
+    </div>
+
+  </div>
