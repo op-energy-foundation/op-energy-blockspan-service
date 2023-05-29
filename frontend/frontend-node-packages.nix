@@ -3613,6 +3613,15 @@ let
         sha512 = "g38K9Cm5WRwlaH6g03B9OEz/0qRizI+2I7n+Gz+L5DxXJAPAiWQvwlYNm1V1jkdpUv95bOe/ASm2vfi/G560jQ==";
       };
     };
+    "claygl-1.3.0" = {
+      name = "claygl";
+      packageName = "claygl";
+      version = "1.3.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/claygl/-/claygl-1.3.0.tgz";
+        sha512 = "+gGtJjT6SSHD2l2yC3MCubW/sCV40tZuSs5opdtn79vFSGUgp/lH139RNEQ6Jy078/L0aV8odCw8RSrUcMfLaQ==";
+      };
+    };
     "clean-stack-2.2.0" = {
       name = "clean-stack";
       packageName = "clean-stack";
@@ -4781,6 +4790,24 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz";
         sha512 = "eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==";
+      };
+    };
+    "echarts-5.3.3" = {
+      name = "echarts";
+      packageName = "echarts";
+      version = "5.3.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/echarts/-/echarts-5.3.3.tgz";
+        sha512 = "BRw2serInRwO5SIwRviZ6Xgm5Lb7irgz+sLiFMmy/HOaf4SQ+7oYqxKzRHAKp4xHQ05AuHw1xvoQWJjDQq/FGw==";
+      };
+    };
+    "echarts-gl-2.0.9" = {
+      name = "echarts-gl";
+      packageName = "echarts-gl";
+      version = "2.0.9";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/echarts-gl/-/echarts-gl-2.0.9.tgz";
+        sha512 = "oKeMdkkkpJGWOzjgZUsF41DOh6cMsyrGGXimbjK2l6Xeq/dBQu4ShG2w2Dzrs/1bD27b2pLTGSaUzouY191gzA==";
       };
     };
     "ee-first-1.1.1" = {
@@ -8167,6 +8194,15 @@ let
         sha512 = "CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==";
       };
     };
+    "ngx-echarts-8.0.1" = {
+      name = "ngx-echarts";
+      packageName = "ngx-echarts";
+      version = "8.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/ngx-echarts/-/ngx-echarts-8.0.1.tgz";
+        sha512 = "CP+WnCcnMCNpCL9BVmDIZmhGSVPnkJhhFbQEKt0nrwV0L6d4QTAGZ+e4y6G1zTTFKkIMPHpaO0nhtDRgSXAW/w==";
+      };
+    };
     "ngx-toastr-14.3.0" = {
       name = "ngx-toastr";
       packageName = "ngx-toastr";
@@ -11038,6 +11074,15 @@ let
         sha512 = "Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==";
       };
     };
+    "tslib-2.3.0" = {
+      name = "tslib";
+      packageName = "tslib";
+      version = "2.3.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/tslib/-/tslib-2.3.0.tgz";
+        sha512 = "N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==";
+      };
+    };
     "tslib-2.3.1" = {
       name = "tslib";
       packageName = "tslib";
@@ -12001,6 +12046,15 @@ let
         sha512 = "82bctBg2hKcEJ21humWIkXRlLBBmrc3nN7DFh5LGGhcyycO2S7FN8NmdvlcKaGFDNVL4/9kFLmwmInTavdJERA==";
       };
     };
+    "zrender-5.3.2" = {
+      name = "zrender";
+      packageName = "zrender";
+      version = "5.3.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/zrender/-/zrender-5.3.2.tgz";
+        sha512 = "8IiYdfwHj2rx0UeIGZGGU4WEVSDEdeVCaIg/fomejg1Xu6OifAL1GVzIPHg2D+MyUkbNgPWji90t0a8IDk+39w==";
+      };
+    };
   };
   args = {
     name = "ope-blockspan-frontend";
@@ -12767,6 +12821,7 @@ let
       sources."ci-info-3.8.0"
       sources."cipher-base-1.0.4"
       sources."circular-dependency-plugin-5.2.2"
+      sources."claygl-1.3.0"
       sources."clean-stack-2.2.0"
       sources."cli-cursor-3.1.0"
       sources."cli-spinners-2.9.0"
@@ -12979,6 +13034,12 @@ let
         ];
       })
       sources."ecc-jsbn-0.1.2"
+      (sources."echarts-5.3.3" // {
+        dependencies = [
+          sources."tslib-2.3.0"
+        ];
+      })
+      sources."echarts-gl-2.0.9"
       sources."ee-first-1.1.1"
       sources."electron-to-chromium-1.4.394"
       (sources."elliptic-6.5.4" // {
@@ -13548,6 +13609,7 @@ let
       sources."negotiator-0.6.3"
       sources."neo-async-2.6.2"
       sources."next-tick-1.0.0"
+      sources."ngx-echarts-8.0.1"
       sources."ngx-toastr-14.3.0"
       (sources."nice-napi-1.0.2" // { dependencies = [ sources."node-gyp-build-4.6.0" ]; } )
       (sources."nise-5.1.4" // {
@@ -14158,6 +14220,11 @@ let
       sources."yn-3.1.1"
       sources."yocto-queue-0.1.0"
       sources."zone.js-0.11.8"
+      (sources."zrender-5.3.2" // {
+        dependencies = [
+          sources."tslib-2.3.0"
+        ];
+      })
     ];
     buildInputs = globalBuildInputs;
     meta = {
