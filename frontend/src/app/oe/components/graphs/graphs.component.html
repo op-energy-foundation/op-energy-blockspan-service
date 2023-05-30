@@ -1,0 +1,14 @@
+<div class="mb-3 d-flex menu" style="padding: 0px 35px;">
+
+  <div ngbDropdown class="mr-1" [class]="padding">
+    <button class="btn btn-primary w-100" id="dropdownBasic1" ngbDropdownToggle>Charts</button>
+    <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+      <a class="dropdown-item" routerLinkActive="active" [routerLink]="['/graphs/blockratecharts/144']">Blockrates:
+        144-block Blockspans</a>
+      <a class="dropdown-item" routerLinkActive="active" [routerLink]="['/graphs/blockratecharts/2016']">Blockrates:
+        2016-block Blockspans</a>
+    </div>
+  </div>
+</div>
+
+<router-outlet></router-outlet>

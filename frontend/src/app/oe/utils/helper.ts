@@ -19,3 +19,12 @@ export function toHHMMSS(secs: number): string {
 
   return `${strHours}:${strMinutes}:${strSeconds}`;
 }
+
+export const downloadChart = (href: string, name: string): void => {
+  const a = document.createElement('a');
+  a.download = name;
+  a.href = href;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
