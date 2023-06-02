@@ -112,16 +112,16 @@ type V1API
     :> "blocksbyblockspan"
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "span" (Positive Int)
-    :> Capture "numberOfSpan" (Positive Int)
-    :> Description "Returns list of blocks' headers by a given block span. Answer format: [ [startBlockHeight, startBlockHeight + span], [startBlockHeight + span, ...], ... ]"
+    :> QueryParam "numberOfSpan" (Positive Int)
+    :> Description "Returns list of blocks' headers by a given block span. Answer format: [ [startBlockHeight, startBlockHeight + span], [startBlockHeight + span, ...], ... ]. If numberOfSpan is missing, then it will provide blockspans until the current tip."
     :> Get '[JSON] [[BlockHeader]]
 
   :<|> "oe"
     :> "blockswithnbdrbyblockspan"
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "span" (Positive Int)
-    :> Capture "numberOfSpan" (Positive Int)
-    :> Description "Returns list of start and end blocks' headers and their nbdr for each appropriate block span. NBDR here is ratio (span * 600 * 100) / (endBlockMedianTime - startBlockMediantime)."
+    :> QueryParam "numberOfSpan" (Positive Int)
+    :> Description "Returns list of start and end blocks' headers and their nbdr for each appropriate block span. NBDR here is ratio (span * 600 * 100) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
     :> Get '[JSON] [BlockSpanHeadersNbdr]
 
   :<|> "oe"
