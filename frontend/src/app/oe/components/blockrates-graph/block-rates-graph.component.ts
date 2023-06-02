@@ -44,7 +44,7 @@ export class BlockRatesGraphComponent implements OnInit {
       this.blockSpan = parseInt(params.get('span'), 10);
 
       this.oeEnergyApiService
-        .$getBlocksWithNbdrByBlockSpan(0, this.blockSpan)
+        .$getBlocksWithNbdrByBlockSpan(0, this.blockSpan, 100)
         .subscribe(
           (blocks: any[]) => {
             this.prepareChartOptions(blocks);
