@@ -235,10 +235,11 @@ export class OeEnergyApiService {
   $getBlocksByBlockSpan(
     startBlockHeight: number,
     span: number,
-    numberOfSpan: number
+    mNumberOfSpan?: number
   ): Observable<BlockHeader[][]> {
+    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
     return this.httpClient.get<BlockHeader[][]>(
-      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}/${numberOfSpan}`
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
     );
   }
 
@@ -246,10 +247,11 @@ export class OeEnergyApiService {
   $getBlocksWithNbdrByBlockSpan(
     startBlockHeight: number,
     span: number,
-    numberOfSpan: number
+    mNumberOfSpan?: number
   ): Observable<BlockSpanHeadersNbdr[]> {
+    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
     return this.httpClient.get<BlockSpanHeadersNbdr[]>(
-      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithnbdrbyblockspan/${startBlockHeight}/${span}/${numberOfSpan}`
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithnbdrbyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
     );
   }
 }

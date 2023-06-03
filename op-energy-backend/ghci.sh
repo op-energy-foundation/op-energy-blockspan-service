@@ -1,1 +1,1 @@
-ghci -isrc ./src/OpEnergy/Server.hs -XOverloadedStrings -XScopedTypeVariables -XFlexibleContexts $@
+ghci -isrc ./src/OpEnergy/Server.hs -XOverloadedStrings -XScopedTypeVariables -XFlexibleContexts -XBangPatterns $@

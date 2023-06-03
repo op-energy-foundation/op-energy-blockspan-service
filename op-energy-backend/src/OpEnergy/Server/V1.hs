@@ -16,11 +16,12 @@ module OpEnergy.Server.V1
   )where
 
 import           Servant
-import           Control.Monad.IO.Class(MonadIO)
+import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
 import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
 import qualified Data.Text as T
+import qualified Control.Concurrent.STM.TVar as TVar
 
 import           Data.OpEnergy.API.V1
 import           Data.OpEnergy.API.V1.Block
@@ -31,7 +32,7 @@ import qualified OpEnergy.Server.V1.Metrics as Metrics( MetricsState(..))
 import           OpEnergy.Server.V1.Class (AppT, runLogging, State(..))
 import           OpEnergy.Server.V1.BlockHeadersService(syncBlockHeaders, getBlockHeaderByHash, getBlockHeaderByHeight, mgetBlockHeaderByHeight)
 import           OpEnergy.Server.V1.WebSocketService(webSocketConnection)
-import           OpEnergy.Server.V1.BlockSpanService(getBlockSpanList)
+import           OpEnergy.Server.V1.BlockSpanService(getBlockSpanListByRange, getBlockSpanList)
 import           OpEnergy.Server.V1.StatisticsService(calculateStatistics, getTheoreticalActualMTPPercents)
 import           Data.Text.Show(tshow)
 
@@ -70,12 +71,22 @@ getBlocksByBlockSpan
      )
   => BlockHeight
   -> Positive Int
-  -> Positive Int
+  -> Maybe (Positive Int)
   -> AppT m [[BlockHeader]]
-getBlocksByBlockSpan startHeight span numberOfSpan = do
-  State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan} } <- ask
+getBlocksByBlockSpan startHeight span mNumberOfSpan = do
+  State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan}
+       , currentTip = currentTipV
+       } <- ask
   P.observeDuration getBlocksByBlockSpan $ do
-    spans <- OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span numberOfSpan
+    mCurrentTip <- liftIO $! TVar.readTVarIO currentTipV
+    spans <- case mNumberOfSpan of
+      Just numberOfSpan -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span numberOfSpan
+      Nothing-> case mCurrentTip of
+        Just currentTip -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanListByRange startHeight (blockHeaderHeight currentTip) span
+        Nothing -> do
+          let err = "ERROR: getBlocksByBlockSpan: no current tip had been discovered yet"
+          runLogging $ $(logError) err
+          error $ T.unpack err
     forM spans $ \(BlockSpan startHeight endHeight)-> do
       mstart <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight startHeight
       mend <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight endHeight
@@ -92,12 +103,12 @@ getBlocksWithNbdrByBlockSpan
      )
   => BlockHeight
   -> Positive Int
-  -> Positive Int
+  -> Maybe (Positive Int)
   -> AppT m [BlockSpanHeadersNbdr]
-getBlocksWithNbdrByBlockSpan startHeight span numberOfSpans = do
+getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan} } <- ask
   P.observeDuration getBlocksWithNbdrByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span numberOfSpans
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
     return $! map toBlockSpanHeadersNbdr blockSpansBlocks
   where
     toBlockSpanHeadersNbdr (startBlock:endBlock:_) = BlockSpanHeadersNbdr

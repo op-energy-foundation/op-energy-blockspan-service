@@ -13,6 +13,7 @@ import qualified Data.Map as Map
 import           Servant (Handler)
 import           Data.Pool(Pool)
 import           Database.Persist.Postgresql (SqlBackend)
+import           System.IO(hFlush, stdout)
 
 import           Data.OpEnergy.API.V1.Block ( BlockHeader)
 import           OpEnergy.Server.V1.Config
@@ -66,4 +67,5 @@ runLogging loggingAction = do
   State{ logFunc = logFunc, config = Config{ configLogLevelMin = logLevelMin}} <- ask
   let filterUnwantedLevels _source level = level >= logLevelMin
   _ <- lift $ runLoggingT (filterLogger filterUnwantedLevels loggingAction) logFunc
+  liftIO $ hFlush stdout
   return ()

@@ -154,15 +154,15 @@ maybeInsertMany headers = do
                       return (immutableHeightCache, mutableHeightCache, newHashCache, Just (blockHeaderHeight header))
                     else do -- looks like 'header' should be inserted into the next chunk. We need to store current chunk and create new one
                       runAppT state $ runLogging $ $(logDebug) $! "in order to insert block " <> tshow (blockHeaderHeight header) <> " we need to grow cache chunk: mutableRow" <> tshow mutableRow <> ", row : " <> tshow row <> ", cacheChunkSize: " <> tshow configCacheChunkSize
-                      newImmutableHeightCache <- P.observeDuration blockHeaderHeightCacheInsert $! do
+                      (newImmutableHeightCache,newMutableHeightCache) <- P.observeDuration blockHeaderHeightCacheInsert $! do
                         newRow <- V.freeze mutableHeightCache >>= Compact.compact -- convert to immutable vector and move to out of GC region
                         newImmutableHeightCache <- VM.grow immutableHeightCache 1 -- ensure we have a memory
                         VM.write newImmutableHeightCache (fromNatural mutableRow) newRow -- store previously mutable cache
                         newMutableHeightCache <- VM.new (fromPositive configCacheChunkSize) -- recreate new mutable cache
                         VM.write newMutableHeightCache (fromNatural col) header
-                        return newImmutableHeightCache
+                        return (newImmutableHeightCache, newMutableHeightCache)
                       !newHashCache <- P.observeDuration blockHeaderHashCacheInsert $ return $! Map.insert (blockHeaderHash header) (blockHeaderHeight header) hashCache
-                      return (newImmutableHeightCache, mutableHeightCache, newHashCache, Just (blockHeaderHeight header))
+                      return (newImmutableHeightCache, newMutableHeightCache, newHashCache, Just (blockHeaderHeight header))
       (newImmutableHeightCache, newMutableHeightCache, newHashCache, newCacheTop) <- foldM forEach (immutableHeightCache, mutableHeightCache, Compact.getCompact hashCache, mcacheTop) headers
       newHashCacheC <- Compact.compact newHashCache
       MVar.putMVar cacheV (cache { immutableHeightCache = newImmutableHeightCache, mutableHeightCache = newMutableHeightCache, cacheTop = newCacheTop, hashCache = newHashCacheC})
