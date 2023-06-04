@@ -58,6 +58,7 @@ server = OpEnergy.Server.V1.WebSocketService.webSocketConnection
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHeight
     :<|> getBlocksByBlockSpan
     :<|> getBlocksWithNbdrByBlockSpan
+    :<|> getBlocksWithHashrateByBlockSpan
     :<|> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList
     :<|> oeGitHashGet
 
@@ -117,6 +118,28 @@ getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
       , Data.OpEnergy.API.V1.nbdr = getTheoreticalActualMTPPercents startBlock endBlock
       }
     toBlockSpanHeadersNbdr _ = error "getBlocksWithNbdrByBlockSpan: unexpected arguments"
+
+getBlocksWithHashrateByBlockSpan
+  :: ( MonadIO m
+     , MonadMonitor m
+     )
+  => BlockHeight
+  -> Positive Int
+  -> Maybe (Positive Int)
+  -> AppT m [BlockSpanHeadersHashrate]
+getBlocksWithHashrateByBlockSpan startHeight span mNumberOfSpans = do
+  State{ metrics = Metrics.MetricsState{ getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan} } <- ask
+  P.observeDuration getBlocksWithHashrateByBlockSpan $ do
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
+    return $! map toBlockSpanHeadersHashrate blockSpansBlocks
+  where
+    toBlockSpanHeadersHashrate (startBlock:endBlock:_) = BlockSpanHeadersHashrate
+      { startBlock = startBlock
+      , endBlock = endBlock
+      , Data.OpEnergy.API.V1.hashrate = toHashrate startBlock endBlock
+      }
+    toBlockSpanHeadersHashrate _ = error "getBlocksWithHashrateByBlockSpan: unexpected arguments"
+    toHashrate startBlock endBlock = (blockHeaderChainwork endBlock - blockHeaderChainwork startBlock) `div` (fromIntegral (blockHeaderMediantime endBlock - blockHeaderMediantime startBlock))
 
 -- returns just commit hash, provided by build system
 oeGitHashGet :: AppT Handler GitHashResponse

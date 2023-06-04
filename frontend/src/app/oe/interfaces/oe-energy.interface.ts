@@ -121,3 +121,9 @@ export interface BlockSpanHeadersNbdr {
   endBlock: BlockHeader;
   nbdr: number;
 }
+
+export interface BlockSpanHeadersHashrate {
+  startBlock: BlockHeader;
+  endBlock: BlockHeader;
+  hashrate: string;
+}

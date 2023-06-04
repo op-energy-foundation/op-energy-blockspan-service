@@ -13,6 +13,7 @@ import {
   SwaggerJson,
   BackendGitHash,
   BlockSpanHeadersNbdr,
+  BlockSpanHeadersHashrate,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -252,6 +253,18 @@ export class OeEnergyApiService {
     const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
     return this.httpClient.get<BlockSpanHeadersNbdr[]>(
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithnbdrbyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
+    );
+  }
+
+  // return block with nbdr data
+  $getBlocksWithHashrateByBlockSpan(
+    startBlockHeight: number,
+    span: number,
+    mNumberOfSpan?: number
+  ): Observable<BlockSpanHeadersHashrate[]> {
+    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
+    return this.httpClient.get<BlockSpanHeadersHashrate[]>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithhashratebyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
     );
   }
 }

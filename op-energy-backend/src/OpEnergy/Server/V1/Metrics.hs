@@ -48,6 +48,7 @@ data MetricsState = MetricsState
   , blockHeaderCacheFromDBLookup :: P.Histogram
   , getBlocksByBlockSpan :: P.Histogram
   , getBlocksWithNbdrByBlockSpan :: P.Histogram
+  , getBlocksWithHashrateByBlockSpan :: P.Histogram
   }
 
 -- | constructs default state with given config and DB pool
@@ -79,6 +80,7 @@ initMetrics _config = do
   blockHeaderCacheFromDBLookup <- P.register $ P.histogram (P.Info "blockHeaderCacheFromDBLookup" "") microBuckets
   getBlocksByBlockSpan <- P.register $ P.histogram (P.Info "getBlocksByBlockSpan" "") microBuckets
   getBlocksWithNbdrByBlockSpan <- P.register $ P.histogram (P.Info "getBlocksWithNbdrByBlockSpan" "") microBuckets
+  getBlocksWithHashrateByBlockSpan <- P.register $ P.histogram (P.Info "getBlocksWithHashrateByBlockSpan" "") microBuckets
   _ <- P.register P.ghcMetrics
   _ <- P.register P.procMetrics
   return $ MetricsState
@@ -105,6 +107,7 @@ initMetrics _config = do
     , blockHeaderCacheFromDBLookup = blockHeaderCacheFromDBLookup
     , getBlocksByBlockSpan = getBlocksByBlockSpan
     , getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan
+    , getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan
     }
   where
     microBuckets = [ 0.0000001 -- 100 nanoseconds
