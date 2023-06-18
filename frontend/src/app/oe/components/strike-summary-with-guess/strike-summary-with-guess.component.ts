@@ -14,11 +14,11 @@ import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 
 @Component({
-  selector: 'app-strike-summary',
-  templateUrl: './strike-summary.component.html',
-  styleUrls: ['./strike-summary.component.scss'],
+  selector: 'app-strike-summary-with-guess',
+  templateUrl: './strike-summary-with-guess.component.html',
+  styleUrls: ['./strike-summary-with-guess.component.scss'],
 })
-export class StrikeSummaryComponent implements OnInit, OnDestroy {
+export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
   network = '';
   fromBlock: Block;
   toBlock: Block;
@@ -32,9 +32,10 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   error: any;
   showPreviousBlocklink = true;
   showNextBlocklink = true;
-
+  isSelected = false;
   subscription: Subscription;
-
+  selectedGuess: string;
+  
   timeStrikes: TimeStrike[] = [];
 
   get span(): number {
@@ -66,9 +67,8 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
     (this.subscription = this.route.paramMap
       .pipe(
         switchMap((params: ParamMap) => {
-          const blockSpan: number = parseInt(params.get('blockSpan'), 10);
-          const fromBlockHeight: number = parseInt(params.get('from'), 10);
-          const toBlockHeight: number = parseInt(params.get('to'), 10);
+          const fromBlockHeight: number = 792288;
+          const toBlockHeight: number = 794304;
           this.fromBlock = null;
           this.toBlock = null;
           this.error = null;
@@ -180,5 +180,11 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
       strike.nLockTime,
       strike.creationTime,
     ]);
+  }
+
+  handleSelectedGuess(selected: any) {
+    this.isSelected = true;
+    console.log(selected);
+    this.selectedGuess = selected
   }
 }

@@ -38,6 +38,12 @@ import { BlockRatesGraphComponent } from './components/blockrates-graph/block-ra
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
+import { StrikeSummaryWithGuessComponent } from './components/strike-summary-with-guess/strike-summary-with-guess.component';
+import { FiresvgComponent } from './components/svg/firesvg/firesvg.component';
+import { WatersvgComponent } from './components/svg/watersvg/watersvg.component';
+import { GuessingBlockComponent } from './components/guessing-block/guessing-block.component';
+import { CloudsvgComponent } from './components/svg/cloudsvg/cloudsvg.component';
+import { IcesvgComponent } from './components/svg/icesvg/icesvg.component';
 
 @NgModule({
   declarations: [
@@ -59,6 +65,12 @@ import * as echarts from 'echarts';
     AboutComponent,
     GraphsComponent,
     BlockRatesGraphComponent,
+    StrikeSummaryWithGuessComponent,
+    FiresvgComponent,
+    WatersvgComponent,
+    GuessingBlockComponent,
+    CloudsvgComponent,
+    IcesvgComponent
   ],
   imports: [
     CommonModule,

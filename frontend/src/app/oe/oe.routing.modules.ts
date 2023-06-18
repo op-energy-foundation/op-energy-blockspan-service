@@ -1,3 +1,4 @@
+import { StrikeSummaryWithGuessComponent } from './components/strike-summary-with-guess/strike-summary-with-guess.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { AboutComponent } from './components/about/about.component';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
@@ -31,6 +32,10 @@ const routes: Routes = [
         component: AboutComponent,
       },
       {
+        path: 'strikes/nbdr/next/:blockSpan',
+        component: StrikeSummaryWithGuessComponent,
+      },
+      {
         path: 'hashstrikes',
         children: [
           {
@@ -56,7 +61,7 @@ const routes: Routes = [
           {
             path: 'blockspans/:span/:tip',
             component: BlockspansHomeComponent,
-          },
+          }
         ],
       },
       {

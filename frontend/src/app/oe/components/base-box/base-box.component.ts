@@ -26,6 +26,8 @@ export class BaseBoxComponent implements OnInit, OnDestroy {
   @Input() isDetailed: boolean;
   @Input() link: string;
   @Input() footerText = 'Time';
+  @Input() customValue: string;
+  @Input() showIcons: boolean = false;
   maxCount = MAX_COUNT;
 
   get iconArray() {
@@ -47,9 +49,9 @@ export class BaseBoxComponent implements OnInit, OnDestroy {
   }
 
   get nbdr() {
-    return this.span
+    return this.customValue ? this.customValue : (this.span
       ? ((600 * 100 * this.span) / (this.toTime - this.fromTime)).toFixed(2)
-      : '???';
+      : '???');
   }
 
   constructor(private route: ActivatedRoute, public router: Router) {}

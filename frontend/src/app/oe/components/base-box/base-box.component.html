@@ -4,8 +4,14 @@
   (click)="navigateTo()"
 >
   <div class="tank-box--top" [ngStyle]="{ 'background-color': this.color }">
-    <span *ngIf="isUnknown">?????</span>
-    <ng-container *ngIf="!isUnknown"> 0% </ng-container>
+    <ng-container *ngIf="!showIcons">
+      <span *ngIf="isUnknown">?????</span>
+      <ng-container *ngIf="!isUnknown"> 0% </ng-container>
+    </ng-container>
+    <ng-container *ngIf="showIcons">
+      <app-watersvg *ngIf="type==='Strike'"></app-watersvg>
+      <app-firesvg  *ngIf="type==='Energy'"></app-firesvg>
+    </ng-container>
   </div>
   <div
     *ngIf="!isDetailed"

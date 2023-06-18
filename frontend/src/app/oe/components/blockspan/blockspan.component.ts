@@ -19,6 +19,7 @@ export const MAX_COUNT = 14;
 export class BlockspanComponent implements OnInit, OnDestroy {
   @Input() fromBlock: Block;
   @Input() toBlock: Block;
+  @Input() footerText: string = "block";
 
   get span(): number {
     return this.toBlock.height - this.fromBlock.height;

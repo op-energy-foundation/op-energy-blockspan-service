@@ -47,4 +47,8 @@ export class PreviewComponent implements OnInit {
   futureEnergyDetailLink(): string {
     return '/hashstrikes/energy_detail/89778/1200000';
   }
+
+  futureStrikeSummaryWithGuessLink(): string {
+    return `/strikes/nbdr/next/2016`;
+  }
 }

@@ -1,0 +1,31 @@
+<div class="guess-strick-detail">
+  <div class="guess-strick-detail--top" *ngIf="fromBlock && toBlock">
+    <div class="blockspan">
+      <div style="margin-bottom: 110px" class="d-flex">
+        <div class="energy-container">
+          <app-blockspan class="guess-blockspan" *ngIf="fromBlock && toBlock" footerText="" [fromBlock]="fromBlock"
+            [toBlock]="toBlock"></app-blockspan>
+          <app-base-box footerText="" [showIcons]=true customValue="?" [totalIconCount]="3" [span]="span"
+            [fromTime]="fromBlock.mediantime" [toTime]="toBlock.mediantime" [isUnknown]="true"></app-base-box>
+          <app-base-box footerText="" [showIcons]=true type="Strike" customValue="100" [span]="span"
+            [fromTime]="fromBlock.mediantime" [toTime]="toBlock.mediantime" color="#6fa8dc"></app-base-box>
+          <div class="oe-guessing-blocks">
+            <app-guessing-block type="cloud" color="white" (selectedBlock)="handleSelectedGuess($event)"
+              [disabled]="isSelected"></app-guessing-block>
+            <app-guessing-block type="ice" color="#6fa8dc" (selectedBlock)="handleSelectedGuess($event)"
+              [disabled]="isSelected"></app-guessing-block>
+          </div>
+          <div class="oe-message-container">
+            <div class="oe-message-text" *ngIf="selectedGuess === 'cloud'">You guessed
+              nbdr&nbsp;&gt;&nbsp;100<br>(bitcoin running hotter)</div>
+            <div class="oe-message-text" *ngIf="selectedGuess === 'ice'">You guessed nbdr&nbsp;&lt;&nbsp;100<br>(bitcoin
+              running cooler)</div>
+          </div>
+        </div>
+        <!-- <svg-icon class="pipe" src="./resources/pipe.svg"
+          [svgStyle]="{ 'width.px': 60, 'height.px': 60, fill: '#e0e0e0' }">
+        </svg-icon> -->
+      </div>
+    </div>
+  </div>
+</div>
