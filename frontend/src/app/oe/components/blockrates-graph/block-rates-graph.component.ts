@@ -6,6 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { BlockSpanHeadersNbdr } from '../../interfaces/oe-energy.interface';
 import { downloadChart } from '../../utils/helper';
+import { NgbCalendar, NgbDate, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-block-rates-graph',
@@ -23,6 +24,12 @@ import { downloadChart } from '../../utils/helper';
   ],
 })
 export class BlockRatesGraphComponent implements OnInit {
+  hoveredDate: NgbDate | null = null;
+  fromDate: NgbDate | null;
+  toDate: NgbDate | null;
+  minDate: NgbDate | null;
+  maxDate: NgbDate | null;
+  blocksList: BlockSpanHeadersNbdr[] = [];
   chartOptions: EChartsOption = {};
   chartInitOptions = {
     renderer: 'svg',
@@ -36,26 +43,49 @@ export class BlockRatesGraphComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
-    private toastr: ToastrService
-  ) {}
+    private toastr: ToastrService,
+    private calendar: NgbCalendar,
+    public formatter: NgbDateParserFormatter
+  ) {
+    this.resetDateFilter();
+  }
+
+  resetDateFilter() {
+    const current = this.calendar.getToday();
+
+    // Set the minimum date to January 11, 2009
+    this.minDate = new NgbDate(2009, 1, 11);
+
+    // Set the maximum date to the current date
+    this.maxDate = new NgbDate(current.year, current.month, current.day);
+
+    // Set the starting date to January 11, 2009
+    this.fromDate = new NgbDate(2009, 1, 11);
+    this.toDate = this.calendar.getToday();
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       this.blockSpan = parseInt(params.get('span'), 10);
-
-      this.oeEnergyApiService
-        .$getBlocksWithNbdrByBlockSpan(0, this.blockSpan)
-        .subscribe(
-          (blocks: any[]) => {
-            this.prepareChartOptions(blocks);
-            this.isLoading = false;
-          },
-          (error) => {
-            this.isLoading = false;
-            this.toastr.error('Blockspans are not found!', 'Failed!');
-          }
-        );
+      this.resetDateFilter();
+      this.fetchAndRenderChart();
     });
+  }
+
+  fetchAndRenderChart(): void {
+    this.oeEnergyApiService
+    .$getBlocksWithNbdrByBlockSpan(0, this.blockSpan)
+    .subscribe(
+      (blocks: any[]) => {
+        this.prepareChartOptions(blocks);
+        this.isLoading = false;
+        this.blocksList = blocks;
+      },
+      (error) => {
+        this.isLoading = false;
+        this.toastr.error('Blockspans are not found!', 'Failed!');
+      }
+    );
   }
 
   prepareChartOptions(data: BlockSpanHeadersNbdr[]): void {
@@ -71,6 +101,11 @@ export class BlockRatesGraphComponent implements OnInit {
       })})`,
     }));
 
+    // Calculate the min and max values of nbdr with 10% buffer
+    const minValue = Math.min(...chartData.map(item => item.nbdr));
+    const maxValue = Math.max(...chartData.map(item => item.nbdr));
+    const yAxisMin = (Math.floor(minValue*0.9));
+    const yAxisMax = this.roundToNearest(Math.ceil(maxValue*1.1));
     this.chartOptions = {
       title: title,
       color: [
@@ -127,10 +162,12 @@ export class BlockRatesGraphComponent implements OnInit {
             return chartData[index].label;
           },
           padding: [0, -100, 0, 0],
-        },
+        }
       },
       yAxis: {
         type: 'value',
+        min: yAxisMin,
+        max: yAxisMax,
         splitLine: {
           lineStyle: {
             type: 'dotted',
@@ -214,4 +251,79 @@ export class BlockRatesGraphComponent implements OnInit {
     this.chartOptions.backgroundColor = 'none';
     this.chartInstance.setOption(this.chartOptions);
   }
+
+  onDateSelection(date: NgbDate) {
+    if (!this.fromDate && !this.toDate) {
+      this.fromDate = date;
+    } else if (
+      this.fromDate &&
+      !this.toDate &&
+      date &&
+      date.after(this.fromDate)
+    ) {
+      this.toDate = date;
+    } else {
+      this.toDate = null;
+      this.fromDate = date;
+    }
+    
+    if (this.fromDate && this.toDate) {
+      this.prepareChartOptions(
+        this.blocksList.filter((obj) => {
+          const timestamp = obj.endBlock.timestamp * 1000; // Convert seconds to milliseconds
+          const date = new Date(timestamp);
+          return (
+            date >=
+              new Date(
+                this.fromDate.year,
+                this.fromDate.month - 1,
+                this.fromDate.day
+              ) &&
+            date <=
+              new Date(this.toDate.year, this.toDate.month - 1, this.toDate.day)
+          );
+        })
+      );
+    }
+  }
+
+  isHovered(date: NgbDate) {
+    return (
+      this.fromDate &&
+      !this.toDate &&
+      this.hoveredDate &&
+      date.after(this.fromDate) &&
+      date.before(this.hoveredDate)
+    );
+  }
+
+  isInside(date: NgbDate) {
+    return this.toDate && date.after(this.fromDate) && date.before(this.toDate);
+  }
+
+  isRange(date: NgbDate) {
+    return (
+      date.equals(this.fromDate) ||
+      (this.toDate && date.equals(this.toDate)) ||
+      this.isInside(date) ||
+      this.isHovered(date)
+    );
+  }
+
+  validateInput(currentValue: NgbDate | null, input: string): NgbDate | null {
+    const parsed = this.formatter.parse(input);
+    return parsed && this.calendar.isValid(NgbDate.from(parsed))
+      ? NgbDate.from(parsed)
+      : currentValue;
+  }
+
+  setStartDate(date: NgbDate, datePicker: any) {
+    datePicker.startDate = {...date};
+    datePicker.toggle();
+  }
+
+  roundToNearest = (value: number, roundTo: number = 50) => {
+    return Math.round(value / roundTo) * roundTo;
+  };
+  
 }

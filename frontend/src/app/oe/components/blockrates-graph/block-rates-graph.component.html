@@ -1,15 +1,55 @@
 <div class="full-container">
   <div class="card-header mb-0 mb-md-4">
-    <div class="d-flex d-md-block align-items-baseline">
-      <span>Blockrates: {{blockSpan}}-block Blockspans</span>
-      <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveChart()">
-        <fa-icon [icon]="['fas', 'download']" [fixedWidth]="true"></fa-icon>
-      </button>
+    <div class="col-12 row align-items-baseline">
+      <div class="col-5">
+        <span>Blockrates: {{blockSpan}}-block Blockspans</span>
+        <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveChart()">
+          <fa-icon [icon]="['fas', 'download']" [fixedWidth]="true"></fa-icon>
+        </button>
+      </div>
+      <div class="col-4 row ml-auto mr-auto">
+        <div class="col-6">
+          <div class="dp-hidden position-absolute">
+            <div class="input-group">
+              <input name="datepicker" class="form-control" ngbDatepicker #datepicker="ngbDatepicker"
+                [autoClose]="'outside'" (dateSelect)="onDateSelection($event);" [displayMonths]="2" [dayTemplate]="t"
+                outsideDays="hidden" [startDate]="fromDate!" [minDate]="minDate" [maxDate]="maxDate" tabindex="-1" />
+              <ng-template #t let-date let-focused="focused">
+                <span class="custom-day" [class.focused]="focused" [class.range]="isRange(date)"
+                  [class.faded]="isHovered(date) || isInside(date)" (mouseenter)="hoveredDate = date"
+                  (mouseleave)="hoveredDate = null">
+                  {{ date.day }}
+                </span>
+              </ng-template>
+            </div>
+          </div>
+          <div class="input-group">
+            <input #dpFromDate class="form-control dark" placeholder="yyyy-mm-dd" name="dpFromDate"
+              [value]="formatter.format(fromDate)" (input)="fromDate = validateInput(fromDate, dpFromDate.value)"
+              [disabled]="isLoading" />
+            <button class="btn btn-primary" (click)="setStartDate(fromDate, datepicker);" type="button"
+              [disabled]="isLoading">
+              <fa-icon [icon]="['fas', 'calendar-alt']" [fixedWidth]="true"></fa-icon>
+            </button>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="input-group">
+            <input #dpToDate class="form-control" placeholder="yyyy-mm-dd" name="dpToDate"
+              [value]="formatter.format(toDate)" (input)="toDate = validateInput(toDate, dpToDate.value)"
+              [disabled]="isLoading" />
+            <button class="btn btn-primary" (click)="setStartDate(toDate, datepicker);" type="button"
+              [disabled]="isLoading">
+              <fa-icon [icon]="['fas', 'calendar-alt']" [fixedWidth]="true"></fa-icon>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="chart" echarts [initOpts]="chartInitOptions" [options]="chartOptions" (chartInit)="onChartInit($event)">
     </div>
     <div class="text-center loadingGraphs" *ngIf="isLoading">
       <div class="spinner-border text-light"></div>
     </div>
-
   </div>
+</div>
