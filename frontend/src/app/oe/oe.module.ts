@@ -27,13 +27,14 @@ import { WebsocketService } from './services/websocket.service';
 import { OeStateService } from './services/state.service';
 import {
   faBook,
+  faCalendarAlt,
   faChartArea,
   faDownload,
   faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 import { AboutComponent } from './components/about/about.component';
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDatepickerModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
@@ -69,6 +70,7 @@ import * as echarts from 'echarts';
     AngularSvgIconModule.forRoot(),
     FontAwesomeModule,
     NgbDropdownModule,
+    NgbDatepickerModule,
     NgxEchartsModule.forRoot({ echarts }),
   ],
   providers: [
@@ -99,5 +101,6 @@ export class OeEnergyModule {
     library.addIcons(faInfoCircle);
     library.addIcons(faChartArea);
     library.addIcons(faDownload);
+    library.addIcons(faCalendarAlt);
   }
 }

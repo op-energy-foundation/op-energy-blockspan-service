@@ -67,3 +67,28 @@ body {
 .form-control:focus {
   color: #000;
 }
+
+
+.ngb-dp-navigation-select {
+  option: {
+    color: black;
+  }
+}
+
+.ngb-dp-month-name {
+  color: black;
+}
+
+.custom-select {
+  color: black;
+}
+
+.ngb-dp-weekday {
+  color: var(--secondary);
+}
+
+.ngb-dp-week {
+  .disabled {
+    opacity: 0.5;
+  }
+}
