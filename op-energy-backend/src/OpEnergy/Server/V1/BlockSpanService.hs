@@ -47,9 +47,6 @@ getBlockSpanListByRange
     -- ^ span size
   -> AppT m [BlockSpan]
 getBlockSpanListByRange start end span = do
-  let (spans, lastSpan) = (end - start) `divMod` naturalFromPositive span
-  last <- if lastSpan < 1
-        then return [] -- there is no reminder from division
-        else getBlockSpanList (start + spans * naturalFromPositive span) (verifyPositiveInt $ fromNatural lastSpan) 1
+  let spans = (end - start) `div` naturalFromPositive span
   main <- getBlockSpanList start span (verifyPositiveInt $ fromNatural spans)
-  return (main ++ last)
+  return main
