@@ -104,8 +104,8 @@ export class BlockRatesGraphComponent implements OnInit {
     // Calculate the min and max values of nbdr with 10% buffer
     const minValue = Math.min(...chartData.map(item => item.nbdr));
     const maxValue = Math.max(...chartData.map(item => item.nbdr));
-    const yAxisMin = (Math.floor(minValue*0.9));
-    const yAxisMax = this.roundToNearest(Math.ceil(maxValue*1.1));
+    const yAxisMin = Math.floor(minValue*0.9);
+    const yAxisMax = Math.ceil(maxValue*1.1);
     this.chartOptions = {
       title: title,
       color: [
@@ -321,9 +321,5 @@ export class BlockRatesGraphComponent implements OnInit {
     datePicker.startDate = {...date};
     datePicker.toggle();
   }
-
-  roundToNearest = (value: number, roundTo: number = 50) => {
-    return Math.round(value / roundTo) * roundTo;
-  };
   
 }
