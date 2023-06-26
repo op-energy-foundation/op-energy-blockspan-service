@@ -300,11 +300,11 @@ in
                   limit_conn websocket 100;
           }
           location /api/v1 {
-                  limit_req zone=api nodelay;
+                  limit_req zone=api burst=10 nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1;
           }
           location /api/ {
-                  limit_req zone=api nodelay;
+                  limit_req zone=api burst=10 nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1/;
           }
 
