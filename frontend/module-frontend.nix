@@ -175,7 +175,7 @@ in
         }
 
         # rate limit requests
-        limit_req_zone $limited_ip_key zone=api:5m rate=200r/m burst=10 nodelay;
+        limit_req_zone $limited_ip_key zone=api:5m rate=200r/m;
         limit_req_status 429;
 
         # rate limit connections
