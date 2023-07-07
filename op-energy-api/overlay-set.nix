@@ -1,4 +1,6 @@
-{pkgs ? {}}:
+{ pkgs ? {}
+, ...
+}:
 let
   op-energy-api = pkgs.haskellPackages.callPackage ./op-energy-api.nix {};
 in

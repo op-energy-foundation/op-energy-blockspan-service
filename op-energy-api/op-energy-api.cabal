@@ -47,7 +47,6 @@ library
                    , Data.OpEnergy.API.V1
                    , Data.OpEnergy.API.V1.Natural
                    , Data.OpEnergy.API.V1.Positive
-                   , Data.OpEnergy.API.V1.Account
                    , Data.OpEnergy.API.V1.Block
                    , Data.OpEnergy.API.V1.Hash
     build-depends:    base ^>=4.15.1.0
