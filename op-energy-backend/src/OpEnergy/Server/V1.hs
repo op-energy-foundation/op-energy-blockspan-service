@@ -10,6 +10,7 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE RecordWildCards            #-}
 module OpEnergy.Server.V1
   ( server
   , schedulerIteration
@@ -22,6 +23,7 @@ import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
 import qualified Data.Text as T
 import qualified Control.Concurrent.STM.TVar as TVar
+import           Data.Maybe(fromJust)
 
 import           Data.OpEnergy.API.V1
 import           Data.OpEnergy.API.V1.Block
@@ -62,13 +64,21 @@ getBlocksByBlockSpan
   => BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> AppT m [[BlockHeader]]
-getBlocksByBlockSpan startHeight span mNumberOfSpan = do
+  -> Maybe Bool
+  -> Maybe Bool
+  -> AppT m [BlockSpanHeadersNbdrHashrate]
+getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
   State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan}
        , currentTip = currentTipV
        } <- ask
   P.observeDuration getBlocksByBlockSpan $ do
     mCurrentTip <- liftIO $! TVar.readTVarIO currentTipV
+    let withNbdr = case mNbdr of
+          Just some -> some
+          _ -> False
+        withHashrate = case mHashrate of
+          Just some -> some
+          _ -> False
     spans <- case mNumberOfSpan of
       Just numberOfSpan -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span numberOfSpan
       Nothing-> case mCurrentTip of
@@ -81,7 +91,19 @@ getBlocksByBlockSpan startHeight span mNumberOfSpan = do
       mstart <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight startHeight
       mend <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight endHeight
       case (mstart, mend) of
-        (Just start, Just end ) -> return [ start, end]
+        (Just start, Just end ) -> do
+          mNbdr <- if withNbdr
+            then return $! Just $! getTheoreticalActualMTPPercents start end
+            else return Nothing
+          mHashrate <- if withHashrate
+            then return $! Just $! (blockHeaderChainwork end - blockHeaderChainwork start) `div` (fromIntegral (blockHeaderMediantime end - blockHeaderMediantime start))
+            else return Nothing
+          return $! BlockSpanHeadersNbdrHashrate
+            { startBlock = start
+            , endBlock = end
+            , nbdr = mNbdr
+            , hashrate = mHashrate
+            }
         _ -> do
           let err = "failed to get block headers for block span {" <> tshow startHeight <> ", " <> tshow endHeight <> "}"
           runLogging $ $(logError) err
@@ -98,15 +120,14 @@ getBlocksWithNbdrByBlockSpan
 getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan} } <- ask
   P.observeDuration getBlocksWithNbdrByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans (Just True) Nothing
     return $! map toBlockSpanHeadersNbdr blockSpansBlocks
   where
-    toBlockSpanHeadersNbdr (startBlock:endBlock:_) = BlockSpanHeadersNbdr
+    toBlockSpanHeadersNbdr (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersNbdr
       { startBlock = startBlock
       , endBlock = endBlock
-      , Data.OpEnergy.API.V1.nbdr = getTheoreticalActualMTPPercents startBlock endBlock
+      , Data.OpEnergy.API.V1.nbdr = fromJust $! nbdr
       }
-    toBlockSpanHeadersNbdr _ = error "getBlocksWithNbdrByBlockSpan: unexpected arguments"
 
 getBlocksWithHashrateByBlockSpan
   :: ( MonadIO m
@@ -119,16 +140,14 @@ getBlocksWithHashrateByBlockSpan
 getBlocksWithHashrateByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan} } <- ask
   P.observeDuration getBlocksWithHashrateByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans Nothing (Just True)
     return $! map toBlockSpanHeadersHashrate blockSpansBlocks
   where
-    toBlockSpanHeadersHashrate (startBlock:endBlock:_) = BlockSpanHeadersHashrate
+    toBlockSpanHeadersHashrate (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersHashrate
       { startBlock = startBlock
       , endBlock = endBlock
-      , Data.OpEnergy.API.V1.hashrate = toHashrate startBlock endBlock
+      , Data.OpEnergy.API.V1.hashrate = fromJust hashrate
       }
-    toBlockSpanHeadersHashrate _ = error "getBlocksWithHashrateByBlockSpan: unexpected arguments"
-    toHashrate startBlock endBlock = (blockHeaderChainwork endBlock - blockHeaderChainwork startBlock) `div` (fromIntegral (blockHeaderMediantime endBlock - blockHeaderMediantime startBlock))
 
 -- returns just commit hash, provided by build system
 oeGitHashGet :: AppT Handler GitHashResponse

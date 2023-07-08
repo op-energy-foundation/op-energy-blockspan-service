@@ -55,8 +55,10 @@ type V1API
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "span" (Positive Int)
     :> QueryParam "numberOfSpan" (Positive Int)
-    :> Description "Returns list of blocks' headers by a given block span. Answer format: [ [startBlockHeight, startBlockHeight + span], [startBlockHeight + span, ...], ... ]. If numberOfSpan is missing, then it will provide blockspans until the current tip."
-    :> Get '[JSON] [[BlockHeader]]
+    :> QueryParam "withNBDR" Bool
+    :> QueryParam "withHashrate" Bool
+    :> Description "Returns list of blocks' headers by a given block span. In case if withNBDR=true, the answer will contain NBDR value. In case if 'withHashrate=true', the answer will contain Hashrate value. NBDR here is ratio (span * 600 * 100) / (endBlockMedianTime - startBlockMediantime). Hashrate here is a ratio (endBlockChainwork - startBlockChainwork) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
+    :> Get '[JSON] [BlockSpanHeadersNbdrHashrate]
 
   :<|> "oe"
     :> "blockswithnbdrbyblockspan"
@@ -127,6 +129,27 @@ defaultBlockSpanHeadersNbdr = BlockSpanHeadersNbdr
   { startBlock = defaultBlockHeader
   , endBlock = defaultBlockHeader
   , nbdr = 100.0
+  }
+
+data BlockSpanHeadersNbdrHashrate = BlockSpanHeadersNbdrHashrate
+  { startBlock :: BlockHeader
+  , endBlock :: BlockHeader
+  , nbdr :: Maybe Double
+  , hashrate :: Maybe (Natural Integer)
+  }
+  deriving (Show, Generic, Typeable)
+instance ToJSON   BlockSpanHeadersNbdrHashrate
+instance FromJSON BlockSpanHeadersNbdrHashrate
+instance ToSchema BlockSpanHeadersNbdrHashrate where
+  declareNamedSchema proxy = genericDeclareNamedSchema defaultSchemaOptions proxy
+    & mapped.schema.description ?~ "BlockSpanHeadersNbdrHashrate schema"
+    & mapped.schema.example ?~ toJSON defaultBlockSpanHeadersNbdrHashrate
+defaultBlockSpanHeadersNbdrHashrate :: BlockSpanHeadersNbdrHashrate
+defaultBlockSpanHeadersNbdrHashrate = BlockSpanHeadersNbdrHashrate
+  { startBlock = defaultBlockHeader
+  , endBlock = defaultBlockHeader
+  , nbdr = Just 100.0
+  , hashrate = Just 1
   }
 
 data BlockSpanHeadersHashrate = BlockSpanHeadersHashrate
