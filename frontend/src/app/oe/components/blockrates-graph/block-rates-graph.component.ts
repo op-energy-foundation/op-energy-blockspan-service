@@ -1,10 +1,11 @@
+import { convertHashrate } from './../../utils/helper';
 import { Component, OnInit } from '@angular/core';
 import { EChartsOption, graphic } from 'echarts';
 import { Observable, Subscription, switchMap } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
-import { BlockSpanHeadersNbdr } from '../../interfaces/oe-energy.interface';
+import { BlockSpanHeaders } from '../../interfaces/oe-energy.interface';
 import { downloadChart } from '../../utils/helper';
 import {
   NgbCalendar,
@@ -35,8 +36,9 @@ export class BlockRatesGraphComponent implements OnInit {
   toDate: NgbDate | null;
   minDate: NgbDate | null;
   maxDate: NgbDate | null;
-  blocksList: BlockSpanHeadersNbdr[] = [];
+  blocksList: BlockSpanHeaders[] = [];
   chartOptions: EChartsOption = {};
+  hashrateChartOptions: EChartsOption = {};
   chartInitOptions = {
     renderer: 'svg',
   };
@@ -47,6 +49,7 @@ export class BlockRatesGraphComponent implements OnInit {
   isLoading = true;
   subscription: Subscription;
   chartInstance: any = undefined;
+  hashrateChartInstance: any = undefined;
   paramsSubs: Subscription;
   querySubs: Subscription;
   chartData = [] as {
@@ -140,7 +143,7 @@ export class BlockRatesGraphComponent implements OnInit {
 
   fetchAndRenderChart(startDate: Date, endDate: Date): void {
     this.oeEnergyApiService
-      .$getBlocksWithNbdrByBlockSpan(0, this.blockSpan)
+      .$getBlocksByBlockSpan(0, this.blockSpan, undefined, true, true)
       .subscribe(
         (blocks: any[]) => {
           if (this.showLessDataPoints) {
@@ -167,7 +170,7 @@ export class BlockRatesGraphComponent implements OnInit {
       );
   }
 
-  prepareChartOptions(data: BlockSpanHeadersNbdr[]): void {
+  prepareChartOptions(data: BlockSpanHeaders[]): void {
     data = data.filter((obj) => {
       const timestamp = obj.endBlock.timestamp * 1000; // Convert seconds to milliseconds
       const date = new Date(timestamp);
@@ -191,6 +194,8 @@ export class BlockRatesGraphComponent implements OnInit {
     let title: object;
     const chartData = data.map((item) => ({
       nbdr: item.nbdr,
+      hashrate: parseInt('0x' + item.hashrate) / 100,
+      originalhashrate: item.hashrate,
       startBlockHeight: item.startBlock.height,
       endBlockHeight: item.endBlock.height,
       label: `${item.startBlock.height}-${item.endBlock.height} (${new Date(
@@ -202,9 +207,19 @@ export class BlockRatesGraphComponent implements OnInit {
       })})`,
     }));
 
+    console.log(chartData);
     // Calculate the min and max values of nbdr with 10% buffer
     const minValue = Math.min(...chartData.map((item) => item.nbdr));
     const maxValue = Math.max(...chartData.map((item) => item.nbdr));
+
+    const minHashrateValue = Math.floor(
+      Math.min(...chartData.map((item) => item.hashrate)) * 0.9
+    );
+    const maxHashrateValue = Math.ceil(
+      Math.max(...chartData.map((item) => item.hashrate)) * 1.1
+    );
+
+    console.log(minHashrateValue, maxHashrateValue);
     const yAxisMin = Math.floor(minValue * 0.9);
     const yAxisMax = Math.ceil(maxValue * 1.1);
     this.chartOptions = {
@@ -230,7 +245,7 @@ export class BlockRatesGraphComponent implements OnInit {
       grid: {
         top: 30,
         bottom: 80,
-        left: 30,
+        left: 60,
         right: 0,
       },
       tooltip: {
@@ -323,6 +338,129 @@ export class BlockRatesGraphComponent implements OnInit {
       ],
     };
 
+    this.hashrateChartOptions = {
+      title: title,
+      color: [
+        new graphic.LinearGradient(0, 0, 0, 0.65, [
+          { offset: 0, color: '#F4511E99' },
+          { offset: 0.25, color: '#FB8C0099' },
+          { offset: 0.5, color: '#FFB30099' },
+          { offset: 0.75, color: '#FDD83599' },
+          { offset: 1, color: '#7CB34299' },
+        ]),
+        '#D81B60',
+        new graphic.LinearGradient(0, 0, 0, 0.65, [
+          { offset: 0, color: '#F4511E' },
+          { offset: 0.25, color: '#FB8C00' },
+          { offset: 0.5, color: '#FFB300' },
+          { offset: 0.75, color: '#FDD835' },
+          { offset: 1, color: '#7CB342' },
+        ]),
+      ],
+      animation: false,
+      grid: {
+        top: 30,
+        bottom: 80,
+        left: 60,
+        right: 0,
+      },
+      tooltip: {
+        show: !this.isMobile(),
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line',
+        },
+        backgroundColor: 'rgba(17, 19, 31, 1)',
+        borderRadius: 4,
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+        textStyle: {
+          color: '#b1b1b1',
+          align: 'left',
+        },
+        borderColor: '#000',
+        formatter: (data): string => {
+          let tooltip = `<b style="color: white; margin-left: 2px;">
+            ${chartData[data[0].dataIndex].label}</b><br>`;
+
+          tooltip += `${data[0].marker} ${
+            data[0].seriesName
+          }: ${convertHashrate(data[0].data)}<br>`;
+          return tooltip;
+        },
+      },
+      xAxis: {
+        type: 'category',
+        data: chartData.map((item) => item.hashrate),
+        axisLabel: {
+          formatter: (_value, index) => {
+            return chartData[index].label;
+          },
+          padding: [0, -100, 0, 0],
+        },
+      },
+      yAxis: {
+        type: 'value',
+        min: minHashrateValue,
+        max: maxHashrateValue,
+        axisLabel: {
+          formatter: function (value) {
+            return convertHashrate(value, 0);
+          },
+        },
+        splitLine: {
+          lineStyle: {
+            type: 'dotted',
+            color: '#ffffff66',
+            opacity: 0.25,
+          },
+        },
+      },
+      series: [
+        {
+          legendHoverLink: false,
+          zlevel: 0,
+          yAxisIndex: 0,
+          name: 'Hashrate',
+          data: chartData.map((item) => item.hashrate),
+          type: 'line',
+          smooth: 0.25,
+          symbol: 'triangle',
+          lineStyle: {
+            width: 1.5,
+            opacity: 1,
+          },
+        },
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          realtime: true,
+          zoomLock: true,
+          maxSpan: 100,
+          minSpan: 5,
+          moveOnMouseMove: false,
+        },
+        {
+          showDetail: false,
+          show: true,
+          type: 'slider',
+          brushSelect: false,
+          realtime: true,
+          left: 10,
+          right: 0,
+          selectedDataBackground: {
+            lineStyle: {
+              color: '#fff',
+              opacity: 0.45,
+            },
+            areaStyle: {
+              opacity: 0,
+            },
+          },
+        },
+      ],
+    };
+
     this.chartData = chartData;
   }
 
@@ -343,6 +481,10 @@ export class BlockRatesGraphComponent implements OnInit {
 
   onChartInit(ec) {
     this.chartInstance = ec;
+  }
+
+  onChartHashrateInit(ec) {
+    this.hashrateChartInstance = ec;
   }
 
   isMobile() {
@@ -368,6 +510,27 @@ export class BlockRatesGraphComponent implements OnInit {
     this.chartOptions.grid.bottom = prevBottom;
     this.chartOptions.backgroundColor = 'none';
     this.chartInstance.setOption(this.chartOptions);
+  }
+
+  onSaveHashRateChart() {
+    // @ts-ignore
+    const prevBottom = this.hashrateChartOptions.grid.bottom;
+    const now = new Date();
+    // @ts-ignore
+    this.hashrateChartOptions.grid.bottom = 40;
+    this.hashrateChartOptions.backgroundColor = '#11131f';
+    this.chartInstance.setOption(this.hashrateChartOptions);
+    downloadChart(
+      this.chartInstance.getDataURL({
+        pixelRatio: 2,
+        excludeComponents: ['dataZoom'],
+      }),
+      `block-rates-${this.blockSpan}-${Math.round(now.getTime() / 1000)}.svg`
+    );
+    // @ts-ignore
+    this.hashrateChartOptions.grid.bottom = prevBottom;
+    this.hashrateChartOptions.backgroundColor = 'none';
+    this.chartInstance.setOption(this.hashrateChartOptions);
   }
 
   convertToJSDate(ngbDate: NgbDate): string {

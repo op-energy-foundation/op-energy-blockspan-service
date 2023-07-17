@@ -13,7 +13,7 @@ import {
   SwaggerJson,
   BackendGitHash,
   BlockSpanHeadersNbdr,
-  BlockSpanHeadersHashrate,
+  BlockSpanHeaders,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -236,11 +236,18 @@ export class OeEnergyApiService {
   $getBlocksByBlockSpan(
     startBlockHeight: number,
     span: number,
-    mNumberOfSpan?: number
+    mNumberOfSpan?: number,
+    withNbdr = false,
+    withHashrate = false
   ): Observable<BlockHeader[][]> {
-    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
+    let queryParam = `?withNBDR=${withNbdr}&withHashrate=${withHashrate}`;
+    queryParam =
+      queryParam +
+      (typeof mNumberOfSpan !== 'undefined'
+        ? `&numberOfSpan=${mNumberOfSpan}`
+        : '');
     return this.httpClient.get<BlockHeader[][]>(
-      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}${queryParam}`
     );
   }
 
@@ -250,7 +257,10 @@ export class OeEnergyApiService {
     span: number,
     mNumberOfSpan?: number
   ): Observable<BlockSpanHeadersNbdr[]> {
-    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
+    const numberOfSpan =
+      typeof mNumberOfSpan !== 'undefined'
+        ? `?numberOfSpan=${mNumberOfSpan}`
+        : '';
     return this.httpClient.get<BlockSpanHeadersNbdr[]>(
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithnbdrbyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
     );
@@ -261,9 +271,12 @@ export class OeEnergyApiService {
     startBlockHeight: number,
     span: number,
     mNumberOfSpan?: number
-  ): Observable<BlockSpanHeadersHashrate[]> {
-    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
-    return this.httpClient.get<BlockSpanHeadersHashrate[]>(
+  ): Observable<BlockSpanHeaders[]> {
+    const numberOfSpan =
+      typeof mNumberOfSpan !== 'undefined'
+        ? `?numberOfSpan=${mNumberOfSpan}`
+        : '';
+    return this.httpClient.get<BlockSpanHeaders[]>(
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithhashratebyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
     );
   }
@@ -289,7 +302,10 @@ export class OeAccountApiService {
   // - guess: "slow" or "fast"
   // - lockedBlockHeight: height of the locked block number
   // - medianSeconds: value of locked block's median time to guess
-  $updateUserDisplayName(accountToken: string, displayName: string): Observable<string> {
+  $updateUserDisplayName(
+    accountToken: string,
+    displayName: string
+  ): Observable<string> {
     let params = {
       account_token: accountToken,
       display_name: displayName,
@@ -320,7 +336,6 @@ export class OeAccountApiService {
       {}
     );
   }
-
 }
 
 @Injectable({
@@ -541,10 +556,12 @@ export class OeBlocktimeApiService {
   $getBlocksByBlockSpan(
     startBlockHeight: number,
     span: number,
-    numberOfSpan: number
+    numberOfSpan: number,
+    withNbdr = false,
+    withHashrate = false
   ): Observable<BlockHeader[][]> {
     return this.httpClient.get<BlockHeader[][]>(
-      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}/${numberOfSpan}`
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}/${numberOfSpan}?withNBDR=${withNbdr}&withHashrate=${withHashrate}`
     );
   }
 

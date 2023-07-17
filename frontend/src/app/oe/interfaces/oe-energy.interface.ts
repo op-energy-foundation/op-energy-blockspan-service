@@ -116,14 +116,19 @@ export interface BackendGitHash {
   gitCommitHash: string;
 }
 
+export interface BlockSpanHeadersNbdrHashRate {
+  startBlock: BlockHeader;
+  endBlock: BlockHeader;
+  nbdr: number;
+  hashrate: string;
+}
+
 export interface BlockSpanHeadersNbdr {
   startBlock: BlockHeader;
   endBlock: BlockHeader;
   nbdr: number;
 }
 
-export interface BlockSpanHeadersHashrate {
-  startBlock: BlockHeader;
-  endBlock: BlockHeader;
-  hashrate: string;
-}
+export interface BlockSpanHeaders
+  extends BlockSpanHeadersNbdr,
+    BlockSpanHeadersNbdrHashRate {}
