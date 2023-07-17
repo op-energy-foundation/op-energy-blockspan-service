@@ -46,8 +46,21 @@
         </div>
       </div>
     </div>
-    <div class="chart" echarts [initOpts]="chartInitOptions" [options]="chartOptions" (chartInit)="onChartInit($event)"
-      (chartClick)="handleChartClick($event)">
+    <div *ngIf="blocksList.length > 0">
+      <div class="chart" echarts [initOpts]="chartInitOptions" [options]="chartOptions"
+        (chartInit)="onChartInit($event)" (chartClick)="handleChartClick($event)">
+      </div>
+      <div class="col-12 row align-items-baseline mt-5">
+        <div class="col-5">
+          <span>Hashrates: {{blockSpan}}-block Blockspans</span>
+          <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveHashRateChart()">
+            <fa-icon [icon]="['fas', 'download']" [fixedWidth]="true"></fa-icon>
+          </button>
+        </div>
+      </div>
+      <div class="chart" echarts [initOpts]="chartInitOptions" [options]="hashrateChartOptions"
+        (chartInit)="onChartHashrateInit($event)">
+      </div>
     </div>
     <div class="text-center loadingGraphs" *ngIf="isLoading">
       <div class="spinner-border text-light"></div>
