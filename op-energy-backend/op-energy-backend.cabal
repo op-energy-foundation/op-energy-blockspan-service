@@ -57,7 +57,6 @@ library
                    , OpEnergy.Server.V1.BlockHeadersService.Vector.Cache
                    , OpEnergy.Server.V1.BlockHeadersService.Vector.Service
                    , OpEnergy.Server.V1.WebSocketService
-                   , OpEnergy.Server.V1.WebSocketService.Message
                    , OpEnergy.Server.V1.BlockSpanService
                    , OpEnergy.Server.V1.StatisticsService
                    , OpEnergy.Server.V1.StatisticsService.Histogram

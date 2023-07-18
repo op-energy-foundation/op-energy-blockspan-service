@@ -49,6 +49,7 @@ library
                    , Data.OpEnergy.API.V1.Positive
                    , Data.OpEnergy.API.V1.Block
                    , Data.OpEnergy.API.V1.Hash
+                   , Data.OpEnergy.API.V1.WebSocketService.Message
     build-depends:    base ^>=4.15.1.0
                     , aeson
                     , text
@@ -65,5 +66,6 @@ library
                     , persistent
                     , persistent-template
                     , cereal
+                    , websockets
 
     ghc-options:    -O2 -Wall -Werror -Wno-unticked-promoted-constructors -fno-warn-name-shadowing -Wno-orphans

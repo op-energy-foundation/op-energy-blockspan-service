@@ -19,7 +19,7 @@ import           OpEnergy.Server.V1.Class (runLogging, AppT, State(..), runAppT)
 import           Data.OpEnergy.API.V1.Hash( Hash, generateRandomHash)
 import           Data.OpEnergy.API.V1.Block( BlockHeight, BlockHeader(..))
 import           Data.OpEnergy.API.V1.Positive(naturalFromPositive)
-import           OpEnergy.Server.V1.WebSocketService.Message
+import           Data.OpEnergy.API.V1.WebSocketService.Message
 import           OpEnergy.Server.V1.Config
 
 

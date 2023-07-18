@@ -1,7 +1,8 @@
 {-- | This module describes WebsocketRequest from frontend and Message from backend
  -}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module OpEnergy.Server.V1.WebSocketService.Message where
+module Data.OpEnergy.API.V1.WebSocketService.Message where
 
 import           Data.Aeson as Aeson
 import           Data.Text(Text)
