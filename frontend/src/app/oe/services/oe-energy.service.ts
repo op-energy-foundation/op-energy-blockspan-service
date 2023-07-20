@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   TimeStrike,
   SlowFastGuess,
@@ -14,6 +14,7 @@ import {
   BackendGitHash,
   BlockSpanHeadersNbdr,
   BlockSpanHeaders,
+  RegisterResult,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -295,6 +296,40 @@ export class OeAccountApiService {
     this.apiBaseUrl =
       document.location.protocol + '//' + document.location.host; // use relative URL by default
     this.apiBasePath = '';
+  }
+
+  // registers new user. See API specs for reference
+  // it is expected that frontend should keep token in the state service and use it for the rest API calls,
+  // that require authentication.
+  $register(
+  ): Observable<RegisterResult> {
+    return this.httpClient.post<RegisterResult>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/register',
+      {}
+    );
+  }
+
+  // logs in user with given secret. returns account token. See API for reference
+  // it is expected that frontend should keep token in the state service and use it for the rest API calls,
+  // that require authentication.
+  // params:
+  // - secret: secret value returned by $register() call
+  $login(
+    secret: string,
+  ): Observable<string> {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.httpClient.post<string>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/login',
+      JSON.stringify(secret),
+      {
+        observe: 'body',
+        responseType: 'json',
+        headers
+      }
+    );
   }
 
   // updates displayable user name for a current user

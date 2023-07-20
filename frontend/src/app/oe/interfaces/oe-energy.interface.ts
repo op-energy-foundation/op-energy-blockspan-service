@@ -129,6 +129,11 @@ export interface BlockSpanHeadersNbdr {
   nbdr: number;
 }
 
+export interface RegisterResult {
+  accountSecret: string;
+  accountToken: string;
+}
+
 export interface BlockSpanHeaders
   extends BlockSpanHeadersNbdr,
     BlockSpanHeadersNbdrHashRate {}
