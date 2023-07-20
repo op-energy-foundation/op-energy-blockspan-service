@@ -86,8 +86,15 @@ instance WebSocketsData Message where
       Just ret -> ret
       _ -> error "failed to parse Action from websockets data message"
 instance FromJSON Message where
-  parseJSON = withObject "Message" $ \v-> MessageNewestBlockHeader
-    <$> v .: "oe-newest-confirmed-block"
+  parseJSON = withObject "Message" $ \v-> do
+    mblock <- v .:? "oe-newest-confirmed-block"
+    case mblock of
+      Just block -> return $! MessageNewestBlockHeader block
+      Nothing -> do
+        (mpong :: Maybe Bool) <- v .:? "pong"
+        case mpong of
+          Just _ -> return MessagePong
+          Nothing-> error "unable to parse Message"
 instance ToJSON Message where
   toJSON (MessageNewestBlockHeader header) = object
     [ "oe-newest-confirmed-block" .= toJSON header
