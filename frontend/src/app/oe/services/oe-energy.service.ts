@@ -332,11 +332,10 @@ export class OeAccountApiService {
     );
   }
 
-  // updates displayable user name for a current user
+  // updates displayable user name for a current user. Can fail if there is a user with given display name exist
   // params:
-  // - guess: "slow" or "fast"
-  // - lockedBlockHeight: height of the locked block number
-  // - medianSeconds: value of locked block's median time to guess
+  // - accountToken: token got from register/login
+  // - displayName: new display name
   $updateUserDisplayName(
     accountToken: string,
     displayName: string
