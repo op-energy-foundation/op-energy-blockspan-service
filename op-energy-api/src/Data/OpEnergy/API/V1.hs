@@ -28,11 +28,7 @@ import           Data.OpEnergy.API.V1.Block
 
 -- | API specifications of a backend service for Swagger
 type V1API
-  = "ws"
-    :> Description "websockets handler"
-    :> WebSocket
-
-  :<|> "statistics"
+  = "statistics"
     :> Capture "blockheight" BlockHeight
     :> Capture "span" (Positive Int)
     :> Description "Calculates NBDR statistics for a given block height and span. NBDR here is ratio (span * 600 * 100) / (endBlockMedianTime - startBlockMediantime)."

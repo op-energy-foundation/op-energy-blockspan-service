@@ -12,7 +12,7 @@
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE RecordWildCards            #-}
 module OpEnergy.Server.V1
-  ( server
+  ( websocketAndBackendServer
   , schedulerIteration
   )where
 
@@ -25,6 +25,7 @@ import qualified Data.Text as T
 import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust)
 
+import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
@@ -41,10 +42,12 @@ import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
 
 
+websocketHandler :: ServerT WebSocketAPI (AppT Handler)
+websocketHandler = OpEnergy.Server.V1.WebSocketService.webSocketConnection
+
 -- | here goes implementation of OpEnergy API, which should match Data.OpEnergy.API.V1.V1API
 server:: ServerT V1API (AppT Handler)
-server = OpEnergy.Server.V1.WebSocketService.webSocketConnection
-    :<|> OpEnergy.Server.V1.StatisticsService.calculateStatistics
+server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHash
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHeight
     :<|> getBlocksByBlockSpan
@@ -52,6 +55,10 @@ server = OpEnergy.Server.V1.WebSocketService.webSocketConnection
     :<|> getBlocksWithHashrateByBlockSpan
     :<|> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList
     :<|> oeGitHashGet
+
+-- | this function composes websocket and backend handlers
+websocketAndBackendServer :: ServerT WebSocketBackendAPI (AppT Handler)
+websocketAndBackendServer = websocketHandler :<|> server
 
 -- | one iteration that called from scheduler thread
 schedulerIteration :: (MonadIO m, MonadMonitor m) => AppT m ()

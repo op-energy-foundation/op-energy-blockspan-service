@@ -10,6 +10,10 @@
 , persistent, persistent-template
 , random
 , cereal
+, http-media
+, http-client
+, http-client-tls
+, servant-client
 , ...
 }:
 mkDerivation {
@@ -30,6 +34,10 @@ mkDerivation {
     random
     persistent persistent-template
     cereal
+    http-media
+    http-client
+    http-client-tls
+    servant-client
   ];
   executableHaskellDepends = [
     base

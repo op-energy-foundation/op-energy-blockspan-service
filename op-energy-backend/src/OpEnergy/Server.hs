@@ -71,7 +71,7 @@ runServer = do
         -- | Combined server of a OpEnergy service with Swagger documentation.
         serverSwaggerBackend :: ServerT API AppM
         serverSwaggerBackend = (return apiSwagger)
-          :<|> OpEnergy.Server.V1.server
+          :<|> OpEnergy.Server.V1.websocketAndBackendServer
 
 -- | tasks, that should be running during start
 bootstrapTasks :: (MonadLoggerIO m, MonadMonitor m) => State -> m ()
