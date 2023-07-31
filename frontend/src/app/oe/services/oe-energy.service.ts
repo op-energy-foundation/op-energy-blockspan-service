@@ -15,6 +15,10 @@ import {
   BlockSpanHeadersNbdr,
   BlockSpanHeaders,
   RegisterResult,
+  BlockTimeStrikeFuture,
+  BlockTimeStrikeGuessPublic,
+  BlockTimeStrikePast,
+  BlockTimeStrikeGuessResultPublic,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -402,4 +406,92 @@ export class OeBlocktimeApiService {
       {}
     );
   }
+
+  $getFutureStrikes(
+    accountToken: string,
+  ): Observable<BlockTimeStrikeFuture> {
+    return this.httpClient.post<BlockTimeStrikeFuture>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/future/strike',
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $createFutureStrike(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number,
+  ): Observable<void> {
+    return this.httpClient.post<void>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $getFutureStrikeGuesses(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number,
+  ): Observable<BlockTimeStrikeGuessPublic> {
+    return this.httpClient.post<BlockTimeStrikeGuessPublic>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $createFutureStrikeGuesses(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number,
+    guess: 'slow' | 'fast',
+  ): Observable<void> {
+    return this.httpClient.post<void>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/future/strike/${blockHeight}/${nlocktime}/${guess}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $getPastStrikes(
+    accountToken: string,
+  ): Observable<BlockTimeStrikePast> {
+    return this.httpClient.post<BlockTimeStrikePast>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $getPastStrikeGuesses(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number,
+  ): Observable<BlockTimeStrikeGuessResultPublic> {
+    return this.httpClient.post<BlockTimeStrikeGuessResultPublic>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike/guess/${blockHeight}/${nlocktime}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
 }

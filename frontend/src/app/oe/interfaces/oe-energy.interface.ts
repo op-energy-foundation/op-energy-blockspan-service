@@ -137,3 +137,35 @@ export interface RegisterResult {
 export interface BlockSpanHeaders
   extends BlockSpanHeadersNbdr,
     BlockSpanHeadersNbdrHashRate {}
+
+export interface BlockTimeStrikeFuture {
+  block: number;
+  nlocktime: number;
+  creationTime: number;
+}
+
+export interface BlockTimeStrikeGuessPublic {
+  person : string;
+  strike :  BlockTimeStrikeFuture;
+  creationTime : number;
+  guess : 'slow' | 'fast';
+}
+
+export interface BlockTimeStrikePast {
+  block : number;
+  nlocktime : number;
+  observedResult : 'slow' | 'fast';
+  observedBlockMediantime : number;
+  observedBlockHash : string;
+  creationTime : number;
+  futureStrikeCreationTime : number;
+}
+
+export interface BlockTimeStrikeGuessResultPublic {
+  person : string;
+  strike : BlockTimeStrikePast;
+  creationTime : number;
+  archiveTime : number;
+  guess : 'slow' | 'fast';
+  observedResult : 'slow' | 'fast';
+}
