@@ -47,4 +47,8 @@ export class PreviewComponent implements OnInit {
   futureEnergyDetailLink(): string {
     return '/hashstrikes/energy_detail/89778/1200000';
   }
+
+  blockRateChartLink(): string {
+    return '/graphs/blockratecharts/144';
+  }
 }
