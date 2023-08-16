@@ -244,14 +244,14 @@ export class OeEnergyApiService {
     mNumberOfSpan?: number,
     withNbdr = false,
     withHashrate = false
-  ): Observable<BlockHeader[][]> {
+  ): Observable<BlockSpanHeaders[]> {
     let queryParam = `?withNBDR=${withNbdr}&withHashrate=${withHashrate}`;
     queryParam =
       queryParam +
       (typeof mNumberOfSpan !== 'undefined'
         ? `&numberOfSpan=${mNumberOfSpan}`
         : '');
-    return this.httpClient.get<BlockHeader[][]>(
+    return this.httpClient.get<BlockSpanHeaders[]>(
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}${queryParam}`
     );
   }

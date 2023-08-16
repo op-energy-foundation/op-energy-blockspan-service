@@ -47,8 +47,8 @@
       </div>
     </div>
     <div *ngIf="blocksList.length > 0">
-      <div class="chart" echarts [initOpts]="chartInitOptions" [options]="chartOptions"
-        (chartInit)="onChartInit($event)" (chartClick)="handleChartClick($event)">
+      <div id="block-rates-chart" class="chart" echarts [initOpts]="chartInitOptions" [options]="chartOptions"
+        (chartInit)="onChartInit($event)">
       </div>
       <div class="col-12 row align-items-baseline mt-5">
         <div class="col-5">

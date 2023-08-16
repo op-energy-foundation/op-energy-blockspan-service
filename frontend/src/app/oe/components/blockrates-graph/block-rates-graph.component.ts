@@ -58,6 +58,8 @@ export class BlockRatesGraphComponent implements OnInit {
     label: string;
     nbdr: number;
   }[];
+  tooltipVisible = false;
+  toolTipValue = -1;
 
   constructor(
     private route: ActivatedRoute,
@@ -207,7 +209,6 @@ export class BlockRatesGraphComponent implements OnInit {
       })})`,
     }));
 
-    console.log(chartData);
     // Calculate the min and max values of nbdr with 10% buffer
     const minValue = Math.min(...chartData.map((item) => item.nbdr));
     const maxValue = Math.max(...chartData.map((item) => item.nbdr));
@@ -219,7 +220,6 @@ export class BlockRatesGraphComponent implements OnInit {
       Math.max(...chartData.map((item) => item.hashrate)) * 1.1
     );
 
-    console.log(minHashrateValue, maxHashrateValue);
     const yAxisMin = Math.floor(minValue * 0.9);
     const yAxisMax = Math.ceil(maxValue * 1.1);
     this.chartOptions = {
@@ -263,7 +263,8 @@ export class BlockRatesGraphComponent implements OnInit {
         },
         borderColor: '#000',
         formatter: (data): string => {
-          let tooltip = `<b style="color: white; margin-left: 2px;">
+          this.toolTipValue = data[0].dataIndex;
+          let tooltip = `<b id="toolTipId" style="color: white; margin-left: 2px;">
             ${chartData[data[0].dataIndex].label}</b><br>`;
 
           tooltip += `${data[0].marker} ${data[0].seriesName}: ${data[0].data}<br>`;
@@ -464,23 +465,79 @@ export class BlockRatesGraphComponent implements OnInit {
     this.chartData = chartData;
   }
 
-  handleChartClick(params) {
+  redirectToEnergyDetails(dataIndex): void {
+    // Handle click event for line or bar series
+    const { startBlockHeight, endBlockHeight } = this.chartData[dataIndex];
+    window.open(
+      `${document.location.protocol}//${document.location.host}/hashstrikes/energy_detail/${startBlockHeight}/${endBlockHeight}`,
+      '_blank'
+    );
+  }
+
+  handleChartClick(params): void {
     if (
       params.componentSubType === 'line' &&
       params.componentType === 'series'
     ) {
-      // Handle click event for line or bar series
-      const dataPoint = this.chartData[params.dataIndex];
       // redirecting user to energy details page
-      window.open(
-        `${document.location.protocol}//${document.location.host}/hashstrikes/energy_detail/${dataPoint.startBlockHeight}/${dataPoint.endBlockHeight}`,
-        '_blank'
-      );
+      this.redirectToEnergyDetails(params.dataIndex);
     }
   }
 
-  onChartInit(ec) {
+  handleVisibilityChange(mutationsList, _observer): void {
+    for (const mutation of mutationsList) {
+      if (
+        mutation.type === 'attributes' &&
+        mutation.attributeName === 'style'
+      ) {
+        const parent = mutation.target;
+        const visibilityValue = parent.style.visibility;
+        // Update the tooltipVisible property based on parent visibility
+        this.tooltipVisible = visibilityValue !== 'hidden';
+      }
+    }
+  }
+
+  onChartInit(ec): void {
     this.chartInstance = ec;
+    // Attach a click event listener to the chart container element
+    const chartContainer = document.getElementById('block-rates-chart'); // Replace with your actual chart container element's ID
+    chartContainer.addEventListener('click', (_event) => {
+      if (this.tooltipVisible) {
+        this.redirectToEnergyDetails(this.toolTipValue);
+      }
+    });
+    // Wait for the element with ID "toolTipId" to become available
+    // We are using below logic to display hand icon so anywhere user can click
+    const waitForElement = setInterval(() => {
+      const targetElement = document.getElementById('toolTipId');
+
+      if (targetElement) {
+        // Start observing the parent element's style changes
+        const parentElement = targetElement.parentNode;
+        // Create a new MutationObserver instance
+        const observer = new MutationObserver((mutationsList, observer) => {
+          this.handleVisibilityChange(mutationsList, observer);
+        });
+
+        // Configuration for the observer
+        const config = {
+          attributes: true, // Watch for attribute changes
+          attributeFilter: ['style'], // Watch for changes in the "style" attribute
+        };
+
+        // Start observing the target element with the specified configuration
+        observer.observe(parentElement, config);
+        // Clear the interval since the element is now available
+        clearInterval(waitForElement);
+      }
+    }, 100);
+
+    chartContainer.addEventListener('mousemove', () => {
+      if (this.tooltipVisible) {
+        this.chartInstance.getZr().setCursorStyle('pointer');
+      }
+    });
   }
 
   onChartHashrateInit(ec) {

@@ -8,15 +8,16 @@ import {
   ElementRef,
 } from '@angular/core';
 import { Location } from '@angular/common';
-import { forkJoin, Subscription, of, lastValueFrom } from 'rxjs';
+import { Subscription, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { switchMap, take } from 'rxjs/operators';
 import { OeStateService } from 'src/app/oe/services/state.service';
+import { TimeStrike } from 'src/app/oe/interfaces/oe-energy.interface';
 import {
-  TimeStrike,
-  BlockSpan,
-} from 'src/app/oe/interfaces/oe-energy.interface';
+  BlockHeader,
+  BlockSpanHeaders,
+} from './../../interfaces/oe-energy.interface';
 import { Block } from '../../interfaces/oe-energy.interface';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { environment } from '../../../../environments/environment';
@@ -120,9 +121,9 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
       .$getBlocksByBlockSpan(tipBlock - span * numberOfSpan, span, numberOfSpan)
       .pipe(take(1))
       .pipe(
-        switchMap((blockHeaders: Block[][]) => {
-          let acc: Block[] = [];
-          blockHeaders.reverse().forEach(([startBlock, endBlock]: Block[]) => {
+        switchMap((blockHeaders: BlockSpanHeaders[]) => {
+          const acc: BlockHeader[] = [];
+          blockHeaders.reverse().forEach(({ endBlock, startBlock }) => {
             return acc.push(endBlock, startBlock);
           });
           return [acc]; // I am not sure why subscribe() below will receive argument of type T in case if you return T[]
@@ -135,6 +136,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
           this.lastPastBlock = this.pastBlocks[0];
           this.lastPastBlock = {
             ...this.lastPastBlock,
+            mediantime: null,
             height: this.lastPastBlock.height + this.span,
           };
           this.location.replaceState(
