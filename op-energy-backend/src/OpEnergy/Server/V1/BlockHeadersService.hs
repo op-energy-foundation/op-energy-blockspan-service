@@ -15,7 +15,7 @@ import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust)
 import           Data.Pool(Pool)
 import           Servant.API (BasicAuthData(..))
-import           Servant (err404, throwError, Handler)
+import           Servant (err404, throwError)
 import           Servant.Client.JsonRpc
 import           Control.Monad (foldM)
 import           Control.Monad.Logger (logDebug, logInfo)
@@ -37,9 +37,6 @@ import qualified OpEnergy.Server.V1.BlockHeadersService.Vector.Service as Cache
 import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
 
-
-instance MonadMonitor Handler where
-  doIO = liftIO
 
 getBlockHeaderByHash :: BlockHash -> AppM BlockHeader
 getBlockHeaderByHash hash = do

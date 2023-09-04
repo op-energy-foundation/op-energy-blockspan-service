@@ -4,7 +4,7 @@ module OpEnergy.Server.V1.StatisticsService where
 
 import           Control.Monad (forM)
 import           Control.Monad.Reader (ask)
-import           Control.Monad.IO.Class (MonadIO)
+import           Control.Monad.IO.Class(MonadIO)
 import qualified Data.List as List
 import           Data.Maybe(fromJust)
 import           Prometheus(MonadMonitor)
@@ -23,14 +23,11 @@ import OpEnergy.Server.V1.BlockHeadersService
 -- which shows how fast blocks had been discovered: if it less than 100% - then blocks in block span are being discovered slower than theoretical speed. If it more than 100% - faster.
 -- current implementation will try to calculate statistics for 'configStatisticsBlockSpansCount' spans of size 'span' starting from 'startHeight' block
 calculateStatistics
-  :: ( MonadIO m
-     , MonadMonitor m
-     )
-  => BlockHeight
+  :: BlockHeight
   -- ^ starting block height of a range for which statistics will be generated
   -> Positive Int
   -- ^ size of block span
-  -> AppT m Statistics
+  -> AppM Statistics
 calculateStatistics startHeight span = do
   State{ config = Config { configStatisticsBlockSpansCount = statisticsBlockSpansCount}
        , metrics = MetricsState { calculateStatisticsH = calculateStatisticsH}

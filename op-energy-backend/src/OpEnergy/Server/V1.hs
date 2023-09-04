@@ -31,7 +31,7 @@ import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
 import qualified OpEnergy.Server.GitCommitHash as Server
 import qualified OpEnergy.Server.V1.Metrics as Metrics( MetricsState(..))
-import           OpEnergy.Server.V1.Class (AppT, runLogging, State(..))
+import           OpEnergy.Server.V1.Class (AppT, AppM, runLogging, State(..))
 import           OpEnergy.Server.V1.BlockHeadersService(syncBlockHeaders, getBlockHeaderByHash, getBlockHeaderByHeight, mgetBlockHeaderByHeight)
 import           OpEnergy.Server.V1.WebSocketService(webSocketConnection)
 import           OpEnergy.Server.V1.BlockSpanService(getBlockSpanListByRange, getBlockSpanList)
@@ -65,15 +65,12 @@ schedulerIteration :: (MonadIO m, MonadMonitor m) => AppT m ()
 schedulerIteration = OpEnergy.Server.V1.BlockHeadersService.syncBlockHeaders
 
 getBlocksByBlockSpan
-  :: ( MonadIO m
-     , MonadMonitor m
-     )
-  => BlockHeight
+  :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
   -> Maybe Bool
   -> Maybe Bool
-  -> AppT m [BlockSpanHeadersNbdrHashrate]
+  -> AppM [BlockSpanHeadersNbdrHashrate]
 getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
   State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan}
        , currentTip = currentTipV
@@ -117,13 +114,10 @@ getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
           error $ T.unpack err
 
 getBlocksWithNbdrByBlockSpan
-  :: ( MonadIO m
-     , MonadMonitor m
-     )
-  => BlockHeight
+  :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> AppT m [BlockSpanHeadersNbdr]
+  -> AppM [BlockSpanHeadersNbdr]
 getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan} } <- ask
   P.observeDuration getBlocksWithNbdrByBlockSpan $ do
@@ -137,13 +131,10 @@ getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
       }
 
 getBlocksWithHashrateByBlockSpan
-  :: ( MonadIO m
-     , MonadMonitor m
-     )
-  => BlockHeight
+  :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> AppT m [BlockSpanHeadersHashrate]
+  -> AppM [BlockSpanHeadersHashrate]
 getBlocksWithHashrateByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan} } <- ask
   P.observeDuration getBlocksWithHashrateByBlockSpan $ do
