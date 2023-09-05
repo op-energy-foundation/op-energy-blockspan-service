@@ -21,7 +21,8 @@ import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
 import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
-import qualified Data.Text as T
+import qualified Data.Text.Encoding as Text
+import qualified Data.ByteString.Lazy as BS
 import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust)
 
@@ -90,7 +91,7 @@ getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
         Nothing -> do
           let err = "ERROR: getBlocksByBlockSpan: no current tip had been discovered yet"
           runLogging $ $(logError) err
-          error $ T.unpack err
+          throwError err404 {errBody = BS.fromStrict (Text.encodeUtf8 err)}
     forM spans $ \(BlockSpan startHeight endHeight)-> do
       mstart <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight startHeight
       mend <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight endHeight
@@ -109,9 +110,9 @@ getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
             , hashrate = mHashrate
             }
         _ -> do
-          let err = "failed to get block headers for block span {" <> tshow startHeight <> ", " <> tshow endHeight <> "}"
+          let err = "ERROR: getBlocksByBlockSpan: failed to get block headers for block span {" <> tshow startHeight <> ", " <> tshow endHeight <> "}"
           runLogging $ $(logError) err
-          error $ T.unpack err
+          throwError err404 {errBody = BS.fromStrict (Text.encodeUtf8 err)}
 
 getBlocksWithNbdrByBlockSpan
   :: BlockHeight
