@@ -8,6 +8,5 @@ import qualified Data.ByteString.Lazy.Char8 as BS
 
 main :: IO ()
 main = do
-  print defaultBlockHeader 
   BS.putStrLn $ encode apiSwagger 
   return ()
