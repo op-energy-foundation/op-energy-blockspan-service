@@ -1,6 +1,8 @@
 let
-  pkgs0 = (import <nixpkgs> {}); # first, load the nixpkgs with system-wide overlays
-  pkgs = pkgs0 // (import ./overlay-set.nix { pkgs = pkgs0; }); # second, add local packages into the scope of pkgs
+  overlay = import ../overlay.nix { GIT_COMMIT_HASH = "";};
+  pkgs = (import <nixpkgs> {
+    overlays = [ overlay ];
+  }); # first, load the nixpkgs with system-wide overlays
   shell = pkgs.stdenv.mkDerivation {
     name = "shell";
     buildInputs
