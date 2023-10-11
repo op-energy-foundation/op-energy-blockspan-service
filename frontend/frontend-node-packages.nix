@@ -22,15 +22,6 @@ let
         sha512 = "JwrWomNqNGjAeKlqV2pimUFlCgFxQy+Vioz9+QAPIrUkvvjbkQ1dZKOe8Ul8eosb1N3Ln282U6qzOpHKfJ4TOg==";
       };
     };
-    "@angular-devkit/architect-0.1401.3" = {
-      name = "_at_angular-devkit_slash_architect";
-      packageName = "@angular-devkit/architect";
-      version = "0.1401.3";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@angular-devkit/architect/-/architect-0.1401.3.tgz";
-        sha512 = "DQvKfl8Q9c02jpGqZX1nOL4mAnRBU6BSqPlhi1q17ZrB8sQpYtDBb8Epn2DDq48l7SQVFnRg6Zgje9L1LObURg==";
-      };
-    };
     "@angular-devkit/build-angular-13.3.11" = {
       name = "_at_angular-devkit_slash_build-angular";
       packageName = "@angular-devkit/build-angular";
@@ -58,24 +49,6 @@ let
         sha512 = "rfqoLMRYhlz0wzKlHx7FfyIyQq8dKTsmbCoIVU1cEIH0gyTMVY7PbVzwRRcO6xp5waY+0hA+0Brriujpuhkm4w==";
       };
     };
-    "@angular-devkit/core-14.1.3" = {
-      name = "_at_angular-devkit_slash_core";
-      packageName = "@angular-devkit/core";
-      version = "14.1.3";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@angular-devkit/core/-/core-14.1.3.tgz";
-        sha512 = "YBxhRl7hKgirjcKeurfejVrIgmw31GcfKKCyQiIudoLCYjonnSMdDEx2y8BNMANvxe5YmuZsIYJtgVlqp3mMDg==";
-      };
-    };
-    "@angular-devkit/core-14.2.11" = {
-      name = "_at_angular-devkit_slash_core";
-      packageName = "@angular-devkit/core";
-      version = "14.2.11";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@angular-devkit/core/-/core-14.2.11.tgz";
-        sha512 = "cBIGs6y9rykOQqnuAQOB1DgIRyBFYtvKRJb7QNUfIJ0qUfARKkuV/yikv3lrb95ePGkmoRzmjkFqcFZiYU+r7A==";
-      };
-    };
     "@angular-devkit/schematics-13.3.11" = {
       name = "_at_angular-devkit_slash_schematics";
       packageName = "@angular-devkit/schematics";
@@ -83,15 +56,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/@angular-devkit/schematics/-/schematics-13.3.11.tgz";
         sha512 = "ben+EGXpCrClnIVAAnEQmhQdKmnnqFhMp5BqMxgOslSYBAmCutLA6rBu5vsc8kZcGian1wt+lueF7G1Uk5cGBg==";
-      };
-    };
-    "@angular-devkit/schematics-14.2.11" = {
-      name = "_at_angular-devkit_slash_schematics";
-      packageName = "@angular-devkit/schematics";
-      version = "14.2.11";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@angular-devkit/schematics/-/schematics-14.2.11.tgz";
-        sha512 = "OTEOu4uf3kZDcSGYkuESxf/IOlJSn/GdLt63Sd1QwJu6pJSeFxkANw/WEWICZyJfRLNW6fdLJLEGPM9Zt5ZqAg==";
       };
     };
     "@angular/animations-13.3.12" = {
@@ -1219,15 +1183,6 @@ let
         sha512 = "M83/wfQ1EkspjkE2lNWNV5ui2Cv7UCv1swW1DqljahbzLVWltcsexQh8jYtuS/vzFXP+HySntGM83ZXA9fn17w==";
       };
     };
-    "@cypress/schematic-2.0.3" = {
-      name = "_at_cypress_slash_schematic";
-      packageName = "@cypress/schematic";
-      version = "2.0.3";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@cypress/schematic/-/schematic-2.0.3.tgz";
-        sha512 = "/ArJlqIHFDchNHSUd51IPhdn98tc16foSDzqhkA4649rvJ4AuAd4Uv6E4FYWBozjRGYjiaYrKbn2CPzCERhfpA==";
-      };
-    };
     "@cypress/xvfb-1.2.4" = {
       name = "_at_cypress_slash_xvfb";
       packageName = "@cypress/xvfb";
@@ -1640,15 +1595,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/@schematics/angular/-/angular-13.3.11.tgz";
         sha512 = "imKBnKYEse0SBVELZO/753nkpt3eEgpjrYkB+AFWF9YfO/4RGnYXDHoH8CFkzxPH9QQCgNrmsVFNiYGS+P/S1A==";
-      };
-    };
-    "@schematics/angular-14.2.11" = {
-      name = "_at_schematics_slash_angular";
-      packageName = "@schematics/angular";
-      version = "14.2.11";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@schematics/angular/-/angular-14.2.11.tgz";
-        sha512 = "tejU2BOc25bQO34mZmTwmtAfOiFtDE/io/yHqYgUsTn804kyMQbz2QOOXN0epdzRYrkAHvH4KV8c2LDyO6iijA==";
       };
     };
     "@sideway/address-4.1.4" = {
@@ -2506,13 +2452,13 @@ let
         sha512 = "j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==";
       };
     };
-    "ajv-8.11.0" = {
+    "ajv-8.12.0" = {
       name = "ajv";
       packageName = "ajv";
-      version = "8.11.0";
+      version = "8.12.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/ajv/-/ajv-8.11.0.tgz";
-        sha512 = "wGgprdCvMalC0BztXvitD2hC04YffAvtsUn93JbGXYLAtCUO4xd17mCCZQxUOItiBwZvJScWo8NIvQMQ71rdpg==";
+        url = "https://registry.npmjs.org/ajv/-/ajv-8.12.0.tgz";
+        sha512 = "sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==";
       };
     };
     "ajv-8.9.0" = {
@@ -7096,6 +7042,15 @@ let
         sha512 = "Itk/r+V4Dx0V3c7RLFdRh12IOjySm2/WGPMubBT92cQvRfYZhPM2W0hZlctjj72iES8jsRCwp7S/cRmWBnJ4nw==";
       };
     };
+    "jquery-3.7.1" = {
+      name = "jquery";
+      packageName = "jquery";
+      version = "3.7.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/jquery/-/jquery-3.7.1.tgz";
+        sha512 = "m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==";
+      };
+    };
     "js-sdsl-4.4.0" = {
       name = "js-sdsl";
       packageName = "js-sdsl";
@@ -7247,15 +7202,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/jsonc-parser/-/jsonc-parser-3.0.0.tgz";
         sha512 = "fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==";
-      };
-    };
-    "jsonc-parser-3.1.0" = {
-      name = "jsonc-parser";
-      packageName = "jsonc-parser";
-      version = "3.1.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/jsonc-parser/-/jsonc-parser-3.1.0.tgz";
-        sha512 = "DRf0QjnNeCUds3xTjKlQQ3DpJD51GvDjJfnxUVWg6PZTo2otSm+slzNAxU/35hF8/oJIKoG9slq30JYOsF2azg==";
       };
     };
     "jsonfile-3.0.1" = {
@@ -7607,15 +7553,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/magic-string/-/magic-string-0.25.7.tgz";
         sha512 = "4CrMT5DOHTDk4HYDlzmwu4FVCcIYI8gauveasrdCu2IKIFOJ3f0v/8MDGJCDL9oD2ppz/Av1b0Nj345H9M+XIA==";
-      };
-    };
-    "magic-string-0.26.2" = {
-      name = "magic-string";
-      packageName = "magic-string";
-      version = "0.26.2";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/magic-string/-/magic-string-0.26.2.tgz";
-        sha512 = "NzzlXpclt5zAbmo6h6jNc8zl2gNRGHvmsZW4IvZhTC4W7k4OlLP+S5YLussa/r3ixNT66KOQfNORlXHSOy/X4A==";
       };
     };
     "magic-string-0.26.7" = {
@@ -8948,6 +8885,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/pkg-dir/-/pkg-dir-4.2.0.tgz";
         sha512 = "HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==";
+      };
+    };
+    "popper.js-1.16.1" = {
+      name = "popper.js";
+      packageName = "popper.js";
+      version = "1.16.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/popper.js/-/popper.js-1.16.1.tgz";
+        sha512 = "Wb4p1J4zyFTbM+u6WuO4XstYx4Ky9Cewe4DWrel7B0w6VVICvPwdOpotjzcf6eD8TsckVnIMNONQyPIUFOUbCQ==";
       };
     };
     "portfinder-1.0.32" = {
@@ -10388,15 +10334,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/source-map/-/source-map-0.7.3.tgz";
         sha512 = "CkCj6giN3S+n9qrYiBTX5gystlENnRW5jZeNLHpe6aue+SrHcG5VYwujhW9s4dY31mEGsxBDrHR6oI69fTXsaQ==";
-      };
-    };
-    "source-map-0.7.4" = {
-      name = "source-map";
-      packageName = "source-map";
-      version = "0.7.4";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/source-map/-/source-map-0.7.4.tgz";
-        sha512 = "l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==";
       };
     };
     "source-map-js-1.0.2" = {
@@ -12088,6 +12025,7 @@ let
       })
       (sources."@angular-devkit/core-13.3.11" // {
         dependencies = [
+          sources."ajv-8.9.0"
           sources."rxjs-6.6.7"
           sources."tslib-1.14.1"
         ];
@@ -12328,36 +12266,6 @@ let
           sources."tough-cookie-2.5.0"
         ];
       })
-      (sources."@cypress/schematic-2.0.3" // {
-        dependencies = [
-          (sources."@angular-devkit/architect-0.1401.3" // {
-            dependencies = [
-              sources."@angular-devkit/core-14.1.3"
-              sources."jsonc-parser-3.1.0"
-            ];
-          })
-          (sources."@angular-devkit/core-14.2.11" // {
-            dependencies = [
-              sources."jsonc-parser-3.1.0"
-            ];
-          })
-          (sources."@angular-devkit/schematics-14.2.11" // {
-            dependencies = [
-              sources."jsonc-parser-3.1.0"
-            ];
-          })
-          (sources."@schematics/angular-14.2.11" // {
-            dependencies = [
-              sources."jsonc-parser-3.1.0"
-            ];
-          })
-          sources."ajv-8.11.0"
-          sources."magic-string-0.26.2"
-          sources."rxjs-6.6.7"
-          sources."source-map-0.7.4"
-          sources."tslib-1.14.1"
-        ];
-      })
       (sources."@cypress/xvfb-1.2.4" // {
         dependencies = [
           sources."debug-3.2.7"
@@ -12368,11 +12276,9 @@ let
       sources."@eslint-community/regexpp-4.5.1"
       (sources."@eslint/eslintrc-2.0.3" // {
         dependencies = [
-          sources."ajv-6.12.6"
           sources."argparse-2.0.1"
           sources."globals-13.20.0"
           sources."js-yaml-4.1.0"
-          sources."json-schema-traverse-0.4.1"
           sources."minimatch-3.1.2"
           sources."type-fest-0.20.2"
         ];
@@ -12637,8 +12543,16 @@ let
       sources."agent-base-6.0.2"
       sources."agentkeepalive-4.3.0"
       sources."aggregate-error-3.1.0"
-      sources."ajv-8.9.0"
-      sources."ajv-formats-2.1.1"
+      (sources."ajv-6.12.6" // {
+        dependencies = [
+          sources."json-schema-traverse-0.4.1"
+        ];
+      })
+      (sources."ajv-formats-2.1.1" // {
+        dependencies = [
+          sources."ajv-8.12.0"
+        ];
+      })
       sources."ajv-keywords-3.5.2"
       sources."amdefine-1.0.1"
       sources."angular-svg-icon-13.0.0"
@@ -12883,6 +12797,7 @@ let
       sources."copy-anything-2.0.6"
       (sources."copy-webpack-plugin-10.2.1" // {
         dependencies = [
+          sources."ajv-8.12.0"
           sources."ajv-keywords-5.1.0"
           sources."schema-utils-4.0.1"
         ];
@@ -13119,7 +13034,6 @@ let
       sources."escope-3.6.0"
       (sources."eslint-8.40.0" // {
         dependencies = [
-          sources."ajv-6.12.6"
           sources."ansi-styles-4.3.0"
           sources."argparse-2.0.1"
           sources."chalk-4.1.2"
@@ -13132,7 +13046,6 @@ let
           sources."globals-13.20.0"
           sources."has-flag-4.0.0"
           sources."js-yaml-4.1.0"
-          sources."json-schema-traverse-0.4.1"
           sources."levn-0.4.1"
           sources."locate-path-6.0.0"
           sources."minimatch-3.1.2"
@@ -13416,6 +13329,7 @@ let
         ];
       })
       sources."joi-17.9.2"
+      sources."jquery-3.7.1"
       sources."js-sdsl-4.4.0"
       sources."js-tokens-4.0.0"
       sources."js-yaml-3.14.1"
@@ -13536,6 +13450,7 @@ let
       sources."mimic-fn-2.1.0"
       (sources."mini-css-extract-plugin-2.5.3" // {
         dependencies = [
+          sources."ajv-8.12.0"
           sources."ajv-keywords-5.1.0"
           sources."schema-utils-4.0.1"
         ];
@@ -13735,6 +13650,7 @@ let
       sources."pify-4.0.1"
       sources."piscina-3.2.0"
       sources."pkg-dir-4.2.0"
+      sources."popper.js-1.16.1"
       (sources."portfinder-1.0.32" // {
         dependencies = [
           sources."debug-3.2.7"
@@ -13882,12 +13798,7 @@ let
       sources."sass-loader-12.4.0"
       sources."sax-1.2.4"
       sources."saxes-5.0.1"
-      (sources."schema-utils-2.7.1" // {
-        dependencies = [
-          sources."ajv-6.12.6"
-          sources."json-schema-traverse-0.4.1"
-        ];
-      })
+      sources."schema-utils-2.7.1"
       (sources."scope-analyzer-2.1.2" // {
         dependencies = [
           sources."dash-ast-2.0.1"
@@ -14036,8 +13947,6 @@ let
       sources."terser-5.14.2"
       (sources."terser-webpack-plugin-5.3.8" // {
         dependencies = [
-          sources."ajv-6.12.6"
-          sources."json-schema-traverse-0.4.1"
           sources."schema-utils-3.1.2"
           sources."terser-5.17.3"
         ];
@@ -14160,19 +14069,19 @@ let
       sources."webidl-conversions-7.0.0"
       (sources."webpack-5.76.1" // {
         dependencies = [
-          sources."ajv-6.12.6"
-          sources."json-schema-traverse-0.4.1"
           sources."schema-utils-3.1.2"
         ];
       })
       (sources."webpack-dev-middleware-5.3.0" // {
         dependencies = [
+          sources."ajv-8.12.0"
           sources."ajv-keywords-5.1.0"
           sources."schema-utils-4.0.1"
         ];
       })
       (sources."webpack-dev-server-4.7.3" // {
         dependencies = [
+          sources."ajv-8.12.0"
           sources."ajv-keywords-5.1.0"
           sources."ansi-regex-6.0.1"
           sources."schema-utils-4.0.1"

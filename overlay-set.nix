@@ -1,6 +1,10 @@
 {GIT_COMMIT_HASH}:
 let
   op-energy-api-overlay = import ./op-energy-api/overlay.nix;
+  op-energy-client-overlay = import ./op-energy-client/overlay.nix;
+  op-energy-frontend-overlay = import ./frontend/overlay.nix{
+    GIT_COMMIT_HASH = GIT_COMMIT_HASH;
+  };
   op-energy-backend-overlay = import ./op-energy-backend/overlay.nix {
     GIT_COMMIT_HASH = GIT_COMMIT_HASH;
   };
@@ -9,11 +13,15 @@ let
     config = {};
     overlays = [
       op-energy-api-overlay
+      op-energy-client-overlay
+      op-energy-frontend-overlay
       op-energy-backend-overlay
     ];
   };
   op-energy = {
     op-energy-api = pkgs.op-energy-api;
+    op-energy-client = pkgs.op-energy-client;
+    op-energy-frontend = pkgs.op-energy-frontend;
     op-energy-backend = pkgs.op-energy-backend;
   };
 in

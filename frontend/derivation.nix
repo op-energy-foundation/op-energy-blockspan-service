@@ -45,6 +45,7 @@ let
     src = source;
     buildInputs = with pkgs;
     [ nodejs
+      op-energy-client
 #      python
 #      poolsJsonUrl
 #      assetsJsonUrl
@@ -83,6 +84,8 @@ let
       chmod -R u+w ./node_modules
       # we already have populated node_modules dir, so we don't need to run `npm install`
       export DOCKER_COMMIT_HASH=${GIT_COMMIT_HASH}
+      npm install ${pkgs.op-energy-client}
+      patchShebangs ./node_modules/@angular/cli/bin/ng.js
       npm run build
     '';
     installPhase = ''
@@ -93,6 +96,7 @@ let
     '';
     patches = [
 #      ./sync-assets.patch # support offline build
+      ./package.json.patch
     ];
   };
 in
