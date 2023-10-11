@@ -1,0 +1,6 @@
+{
+  "npmName": "@op-energy/op-energy-client",
+  "npmVersion": "0.0.1",
+  "snapshot": true,
+  "ngVersion": "5.0.0"
+}
