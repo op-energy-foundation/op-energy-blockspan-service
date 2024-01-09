@@ -9,6 +9,7 @@
     .blockspan {
       min-width: 250px;
       max-width: 400px;
+      cursor: pointer;
 
       > div {
         height: 300px;
@@ -16,7 +17,7 @@
         .show-strikes {
           cursor: pointer;
           text-align: center;
-          text-decoration: underline;
+          text-decoration: none;
           color: #00e7ff;
           margin-top: 65px;
         }
@@ -65,11 +66,30 @@
           height: 30% !important;
           top: 50% !important;
         }
+
+        .is-link {
+          text-decoration: none;
+      
+          &:hover {
+            text-decoration: none !important;
+          }
+        }
       }
 
       app-base-box {
         .tank-box--top {
           height: 50%;
+          color: white;
+        }
+
+        ::ng-deep {
+          .is-link {
+            text-decoration: none;
+        
+            &:hover {
+              text-decoration: none !important;
+            }
+          }
         }
       }
     }

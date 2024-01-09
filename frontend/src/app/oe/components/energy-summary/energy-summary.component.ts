@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute, ParamMap, Route, Router } from '@angular/router';
 import { switchMap, catchError } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { BlockTypes } from '../../types/constant';
 import { Block, TimeStrike } from '../../interfaces/oe-energy.interface';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { navigator } from '../../utils/helper';
 
 @Component({
   selector: 'app-energy-summary',
@@ -32,7 +33,8 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private oeEnergyApiService: OeEnergyApiService
+    private oeEnergyApiService: OeEnergyApiService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -157,5 +159,10 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
         this.showNextBlocklink = true;
       }
     }
+  }
+
+  navigateTo(): void {
+    const currentUrl = this.router.url;
+    navigator(this.router, currentUrl.replace('energy_summary', 'energy_detail'));
   }
 }

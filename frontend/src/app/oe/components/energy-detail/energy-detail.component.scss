@@ -7,6 +7,7 @@
     align-items: flex-end;
 
     .blockspan {
+      cursor: pointer;
       > div {
         height: 200px;
 
@@ -45,6 +46,14 @@
             .span-block {
               height: 30%;
             }
+
+            .is-link {
+              text-decoration: none;
+          
+              &:hover {
+                text-decoration: none !important;
+              }
+            }
           }
         }
       }
@@ -54,6 +63,7 @@
       background-color: red;
       min-width: 250px;
       height: 200px;
+      cursor: pointer;
 
       > div:first-child {
         border: 1px solid black;

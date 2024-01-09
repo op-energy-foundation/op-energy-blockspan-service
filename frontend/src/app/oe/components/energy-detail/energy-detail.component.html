@@ -1,6 +1,6 @@
 <div class="observed-blockspan-detail">
   <div class="observed-blockspan-detail--top" *ngIf="fromBlock && toBlock">
-    <div class="blockspan">
+    <div class="blockspan" (click)="navigateTo()">
       <div class="d-flex">
         <div class="energy-container">
           <app-blockspan
@@ -16,7 +16,7 @@
         </div>
       </div>
     </div>
-    <div class="blockspan-table">
+    <div class="blockspan-table" (click)="navigateTo()">
       <div>
         <div>average: {{ average || '???' }}</div>
         <div>stddev: {{ stddev || '???' }}</div>
