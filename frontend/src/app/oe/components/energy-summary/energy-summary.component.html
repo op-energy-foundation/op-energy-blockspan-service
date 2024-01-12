@@ -1,7 +1,7 @@
 <div class="observed-blockspan-detail">
   <div class="observed-blockspan-detail--top" *ngIf="fromBlock && toBlock">
     <div class="blockspan">
-      <div style="margin-bottom: 110px">
+      <div style="margin-bottom: 110px" (click)="navigateTo()">
         <app-energy [fromBlock]="fromBlock" [toBlock]="toBlock"></app-energy>
       </div>
       <ng-container>
