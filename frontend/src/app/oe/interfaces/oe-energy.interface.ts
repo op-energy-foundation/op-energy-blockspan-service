@@ -1,5 +1,6 @@
 export interface Block {
   height: number;
+  hash?: string;
   version: number;
   current_block_hash: string;
   previous_block_hash: string;
