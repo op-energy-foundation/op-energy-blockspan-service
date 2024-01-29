@@ -186,70 +186,12 @@ in
                 default en-US;
                 ~*^en-US en-US;
                 ~*^en en-US;
-                ~*^ar ar;
-                ~*^ca ca;
-                ~*^cs cs;
-                ~*^de de;
-                ~*^es es;
-                ~*^fa fa;
-                ~*^fr fr;
-                ~*^ko ko;
-                ~*^it it;
-                ~*^he he;
-                ~*^ka ka;
-                ~*^hu hu;
-                ~*^mk mk;
-                ~*^nl nl;
-                ~*^ja ja;
-                ~*^nb nb;
-                ~*^pl pl;
-                ~*^pt pt;
-                ~*^ro ro;
-                ~*^ru ru;
-                ~*^sl sl;
-                ~*^fi fi;
-                ~*^sv sv;
-                ~*^th th;
-                ~*^tr tr;
-                ~*^uk uk;
-                ~*^vi vi;
-                ~*^zh zh;
-                ~*^hi hi;
         }
 
         map $cookie_lang $lang {
                 default $header_lang;
                 ~*^en-US en-US;
                 ~*^en en-US;
-                ~*^ar ar;
-                ~*^ca ca;
-                ~*^cs cs;
-                ~*^de de;
-                ~*^es es;
-                ~*^fa fa;
-                ~*^fr fr;
-                ~*^ko ko;
-                ~*^it it;
-                ~*^he he;
-                ~*^ka ka;
-                ~*^hu hu;
-                ~*^mk mk;
-                ~*^nl nl;
-                ~*^ja ja;
-                ~*^nb nb;
-                ~*^pl pl;
-                ~*^pt pt;
-                ~*^ro ro;
-                ~*^ru ru;
-                ~*^sl sl;
-                ~*^fi fi;
-                ~*^sv sv;
-                ~*^th th;
-                ~*^tr tr;
-                ~*^uk uk;
-                ~*^vi vi;
-                ~*^zh zh;
-                ~*^hi hi;
         }
 
         server {
@@ -318,3 +260,4 @@ in
     };
   };
 }
+
