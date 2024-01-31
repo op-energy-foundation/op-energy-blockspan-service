@@ -50,11 +50,11 @@ const routes: Routes = [
             component: StrikeSummaryComponent,
           },
           {
-            path: 'blockspans/:span',
+            path: 'blockspans',
             component: BlockspansHomeComponent,
           },
           {
-            path: 'blockspans/:span/:tip',
+            path: 'blockspans/:from/:to',
             component: BlockspansHomeComponent,
           },
         ],

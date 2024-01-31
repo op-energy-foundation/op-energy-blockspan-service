@@ -62,3 +62,15 @@ export const convertHashrate = (
     return hashrate.toFixed(decimalPoints);
   }
 };
+
+export const getBlockSpanByHeight = (
+  tipBlock: number,
+  noOfBlock: number,
+  span = 14
+): { fromBlock: number; toBlock: number } => {
+  const fromBlock = tipBlock - span * noOfBlock;
+  return {
+    fromBlock,
+    toBlock: fromBlock + span,
+  };
+};
