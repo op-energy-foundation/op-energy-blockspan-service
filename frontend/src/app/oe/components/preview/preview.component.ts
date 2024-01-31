@@ -13,7 +13,7 @@ export class PreviewComponent implements OnInit {
   ngOnInit() {}
 
   blockspansLink(): string {
-    return '/hashstrikes/blockspans/6';
+    return '/hashstrikes/blockspans';
   }
 
   pastStrikeSummaryLink(): string {

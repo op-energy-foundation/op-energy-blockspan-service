@@ -8,7 +8,7 @@ import {
   ElementRef,
 } from '@angular/core';
 import { Location } from '@angular/common';
-import { Subscription, of } from 'rxjs';
+import { Subscription, from, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { switchMap, take } from 'rxjs/operators';
@@ -21,6 +21,7 @@ import {
 import { Block } from '../../interfaces/oe-energy.interface';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { environment } from '../../../../environments/environment';
+import { getBlockSpanByHeight } from '../../utils/helper';
 
 interface PastBlock extends Block {
   mediantimeDiff: number;
@@ -85,26 +86,29 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
     this.subscription = this.route.paramMap
       .pipe(
         switchMap((params: ParamMap) =>
-          params.get('tip')
-            ? of({ ...params })
+          params.get('from') && params.get('from') !== 'undefined'
+            ? of({
+                from: params.get('from'),
+                to: params.get('to'),
+              })
             : this.oeStateService.latestReceivedBlock$
                 .pipe(take(1)) // don't follow any future update of this object
                 .pipe(
                   switchMap((block: Block) =>
                     of({
-                      ...params,
-                      tip: block.height,
+                      from: block.height - 14,
+                      to: block.height,
                     })
                   )
                 )
         )
       )
       .subscribe((params: any) => {
-        const span: string = params.params.span || '';
-        const tip: string = params.params.tip || params.tip || '';
+        const fromBlock: string = params.from || '';
+        const toBlock: string = params.to || '';
         this.blockspanChange({
-          tipBlock: +tip,
-          span: +span,
+          tipFromBlock: fromBlock,
+          tipToBlock: toBlock,
         });
       });
   }
@@ -113,12 +117,17 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  async blockspanChange({ tipBlock, span }): Promise<void> {
-    this.span = span;
+  async blockspanChange({ tipFromBlock, tipToBlock }): Promise<void> {
     const numberOfSpan = this.KEEP_BLOCKS_AMOUNT;
+    this.span = tipToBlock - tipFromBlock;
+    const { fromBlock, toBlock } = getBlockSpanByHeight(
+      tipToBlock,
+      numberOfSpan,
+      this.span
+    );
     this.pastBlocks = [];
     this.oeEnergyApiService
-      .$getBlocksByBlockSpan(tipBlock - span * numberOfSpan, span, numberOfSpan)
+      .$getBlocksByBlockSpan(fromBlock, this.span, numberOfSpan)
       .pipe(take(1))
       .pipe(
         switchMap((blockHeaders: BlockSpanHeaders[]) => {
@@ -126,7 +135,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
           blockHeaders.reverse().forEach(({ endBlock, startBlock }) => {
             return acc.push(endBlock, startBlock);
           });
-          return [acc]; // I am not sure why subscribe() below will receive argument of type T in case if you return T[]
+          return [acc];
         })
       )
       .subscribe(
@@ -141,13 +150,20 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
           };
           this.location.replaceState(
             this.router
-              .createUrlTree([`/hashstrikes/blockspans/`, this.span, tipBlock])
+              .createUrlTree([
+                `/hashstrikes/blockspans/`,
+                tipFromBlock,
+                tipToBlock,
+              ])
               .toString()
           );
           this.getTimeStrikes();
         },
         (error) => {
-          this.toastr.error('Blockspans are not found!', 'Failed!');
+          this.toastr.error(
+            error.error || 'Blockspans are not found!',
+            'Failed!'
+          );
         }
       );
   }

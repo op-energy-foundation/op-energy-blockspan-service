@@ -17,12 +17,8 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class BlockspanNavigatorComponent implements OnInit, OnDestroy {
   @Input() fromBlock: number;
-  @Input() span: number = 2;
+  @Input() toBlock: number;
   @Output() emitGo = new EventEmitter();
-
-  get toBlock() {
-    return +this.fromBlock + +this.span;
-  }
 
   constructor(private route: ActivatedRoute) {}
 
@@ -32,8 +28,8 @@ export class BlockspanNavigatorComponent implements OnInit, OnDestroy {
 
   onGo() {
     this.emitGo.emit({
-      tipBlock: this.toBlock,
-      span: +this.span,
+      tipToBlock: this.toBlock,
+      tipFromBlock: this.fromBlock,
     });
   }
 }

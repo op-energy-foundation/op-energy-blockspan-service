@@ -29,8 +29,8 @@
           <div>
             <app-blockspan-navigator
               *ngIf="pastBlocks[0] && pastBlocks"
-              [fromBlock]="pastBlocks[1].height - 1"
-              [span]="span + 1"
+              [fromBlock]="pastBlocks[1].height"
+              [toBlock]="pastBlocks[0].height"
               (emitGo)="blockspanChange($event)"
             >
             </app-blockspan-navigator>
