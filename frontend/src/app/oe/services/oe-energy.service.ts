@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   TimeStrike,
@@ -20,8 +20,9 @@ import {
   BlockTimeStrikePast,
   BlockTimeStrikeGuessResultPublic,
 } from '../interfaces/oe-energy.interface';
-import { take, switchMap } from 'rxjs/operators';
+import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
 import { OeStateService } from './state.service';
+import { CookieService } from 'ngx-cookie-service';
 
 @Injectable({
   providedIn: 'root',
@@ -293,9 +294,12 @@ export class OeEnergyApiService {
 export class OeAccountApiService {
   private apiBaseUrl: string; // base URL is protocol, hostname, and port
   private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
+  private registrationInProgress: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);
+  private registrationObservable: Observable<any> | null = null;
   constructor(
     private httpClient: HttpClient,
-    private oeEnergyStateService: OeStateService
+    private cookieService: CookieService
   ) {
     this.apiBaseUrl =
       document.location.protocol + '//' + document.location.host; // use relative URL by default
@@ -305,12 +309,28 @@ export class OeAccountApiService {
   // registers new user. See API specs for reference
   // it is expected that frontend should keep token in the state service and use it for the rest API calls,
   // that require authentication.
-  $register(
-  ): Observable<RegisterResult> {
-    return this.httpClient.post<RegisterResult>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/register',
-      {}
-    );
+  $register(): Observable<RegisterResult> {
+    if (!this.registrationObservable) {
+      this.registrationInProgress.next(true);
+      this.registrationObservable = this.httpClient
+        .post<RegisterResult>(
+          this.apiBaseUrl + this.apiBasePath + '/api/v1/account/register',
+          {}
+        )
+        .pipe(
+          tap((data) => {
+            this.$saveToken(data.accountToken);
+            this.registrationInProgress.next(false);
+          }),
+          shareReplay(1),
+          catchError((error) => {
+            this.registrationInProgress.next(false);
+            this.registrationObservable = null; // Reset for future attempts
+            return throwError(() => new Error(`Registration failed: ${error}`));
+          })
+        );
+    }
+    return this.registrationObservable;
   }
 
   // logs in user with given secret. returns account token. See API for reference
@@ -318,11 +338,9 @@ export class OeAccountApiService {
   // that require authentication.
   // params:
   // - secret: secret value returned by $register() call
-  $login(
-    secret: string,
-  ): Observable<string> {
+  $login(secret: string): Observable<string> {
     let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     });
 
     return this.httpClient.post<string>(
@@ -331,7 +349,7 @@ export class OeAccountApiService {
       {
         observe: 'body',
         responseType: 'json',
-        headers
+        headers,
       }
     );
   }
@@ -374,6 +392,17 @@ export class OeAccountApiService {
       {}
     );
   }
+  $cleanToken(): void {
+    this.cookieService.delete('accountToken');
+  }
+
+  $saveToken(token: string): void {
+    this.cookieService.set('accountToken', token);
+  }
+
+  $tokenExists(): boolean {
+    return this.cookieService.check('accountToken');
+  }
 }
 
 @Injectable({
@@ -407,9 +436,7 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $getFutureStrikes(
-    accountToken: string,
-  ): Observable<BlockTimeStrikeFuture> {
+  $getFutureStrikes(accountToken: string): Observable<BlockTimeStrikeFuture> {
     return this.httpClient.post<BlockTimeStrikeFuture>(
       this.apiBaseUrl + this.apiBasePath + '/api/v1/future/strike',
       accountToken,
@@ -423,10 +450,12 @@ export class OeBlocktimeApiService {
   $createFutureStrike(
     accountToken: string,
     blockHeight: number,
-    nlocktime: number,
+    nlocktime: number
   ): Observable<void> {
     return this.httpClient.post<void>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
       accountToken,
       {
         observe: 'body',
@@ -438,10 +467,12 @@ export class OeBlocktimeApiService {
   $getFutureStrikeGuesses(
     accountToken: string,
     blockHeight: number,
-    nlocktime: number,
+    nlocktime: number
   ): Observable<BlockTimeStrikeGuessPublic> {
     return this.httpClient.post<BlockTimeStrikeGuessPublic>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
       accountToken,
       {
         observe: 'body',
@@ -454,10 +485,12 @@ export class OeBlocktimeApiService {
     accountToken: string,
     blockHeight: number,
     nlocktime: number,
-    guess: 'slow' | 'fast',
+    guess: 'slow' | 'fast'
   ): Observable<void> {
     return this.httpClient.post<void>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/future/strike/${blockHeight}/${nlocktime}/${guess}`,
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/future/strike/${blockHeight}/${nlocktime}/${guess}`,
       accountToken,
       {
         observe: 'body',
@@ -466,9 +499,7 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $getPastStrikes(
-    accountToken: string,
-  ): Observable<BlockTimeStrikePast> {
+  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast> {
     return this.httpClient.post<BlockTimeStrikePast>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike`,
       accountToken,
@@ -482,10 +513,12 @@ export class OeBlocktimeApiService {
   $getPastStrikeGuesses(
     accountToken: string,
     blockHeight: number,
-    nlocktime: number,
+    nlocktime: number
   ): Observable<BlockTimeStrikeGuessResultPublic> {
     return this.httpClient.post<BlockTimeStrikeGuessResultPublic>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike/guess/${blockHeight}/${nlocktime}`,
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/past/strike/guess/${blockHeight}/${nlocktime}`,
       accountToken,
       {
         observe: 'body',
@@ -493,5 +526,4 @@ export class OeBlocktimeApiService {
       }
     );
   }
-
 }
