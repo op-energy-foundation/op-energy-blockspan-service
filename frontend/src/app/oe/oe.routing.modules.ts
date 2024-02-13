@@ -11,8 +11,10 @@ import { EnergySummaryComponent } from './components/energy-summary/energy-summa
 import { StrikeDetailComponent } from './components/strike-detail/strike-detail.component';
 import { StrikeSummaryComponent } from './components/strike-summary/strike-summary.component';
 import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
+import { LoginComponent } from './components/login/login.component';
 
 const routes: Routes = [
+  { path: 'login/:secret', component: LoginComponent },
   { path: '', redirectTo: '/preview-page', pathMatch: 'full' },
   {
     path: '',

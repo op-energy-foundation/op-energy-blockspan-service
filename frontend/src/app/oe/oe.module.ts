@@ -1,3 +1,4 @@
+import { ClipboardComponent } from './components/clipboard/clipboard.component';
 import { BlockspanNavigatorComponent } from './components/blockspan-navigator/blockspan-navigator.component';
 import { StrikeSummaryComponent } from './components/strike-summary/strike-summary.component';
 import { BaseBoxHorComponent } from './components/base-box-hor/base-box-hor.component';
@@ -39,6 +40,7 @@ import { BlockRatesGraphComponent } from './components/blockrates-graph/block-ra
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
+import { LoginComponent } from './components/login/login.component';
 
 @NgModule({
   declarations: [
@@ -60,6 +62,8 @@ import * as echarts from 'echarts';
     AboutComponent,
     GraphsComponent,
     BlockRatesGraphComponent,
+    LoginComponent,
+    ClipboardComponent
   ],
   imports: [
     CommonModule,
