@@ -69,6 +69,7 @@ let
 #      cp ${assetsTestnet}/index.minimal.json src/resources/assets-testnet.minimal.json
     '';
     buildPhase = ''
+      echo "build phase"
       export PATH="${nodeDependencies}/bin:$PATH"
       # if there is no HOME var, then npm will try to write to root dir, for which it has no write permissions to, so we provide HOME var
       export HOME=./home
@@ -81,6 +82,12 @@ let
       cp -r ${nodeDependencies}/lib/node_modules ./node_modules
       # allow user to write
       chmod -R u+w ./node_modules
+      for BIN in $(find ./ -name '*bin' -type d); do
+        for FILE in $(find $BIN -type f -exec readlink -f {} \; ); do
+          chmod a+x $FILE
+          patchShebangs $FILE
+        done
+      done
       # we already have populated node_modules dir, so we don't need to run `npm install`
       export DOCKER_COMMIT_HASH=${GIT_COMMIT_HASH}
       npm run build
