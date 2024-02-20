@@ -1,4 +1,4 @@
-name: "deploy branch to dev instance"
+name: "deploy branch to dev instance1"
 on:
   workflow_dispatch
 jobs:
