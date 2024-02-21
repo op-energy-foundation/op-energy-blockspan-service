@@ -1,4 +1,4 @@
-name: "deploy branch to dev instance1"
+name: "deploy branch to dev instance"
 on:
   workflow_dispatch
 jobs:
@@ -13,12 +13,13 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-23.11
         extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
-    - run: git clone ssh://git@github.com/op-energy-foundation/op-energy-dev-instance.git ../op-energy-dev-instance --recursive
-    # current repo's use case is to be submodule in 80% of cases, so we need to copy content of op-energy repo into a proper submodule location
-    - run: rm -rf ../op-energy-dev-instance/overlays/op-energy/oe-blockspan-service/* && cp -r $(pwd)/* ../op-energy-dev-instance/overlays/op-energy/oe-blockspan-service/
-    - run: echo \"ci-host\" > ../op-energy-dev-instance/local_hostname.nix
-    # ci-tests.nix should be on the same level as op-energy-development
-    - run: cp ci-tests.nix ../
-    # now actually run the builds and tests with passing git commit hash as an argument
-    - run: cd ../ && nix-build ci-tests.nix --argstr GIT_COMMIT_HASH $( echo ${{github.sha}} | cut -c 1-8 )
+    - run: git status
+    - run: git pull
+    - run: git branch -a
+    - run: git branch -D devel || true
+    - run: URL=$(git remote get-url origin); git remote set-url origin $(echo $URL | sed 's/https:\/\//ssh:\/\/git@/')
+    - run: git remote -v
+    - run: echo ${{ github.ref_name }}
+    - run: git checkout -b devel && git push --force -u origin devel
+    - run: ssh -oStrictHostKeyChecking=no root@${{ vars.DEV_INSTANCE }} "cd /etc/nixos; git pull --rebase; git submodule update --remote --recursive; nixos-rebuild switch"
 
