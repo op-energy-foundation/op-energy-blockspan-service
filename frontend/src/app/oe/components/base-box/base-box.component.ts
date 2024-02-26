@@ -49,9 +49,8 @@ export class BaseBoxComponent implements OnInit, OnDestroy {
   }
 
   get nbdr() {
-    return this.customValue ? this.customValue : (this.span
-      ? ((600 * 100 * this.span) / (this.toTime - this.fromTime)).toFixed(2)
-      : '???');
+    if (!this.span || !this.toTime || !this.fromTime) return '???';
+    return ((600 * 100 * this.span) / (this.toTime - this.fromTime)).toFixed(2);
   }
 
   constructor(private route: ActivatedRoute, public router: Router) {}

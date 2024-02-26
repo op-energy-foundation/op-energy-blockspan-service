@@ -61,7 +61,7 @@ mkDerivation {
   enableSharedExecutables = false;
   enableSharedLibraries = false;
   enableLibraryForGhci = false;
-  enableSeparateBinOutput = true;
+  enableSeparateBinOutput = false;
   testHaskellDepends = [ base hspec text ];
   doBenchmark = false;
   doCheck = false;

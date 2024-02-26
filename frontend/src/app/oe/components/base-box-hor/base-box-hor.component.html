@@ -14,7 +14,7 @@
         {{ fromTime * 1000 | date: 'yyyy-MM-dd HH:mm' }}
       </div>
     </div>
-    <div class="footer">utc time</div>
+    <div class="footer">Utc times</div>
   </div>
   <div class="base-box-hor--sec">
     <div class="main">
@@ -22,13 +22,13 @@
       <div class="span-block">{{ toTime - fromTime || '?' }}</div>
       <div class="from-block">{{ fromTime }}</div>
     </div>
-    <div class="footer">seconds</div>
+    <div class="footer">Seconds</div>
   </div>
   <div class="base-box-hor--nbdr">
     <div class="main">
       <span>{{ span }}</span> * 600 * 100 /
       <span>{{ toTime - fromTime || '?' }}</span> = {{ nbdr }}
     </div>
-    <div class="footer">normalized block discovery rate</div>
+    <div class="footer">Normalized block discovery rate</div>
   </div>
 </div>

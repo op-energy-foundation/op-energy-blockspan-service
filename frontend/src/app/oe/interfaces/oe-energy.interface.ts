@@ -1,5 +1,6 @@
 export interface Block {
   height: number;
+  hash?: string;
   version: number;
   current_block_hash: string;
   previous_block_hash: string;
@@ -116,14 +117,56 @@ export interface BackendGitHash {
   gitCommitHash: string;
 }
 
+export interface BlockSpanHeadersNbdrHashRate {
+  startBlock: BlockHeader;
+  endBlock: BlockHeader;
+  nbdr: number;
+  hashrate: string;
+}
+
 export interface BlockSpanHeadersNbdr {
   startBlock: BlockHeader;
   endBlock: BlockHeader;
   nbdr: number;
 }
 
-export interface BlockSpanHeadersHashrate {
-  startBlock: BlockHeader;
-  endBlock: BlockHeader;
-  hashrate: string;
+export interface RegisterResult {
+  accountSecret: string;
+  accountToken: string;
+}
+
+export interface BlockSpanHeaders
+  extends BlockSpanHeadersNbdr,
+    BlockSpanHeadersNbdrHashRate {}
+
+export interface BlockTimeStrikeFuture {
+  block: number;
+  nlocktime: number;
+  creationTime: number;
+}
+
+export interface BlockTimeStrikeGuessPublic {
+  person : string;
+  strike :  BlockTimeStrikeFuture;
+  creationTime : number;
+  guess : 'slow' | 'fast';
+}
+
+export interface BlockTimeStrikePast {
+  block : number;
+  nlocktime : number;
+  observedResult : 'slow' | 'fast';
+  observedBlockMediantime : number;
+  observedBlockHash : string;
+  creationTime : number;
+  futureStrikeCreationTime : number;
+}
+
+export interface BlockTimeStrikeGuessResultPublic {
+  person : string;
+  strike : BlockTimeStrikePast;
+  creationTime : number;
+  archiveTime : number;
+  guess : 'slow' | 'fast';
+  observedResult : 'slow' | 'fast';
 }

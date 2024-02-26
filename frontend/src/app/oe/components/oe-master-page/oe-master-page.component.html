@@ -20,6 +20,17 @@
           </li>
         </ul>
       </div>
+      <div class="navbar-nav account-token-popup" *ngIf="(oeStateService.$showAccountURLWarning | async)">
+        <div>
+          WARNING: Store your secret account URL<app-clipboard
+            [text]="(oeStateService.generateAccountAccessURL() | async)">"></app-clipboard> and use it to access
+          oe-energy later
+        </div>
+        <button type="button" class="btn close-account-id-warning" style="width: 60px;"
+          (click)="oeStateService.showAccountURLWarning(false)">
+          X
+        </button>
+      </div>
     </nav>
   </header>
 

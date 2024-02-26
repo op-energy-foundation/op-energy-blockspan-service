@@ -11,6 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { BlockTypes } from '../../types/constant';
 import { OeStateService } from '../../services/state.service';
+import { navigator } from '../../utils/helper';
 
 @Component({
   selector: 'app-energy-detail',
@@ -64,7 +65,8 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
     private toastr: ToastrService,
-    private stateService: OeStateService
+    private stateService: OeStateService,
+    public router: Router
   ) {}
 
   ngOnInit() {
@@ -183,6 +185,19 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
       } else {
         this.showNextBlocklink = true;
       }
+    }
+  }
+
+  navigateTo(): void {
+    const currentUrl = this.router.url;
+    navigator(this.router, currentUrl.replace('energy_detail', 'energy_summary'));
+  }
+
+  openExternalSite(event: Event, hash: string | undefined): void {
+    event.stopPropagation(); // Stop the event propagation
+    if (hash) {
+      // Use window.open or any other method to open the external site
+      window.open('https://blockstream.info/block/' + hash, '_blank');
     }
   }
 }

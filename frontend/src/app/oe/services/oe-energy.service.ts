@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   TimeStrike,
   SlowFastGuess,
@@ -13,11 +13,17 @@ import {
   SwaggerJson,
   BackendGitHash,
   BlockSpanHeadersNbdr,
-  BlockSpanHeadersHashrate,
+  BlockSpanHeaders,
+  RegisterResult,
+  BlockTimeStrikeFuture,
+  BlockTimeStrikeGuessPublic,
+  BlockTimeStrikePast,
+  BlockTimeStrikeGuessResultPublic,
 } from '../interfaces/oe-energy.interface';
-import { take, switchMap } from 'rxjs/operators';
+import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
 import { OeStateService } from './state.service';
 import { environment } from '../../../environments/environment';
+import { CookieService } from 'ngx-cookie-service';
 
 @Injectable({
   providedIn: 'root',
@@ -236,11 +242,18 @@ export class OeEnergyApiService {
   $getBlocksByBlockSpan(
     startBlockHeight: number,
     span: number,
-    mNumberOfSpan?: number
-  ): Observable<BlockHeader[][]> {
-    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
-    return this.httpClient.get<BlockHeader[][]>(
-      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
+    mNumberOfSpan?: number,
+    withNbdr = false,
+    withHashrate = false
+  ): Observable<BlockSpanHeaders[]> {
+    let queryParam = `?withNBDR=${withNbdr}&withHashrate=${withHashrate}`;
+    queryParam =
+      queryParam +
+      (typeof mNumberOfSpan !== 'undefined'
+        ? `&numberOfSpan=${mNumberOfSpan}`
+        : '');
+    return this.httpClient.get<BlockSpanHeaders[]>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}${queryParam}`
     );
   }
 
@@ -250,7 +263,10 @@ export class OeEnergyApiService {
     span: number,
     mNumberOfSpan?: number
   ): Observable<BlockSpanHeadersNbdr[]> {
-    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
+    const numberOfSpan =
+      typeof mNumberOfSpan !== 'undefined'
+        ? `?numberOfSpan=${mNumberOfSpan}`
+        : '';
     return this.httpClient.get<BlockSpanHeadersNbdr[]>(
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithnbdrbyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
     );
@@ -261,10 +277,253 @@ export class OeEnergyApiService {
     startBlockHeight: number,
     span: number,
     mNumberOfSpan?: number
-  ): Observable<BlockSpanHeadersHashrate[]> {
-    const numberOfSpan = ( typeof mNumberOfSpan !== 'undefined') ? `?numberOfSpan=${mNumberOfSpan}` : '';
-    return this.httpClient.get<BlockSpanHeadersHashrate[]>(
+  ): Observable<BlockSpanHeaders[]> {
+    const numberOfSpan =
+      typeof mNumberOfSpan !== 'undefined'
+        ? `?numberOfSpan=${mNumberOfSpan}`
+        : '';
+    return this.httpClient.get<BlockSpanHeaders[]>(
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockswithhashratebyblockspan/${startBlockHeight}/${span}${numberOfSpan}`
+    );
+  }
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class OeAccountApiService {
+  private apiBaseUrl: string; // base URL is protocol, hostname, and port
+  private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
+  private registrationInProgress: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);
+  private registrationObservable: Observable<any> | null = null;
+  constructor(
+    private httpClient: HttpClient,
+    private cookieService: CookieService
+  ) {
+    this.apiBaseUrl =
+      document.location.protocol + '//' + document.location.host; // use relative URL by default
+    this.apiBasePath = '';
+  }
+
+  // registers new user. See API specs for reference
+  // it is expected that frontend should keep token in the state service and use it for the rest API calls,
+  // that require authentication.
+  $register(): Observable<RegisterResult> {
+    if (!this.registrationObservable) {
+      this.registrationInProgress.next(true);
+      this.registrationObservable = this.httpClient
+        .post<RegisterResult>(
+          this.apiBaseUrl + this.apiBasePath + '/api/v1/account/register',
+          {}
+        )
+        .pipe(
+          tap((data) => {
+            this.$saveToken(data.accountToken);
+            this.registrationInProgress.next(false);
+          }),
+          shareReplay(1),
+          catchError((error) => {
+            this.registrationInProgress.next(false);
+            this.registrationObservable = null; // Reset for future attempts
+            return throwError(() => new Error(`Registration failed: ${error}`));
+          })
+        );
+    }
+    return this.registrationObservable;
+  }
+
+  // logs in user with given secret. returns account token. See API for reference
+  // it is expected that frontend should keep token in the state service and use it for the rest API calls,
+  // that require authentication.
+  // params:
+  // - secret: secret value returned by $register() call
+  $login(secret: string): Observable<string> {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
+    return this.httpClient.post<string>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/login',
+      JSON.stringify(secret),
+      {
+        observe: 'body',
+        responseType: 'json',
+        headers,
+      }
+    );
+  }
+
+  // updates displayable user name for a current user. Can fail if there is a user with given display name exist
+  // params:
+  // - accountToken: token got from register/login
+  // - displayName: new display name
+  $updateUserDisplayName(
+    accountToken: string,
+    displayName: string
+  ): Observable<string> {
+    let params = {
+      account_token: accountToken,
+      display_name: displayName,
+    };
+
+    return this.httpClient.post<string>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/displayname',
+      params,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  // returns swagger API json
+  $getSwaggerFile(): Observable<SwaggerJson> {
+    return this.httpClient.get<SwaggerJson>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/swagger.json',
+      {}
+    );
+  }
+
+  // returns swagger API json
+  $getGitHash(): Observable<BackendGitHash> {
+    return this.httpClient.get<BackendGitHash>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/git-hash',
+      {}
+    );
+  }
+  $cleanToken(): void {
+    this.cookieService.delete('accountToken');
+  }
+
+  $saveToken(token: string): void {
+    this.cookieService.set('accountToken', token);
+  }
+
+  $tokenExists(): boolean {
+    return this.cookieService.check('accountToken');
+  }
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class OeBlocktimeApiService {
+  private apiBaseUrl: string; // base URL is protocol, hostname, and port
+  private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
+  constructor(
+    private httpClient: HttpClient,
+    private oeEnergyStateService: OeStateService
+  ) {
+    this.apiBaseUrl =
+      document.location.protocol + '//' + document.location.host; // use relative URL by default
+    this.apiBasePath = '';
+  }
+
+  // returns swagger API json
+  $getSwaggerFile(): Observable<SwaggerJson> {
+    return this.httpClient.get<SwaggerJson>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/blocktime/swagger.json',
+      {}
+    );
+  }
+
+  // returns swagger API json
+  $getGitHash(): Observable<BackendGitHash> {
+    return this.httpClient.get<BackendGitHash>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/blocktime/git-hash',
+      {}
+    );
+  }
+
+  $getFutureStrikes(accountToken: string): Observable<BlockTimeStrikeFuture> {
+    return this.httpClient.post<BlockTimeStrikeFuture>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/future/strike',
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $createFutureStrike(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number
+  ): Observable<void> {
+    return this.httpClient.post<void>(
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $getFutureStrikeGuesses(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number
+  ): Observable<BlockTimeStrikeGuessPublic> {
+    return this.httpClient.post<BlockTimeStrikeGuessPublic>(
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $createFutureStrikeGuesses(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number,
+    guess: 'slow' | 'fast'
+  ): Observable<void> {
+    return this.httpClient.post<void>(
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/future/strike/${blockHeight}/${nlocktime}/${guess}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast> {
+    return this.httpClient.post<BlockTimeStrikePast>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
+    );
+  }
+
+  $getPastStrikeGuesses(
+    accountToken: string,
+    blockHeight: number,
+    nlocktime: number
+  ): Observable<BlockTimeStrikeGuessResultPublic> {
+    return this.httpClient.post<BlockTimeStrikeGuessResultPublic>(
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/past/strike/guess/${blockHeight}/${nlocktime}`,
+      accountToken,
+      {
+        observe: 'body',
+        responseType: 'json',
+      }
     );
   }
 }

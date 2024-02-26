@@ -7,6 +7,7 @@
     align-items: flex-end;
 
     .blockspan {
+      cursor: pointer;
       > div {
         height: 200px;
 
@@ -45,6 +46,49 @@
             .span-block {
               height: 30%;
             }
+
+            .is-link {
+              text-decoration: none;
+          
+              &:hover {
+                text-decoration: none;
+              }
+            }
+          }
+        }
+
+        .hashblock {
+          position: relative;
+          height: 100%;
+
+          
+        
+          .to-block-hash,
+          .from-block-hash {
+            height: 50%;
+            background-color: yellow;
+            border: 1px solid black;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: 700;
+            font-size: small;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        
+          .footer {
+            background-color: yellow;
+            border: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: 700;
           }
         }
       }
@@ -54,6 +98,7 @@
       background-color: red;
       min-width: 250px;
       height: 200px;
+      cursor: pointer;
 
       > div:first-child {
         border: 1px solid black;

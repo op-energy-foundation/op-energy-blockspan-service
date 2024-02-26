@@ -59,6 +59,8 @@ data Config = Config
     -- ^ port which should be used by prometheus metrics
   , configCacheChunkSize :: Positive Int
     -- ^ defines size of chunk with which cache is grown
+  , configBlockspanMinimumSize :: Positive Int
+    -- ^ defines minimum size of blockspan
   }
   deriving Show
 instance FromJSON Config where
@@ -82,6 +84,7 @@ instance FromJSON Config where
     <*> ( v .:? "LOG_LEVEL_MIN" .!= (configLogLevelMin defaultConfig))
     <*> ( v .:? "PROMETHEUS_PORT" .!= (configPrometheusPort defaultConfig))
     <*> ( v .:? "CACHE_CHUNK_SIZE" .!= (configCacheChunkSize defaultConfig))
+    <*> ( v .:? "BLOCKSPAN_MINIMUM_SIZE" .!= (configBlockspanMinimumSize defaultConfig))
 
 defaultConfig:: Config
 defaultConfig = Config
@@ -104,6 +107,7 @@ defaultConfig = Config
   , configLogLevelMin = LevelWarn
   , configPrometheusPort = 7999
   , configCacheChunkSize = 50000
+  , configBlockspanMinimumSize = 6
   }
 
 getConfigFromEnvironment :: IO Config

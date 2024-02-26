@@ -1,4 +1,6 @@
-import { HttpClientModule } from '@angular/common/http';
+import { AuthInterceptor } from './oe/interceptors/auth.interceptor';
+import { CookieService } from 'ngx-cookie-service';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -17,7 +19,16 @@ import { WebsocketService } from './oe/services/websocket.service';
     OeEnergyModule,
     AppRoutingModule,
   ],
-  providers: [WebsocketService, OeEnergyApiService],
+  providers: [
+    CookieService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
+    WebsocketService,
+    OeEnergyApiService,
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

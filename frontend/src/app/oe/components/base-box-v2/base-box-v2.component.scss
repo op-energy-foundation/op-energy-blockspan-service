@@ -9,6 +9,10 @@
   min-width: 100px;
   min-height: 200px;
   height: 100%;
+  
+  &:hover {
+    text-decoration: none !important;
+  }
 
   @media (max-width: 420px) {
     // flex-direction: column;

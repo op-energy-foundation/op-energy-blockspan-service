@@ -15,7 +15,7 @@ import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust)
 import           Data.Pool(Pool)
 import           Servant.API (BasicAuthData(..))
-import           Servant (err404, throwError, Handler)
+import           Servant (err404, errBody, throwError)
 import           Servant.Client.JsonRpc
 import           Control.Monad (foldM)
 import           Control.Monad.Logger (logDebug, logInfo)
@@ -38,15 +38,12 @@ import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
 
 
-instance MonadMonitor Handler where
-  doIO = liftIO
-
 getBlockHeaderByHash :: BlockHash -> AppM BlockHeader
 getBlockHeaderByHash hash = do
   mheader <- mgetBlockHeaderByHash hash
   case mheader of
-    Nothing-> throwError err404
     Just header -> return header
+    Nothing-> throwError err404 {errBody = "ERROR: getBlockHeaderByHash: failed to find block header by given hash"}
 
 
 -- | returns BlockHeader by given hash
@@ -66,7 +63,7 @@ getBlockHeaderByHeight height = do
   mheader <- mgetBlockHeaderByHeight height
   case mheader of
     Just header -> return header
-    _ -> throwError err404
+    _ -> throwError err404 {errBody = "ERROR: getBlockHeaderByHeight: failed to find block header by given height"}
 
 -- | returns Just BlockHeader by given height or Nothing if there no block with given height
 -- - O(log n) - in case if block with given height is in Height -> BlockHeader cache;
@@ -212,6 +209,7 @@ cacheBlockHeadersFromDB end = do
        , metrics = MetricsState { blockHeaderCacheFromDBLookup = blockHeaderCacheFromDBLookup }
        } <- ask
   runLogging $ $(logDebug) $! "DB query"
+  -- TODO: here is a possible optimization: persistent do not support chunk/lazy fetching, so this query will load all the records in the RAM. this can be walkarounded with pagination+conduits.
   headers <- liftIO $ P.observeDuration blockHeaderCacheFromDBLookup $ flip runSqlPersistMPool pool $ selectList [ BlockHeaderHeight >=. 0, BlockHeaderHeight <=. end ] [ Asc BlockHeaderHeight]
   runLogging $ $(logDebug) $! "DB query done"
   Cache.ensureCapacity end

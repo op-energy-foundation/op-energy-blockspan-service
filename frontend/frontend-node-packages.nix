@@ -3676,6 +3676,15 @@ let
         sha512 = "FxqpkPPwu1HjuN93Omfm4h8uIanXofW0RxVEW3k5RKx+mJJYSthzNhp32Kzxxy3YAEZ/Dc/EWN1vZRY0+kOhbw==";
       };
     };
+    "clipboard-2.0.11" = {
+      name = "clipboard";
+      packageName = "clipboard";
+      version = "2.0.11";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/clipboard/-/clipboard-2.0.11.tgz";
+        sha512 = "C+0bbOqkezLIsmWSvlsXS0Q0bmkugu7jcfMIACB+RDEntIzQIkdr148we28AfSloQLRdZlYL/QYyrq05j/3Faw==";
+      };
+    };
     "cliui-7.0.4" = {
       name = "cliui";
       packageName = "cliui";
@@ -4493,6 +4502,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz";
         sha512 = "ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==";
+      };
+    };
+    "delegate-3.2.0" = {
+      name = "delegate";
+      packageName = "delegate";
+      version = "3.2.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/delegate/-/delegate-3.2.0.tgz";
+        sha512 = "IofjkYBZaZivn0V8nnsMJGBr4jVLxHDheKSW88PyxS5QC4Vo9ZbZVvhzlSxY87fVq3STR6r+4cGepyHkcWOQSw==";
       };
     };
     "delegates-1.0.0" = {
@@ -6131,6 +6149,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/globby/-/globby-12.2.0.tgz";
         sha512 = "wiSuFQLZ+urS9x2gGPl1H5drc5twabmm4m2gTR27XDFyjUHJUNsS8o/2aKyIF6IoBaR630atdher0XJ5g6OMmA==";
+      };
+    };
+    "good-listener-1.2.2" = {
+      name = "good-listener";
+      packageName = "good-listener";
+      version = "1.2.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/good-listener/-/good-listener-1.2.2.tgz";
+        sha512 = "goW1b+d9q/HIwbVYZzZ6SsTr4IgE+WA44A0GmPIQstuOrgsFcT7VEJ48nmr9GaRtNu0XTKacFLGnBPAM6Afouw==";
       };
     };
     "gopd-1.0.1" = {
@@ -8194,6 +8221,15 @@ let
         sha512 = "CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==";
       };
     };
+    "ngx-cookie-service-13.2.1" = {
+      name = "ngx-cookie-service";
+      packageName = "ngx-cookie-service";
+      version = "13.2.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/ngx-cookie-service/-/ngx-cookie-service-13.2.1.tgz";
+        sha512 = "whl7sYcSlAmPa12zoBfBeSn+9ENxRjKAzuwRPRTL6Oe/f9dtSui2lBmOgoPfSD1umiTV38JpJee9nu3WbGsgwg==";
+      };
+    };
     "ngx-echarts-8.0.1" = {
       name = "ngx-echarts";
       packageName = "ngx-echarts";
@@ -9994,6 +10030,15 @@ let
         sha512 = "5cfCmsTYV/wPaRIItNxatw02ua/MThdIUNnUOCYp+3LSEJvnG804ANw2VLaavNILIfWXF1D1G2KNANkBBvInwQ==";
       };
     };
+    "select-1.1.2" = {
+      name = "select";
+      packageName = "select";
+      version = "1.1.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/select/-/select-1.1.2.tgz";
+        sha512 = "OwpTSOfy6xSs1+pwcNrv0RBMOzI39Lp3qQKUTPVVPRjCdNa5JH/oPRiqsesIskK8TVgmRiHwO4KXlV2Li9dANA==";
+      };
+    };
     "select-hose-2.0.0" = {
       name = "select-hose";
       packageName = "select-hose";
@@ -10937,6 +10982,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/timers-browserify/-/timers-browserify-1.4.2.tgz";
         sha512 = "PIxwAupJZiYU4JmVZYwXp9FKsHMXb5h0ZEFyuXTAn8WLHOlcij+FEcbrvDsom1o5dr1YggEtFbECvGCW2sT53Q==";
+      };
+    };
+    "tiny-emitter-2.1.0" = {
+      name = "tiny-emitter";
+      packageName = "tiny-emitter";
+      version = "2.1.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/tiny-emitter/-/tiny-emitter-2.1.0.tgz";
+        sha512 = "NB6Dk1A9xgQPMoGqC5CVXn123gWyte215ONT5Pp5a0yt4nlEoO1ZWeCwpncaekPHXO60i47ihFnZPiRPjRMq4Q==";
       };
     };
     "tinyify-3.1.0" = {
@@ -12828,6 +12882,7 @@ let
       sources."cli-table3-0.6.3"
       sources."cli-truncate-2.1.0"
       sources."cli-width-3.0.0"
+      sources."clipboard-2.0.11"
       sources."cliui-8.0.1"
       sources."clone-1.0.4"
       sources."clone-deep-4.0.1"
@@ -12986,6 +13041,7 @@ let
         ];
       })
       sources."delayed-stream-1.0.0"
+      sources."delegate-3.2.0"
       sources."delegates-1.0.0"
       sources."depd-2.0.0"
       sources."dependency-graph-0.11.0"
@@ -13282,6 +13338,7 @@ let
       sources."global-dirs-3.0.1"
       sources."globals-11.12.0"
       sources."globby-12.2.0"
+      sources."good-listener-1.2.2"
       sources."gopd-1.0.1"
       sources."graceful-fs-4.2.11"
       sources."grapheme-splitter-1.0.4"
@@ -13609,6 +13666,7 @@ let
       sources."negotiator-0.6.3"
       sources."neo-async-2.6.2"
       sources."next-tick-1.0.0"
+      sources."ngx-cookie-service-13.2.1"
       sources."ngx-echarts-8.0.1"
       sources."ngx-toastr-14.3.0"
       (sources."nice-napi-1.0.2" // { dependencies = [ sources."node-gyp-build-4.6.0" ]; } )
@@ -13893,6 +13951,7 @@ let
           sources."dash-ast-2.0.1"
         ];
       })
+      sources."select-1.1.2"
       sources."select-hose-2.0.0"
       sources."selfsigned-2.1.1"
       (sources."semver-7.3.5" // {
@@ -14055,6 +14114,7 @@ let
       })
       sources."thunky-1.1.0"
       sources."timers-browserify-1.4.2"
+      sources."tiny-emitter-2.1.0"
       (sources."tinyify-3.1.0" // {
         dependencies = [
           sources."through2-3.0.2"

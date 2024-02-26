@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ReplaySubject } from 'rxjs';
+import { Observable, ReplaySubject, map } from 'rxjs';
 import {
   TimeStrike,
   SlowFastGuess,
@@ -73,5 +73,34 @@ export class OeStateService {
       const slowFastGuessOutcome = response.timeSlowFastGuessOutcome;
       this.timeSlowFastGuessesOutcome$.next(slowFastGuessOutcome);
     }
+  }
+
+  generateAccountAccessURL(): Observable<string> {
+    return this.$accountSecret.pipe(
+      map(
+        (secret) =>
+          `${document.location.protocol}${document.location.host}/login/${secret}`
+      )
+    );
+  }
+
+  // Method to update the account secret
+  updateAccountSecret(secret: string): void {
+    this.$accountSecret.next(secret);
+  }
+
+  // Method to update the account token
+  updateAccountToken(token: string): void {
+    this.$accountToken.next(token);
+  }
+
+  // Optionally, if you want to handle accountTokenState updates
+  updateAccountTokenState(state: 'init' | 'checked' | 'generated'): void {
+    this.accountTokenState = state;
+  }
+
+  // Method to trigger the warning message
+  showAccountURLWarning(show: boolean): void {
+    this.$showAccountURLWarning.next(show);
   }
 }

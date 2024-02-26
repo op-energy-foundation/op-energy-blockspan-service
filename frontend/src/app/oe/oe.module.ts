@@ -1,3 +1,4 @@
+import { ClipboardComponent } from './components/clipboard/clipboard.component';
 import { BlockspanNavigatorComponent } from './components/blockspan-navigator/blockspan-navigator.component';
 import { StrikeSummaryComponent } from './components/strike-summary/strike-summary.component';
 import { BaseBoxHorComponent } from './components/base-box-hor/base-box-hor.component';
@@ -27,13 +28,14 @@ import { WebsocketService } from './services/websocket.service';
 import { OeStateService } from './services/state.service';
 import {
   faBook,
+  faCalendarAlt,
   faChartArea,
   faDownload,
   faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 import { AboutComponent } from './components/about/about.component';
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDatepickerModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
@@ -44,6 +46,7 @@ import { WatersvgComponent } from './components/svg/watersvg/watersvg.component'
 import { GuessingBlockComponent } from './components/guessing-block/guessing-block.component';
 import { CloudsvgComponent } from './components/svg/cloudsvg/cloudsvg.component';
 import { IcesvgComponent } from './components/svg/icesvg/icesvg.component';
+import { LoginComponent } from './components/login/login.component';
 
 @NgModule({
   declarations: [
@@ -70,7 +73,9 @@ import { IcesvgComponent } from './components/svg/icesvg/icesvg.component';
     WatersvgComponent,
     GuessingBlockComponent,
     CloudsvgComponent,
-    IcesvgComponent
+    IcesvgComponent,
+    LoginComponent,
+    ClipboardComponent
   ],
   imports: [
     CommonModule,
@@ -81,6 +86,7 @@ import { IcesvgComponent } from './components/svg/icesvg/icesvg.component';
     AngularSvgIconModule.forRoot(),
     FontAwesomeModule,
     NgbDropdownModule,
+    NgbDatepickerModule,
     NgxEchartsModule.forRoot({ echarts }),
   ],
   providers: [
@@ -111,5 +117,6 @@ export class OeEnergyModule {
     library.addIcons(faInfoCircle);
     library.addIcons(faChartArea);
     library.addIcons(faDownload);
+    library.addIcons(faCalendarAlt);
   }
 }

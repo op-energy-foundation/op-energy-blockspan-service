@@ -13,7 +13,7 @@ export class PreviewComponent implements OnInit {
   ngOnInit() {}
 
   blockspansLink(): string {
-    return '/hashstrikes/blockspans/1';
+    return '/hashstrikes/blockspans';
   }
 
   pastStrikeSummaryLink(): string {
@@ -50,5 +50,9 @@ export class PreviewComponent implements OnInit {
 
   futureStrikeSummaryWithGuessLink(): string {
     return `/strikes/nbdr/next/2016`;
+  }
+  
+  blockRateChartLink(): string {
+    return '/graphs/blockratecharts/144';
   }
 }
