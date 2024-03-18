@@ -2,10 +2,9 @@ import { TableColumn } from './../../interfaces/oe-energy.interface';
 
 export const TABLE_HEADERS: TableColumn[] = [
   {
-    displayName: 'Custom Sr No',
+    displayName: 'Sr No',
     columnKey: '',
-    isSrNo: true,
-    customSrNoHeader: 'Custom Sr No',
+    isSrNo: true
   },
   { displayName: 'Block', columnKey: 'blockTimeStrikePastBlock' },
   {
