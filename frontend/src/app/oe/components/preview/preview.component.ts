@@ -51,4 +51,17 @@ export class PreviewComponent implements OnInit {
   blockRateChartLink(): string {
     return '/graphs/blockratecharts/144';
   }
+
+  pastStrikeListOldestToNewestLink(): string {
+    return '/hashstrikes/pasts_strikes_oldest_to_newest';
+  }
+
+  pastStrikeListNewestToOldestLink(): string {
+    return '/hashstrikes/past_strikes_newest_to_oldest';
+  }
+
+  pastStrikeListQWithGuess(): string {
+    return '/hashstrikes/past_strikes_with_guesses_descending_on_guesses';
+  }
+  
 }

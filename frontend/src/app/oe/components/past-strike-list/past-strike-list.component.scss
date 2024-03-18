@@ -1,0 +1,52 @@
+.past-strike-list {
+    .strike-table {
+        .content {
+          word-wrap: break-word;
+          background-color: #24273e;
+          background-clip: border-box;
+          border: 1px solid rgba(0, 0, 0, 0.125);
+          box-shadow: 0.125rem 0.125rem 0.25rem #00000013;
+          margin: 15px 0;
+  
+          .table {
+            tr {
+              white-space: initial;
+            }
+  
+            td {
+              word-break: break-all;
+              max-width: 300px;
+            }
+          }
+  
+          .outcome {
+            background-color: blue;
+            padding: 3px 10px;
+  
+            &.hot {
+              background-color: red;
+            }
+          }
+        }
+      }
+  
+      @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        gap: 50px;
+  
+        ::ng-deep .blockspan .tetris-blockspan {
+          height: 330px;
+        }
+  
+        .blockspan-table {
+          width: 100%;
+          padding: 20px;
+  
+          .content {
+            width: 100%;
+            overflow: auto;
+          }
+        }
+      }
+}

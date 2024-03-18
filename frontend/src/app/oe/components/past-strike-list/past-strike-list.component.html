@@ -1,0 +1,10 @@
+<div class="past-strike-list">
+    <div class="strike-table m-5 text-center">
+        <div class="content">
+            <app-data-table [headers]="headers" [data]="pastStrikes"></app-data-table>
+        </div>
+    </div>
+    <div class="text-center loadingGraphs" *ngIf="isLoading">
+        <div class="spinner-border text-light"></div>
+    </div>
+</div>
