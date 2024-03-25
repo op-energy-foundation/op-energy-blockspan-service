@@ -1,0 +1,20 @@
+
+/* Style for clickable rows */
+.clickable-row {
+    cursor: pointer;
+  
+    &:hover {
+      background-color: #726f6f; // Light grey background on hover
+      
+      .row-icon {
+        transform: rotate(90deg); // Rotate icon on hover
+        transition: transform 0.2s ease-in-out; // Smooth transition for rotation
+      }
+    }
+  }
+  
+  /* Default style for the row icon */
+  .row-icon {
+    margin-right: 1rem;
+  }
+  

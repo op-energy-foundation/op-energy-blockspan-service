@@ -153,13 +153,13 @@ export interface BlockTimeStrikeGuessPublic {
 }
 
 export interface BlockTimeStrikePast {
-  block : number;
-  nlocktime : number;
-  observedResult : 'slow' | 'fast';
-  observedBlockMediantime : number;
-  observedBlockHash : string;
-  creationTime : number;
-  futureStrikeCreationTime : number;
+  block: number;
+  creationTime: number;
+  futureStrikeCreationTime: number;
+  nlocktime: number;
+  observedBlockHash: string;
+  observedBlockMediantime: number;
+  observedResult: string;
 }
 
 export interface BlockTimeStrikeGuessResultPublic {
@@ -170,3 +170,11 @@ export interface BlockTimeStrikeGuessResultPublic {
   guess : 'slow' | 'fast';
   observedResult : 'slow' | 'fast';
 }
+
+export interface TableColumn {
+  displayName: string;
+  columnKey: string;
+  isSrNo?: boolean;
+  customSrNoHeader?: string; 
+}
+

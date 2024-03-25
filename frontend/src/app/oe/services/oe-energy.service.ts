@@ -499,13 +499,12 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast> {
-    return this.httpClient.post<BlockTimeStrikePast>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike`,
+  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast[]> {
+    return this.httpClient.post<BlockTimeStrikePast[]>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/blocktime/past/strike`,
       accountToken,
       {
-        observe: 'body',
-        responseType: 'json',
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
