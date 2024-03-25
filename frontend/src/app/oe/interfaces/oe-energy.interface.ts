@@ -153,13 +153,13 @@ export interface BlockTimeStrikeGuessPublic {
 }
 
 export interface BlockTimeStrikePast {
-  blockTimeStrikePastBlock: number;
-  blockTimeStrikePastCreationTime: number;
-  blockTimeStrikePastFutureStrikeCreationTime: number;
-  blockTimeStrikePastNlocktime: number;
-  blockTimeStrikePastObservedBlockHash: string;
-  blockTimeStrikePastObservedBlockMediantime: number;
-  blockTimeStrikePastObservedResult: string;
+  block: number;
+  creationTime: number;
+  futureStrikeCreationTime: number;
+  nlocktime: number;
+  observedBlockHash: string;
+  observedBlockMediantime: number;
+  observedResult: string;
 }
 
 export interface BlockTimeStrikeGuessResultPublic {

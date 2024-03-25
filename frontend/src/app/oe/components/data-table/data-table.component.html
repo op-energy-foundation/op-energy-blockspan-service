@@ -13,14 +13,13 @@
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let item of data; let i = index">
+        <tr *ngFor="let item of data; let i = index" (click)="onRowClick(item)" class="clickable-row">
             <!-- Conditionally display Sr No for each row -->
-            <td *ngIf="showSerialNumberColumn">{{ i + 1 }}</td>
+            <td *ngIf="showSerialNumberColumn"><i class="row-icon fas fa-chevron-right"></i>{{ i + 1 }}</td>
             <td *ngFor="let header of headers">
                 <ng-container *ngIf="!header.isSrNo">
                     {{ item[header.columnKey] }}
                 </ng-container>
-            </td>
         </tr>
     </tbody>
 </table>

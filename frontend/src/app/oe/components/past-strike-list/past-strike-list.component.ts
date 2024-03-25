@@ -1,11 +1,15 @@
-import { MAX_DISPLAYED_STRIKES, TABLE_HEADERS, URL_PAST_STRIKES_NEWEST_TO_OLDEST } from './past-strike-list.interface';
+import {
+  MAX_DISPLAYED_STRIKES,
+  TABLE_HEADERS,
+  URL_PAST_STRIKES_NEWEST_TO_OLDEST,
+} from './past-strike-list.interface';
 import { Component, OnInit } from '@angular/core';
 import { OeBlocktimeApiService } from '../../services/oe-energy.service';
 import {
   BlockTimeStrikePast,
   TableColumn,
 } from '../../interfaces/oe-energy.interface';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -22,7 +26,8 @@ export class PastStrikeListComponent implements OnInit {
   constructor(
     private oeBlocktimeApiService: OeBlocktimeApiService,
     private route: ActivatedRoute,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -55,5 +60,15 @@ export class PastStrikeListComponent implements OnInit {
   private handleError(error: any): void {
     this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
     this.isLoading = false;
+  }
+
+  onChildRowClick(item: BlockTimeStrikePast): void {
+    // Construct the URL with parameters from the item
+    const url = `/hashstrikes/strike_detail/${item.block}/${item.block + 13}/${
+      item.block
+    }/${item.observedBlockMediantime}/${item.futureStrikeCreationTime}`;
+
+    // Use the Router service to navigate
+    this.router.navigate([url]);
   }
 }
