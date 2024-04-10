@@ -252,7 +252,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     return `/hashstrikes/energy_detail/${this.fromBlock.height}/${this.toBlock.height}`;
   }
 
-  strikeDetailLink() {
-    return `/hashstrikes/strike_detail/${this.fromBlock.height}/${this.toBlock.height}/${this.strike.blockHeight}/${this.strike.nLockTime}/${this.strike.creationTime}`;
+  strikeSummaryLink() {
+    return `/hashstrikes/strike_summary/${this.fromBlock.height}/${this.toBlock.height}`;
   }
 }
