@@ -1,11 +1,9 @@
 <div class="past-strike-list">
     <div class="strike-table m-5 text-center">
         <div class="content">
-            <app-data-table [headers]="headers" [data]="pastStrikes"
-                (rowClicked)="onChildRowClick($event)"></app-data-table>
+            <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)"
+                (getNextPage)="fetchPastStrikes($event)" [isLoading]="isLoading">
+            </app-data-table>
         </div>
-    </div>
-    <div class="text-center loadingGraphs" *ngIf="isLoading">
-        <div class="spinner-border text-light"></div>
     </div>
 </div>

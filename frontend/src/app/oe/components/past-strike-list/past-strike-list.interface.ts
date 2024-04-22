@@ -28,5 +28,3 @@ export const TABLE_HEADERS: TableColumn[] = [
 
 export const URL_PAST_STRIKES_NEWEST_TO_OLDEST =
   'past_strikes_newest_to_oldest';
-
-export const MAX_DISPLAYED_STRIKES = 100;

@@ -152,7 +152,7 @@ export interface BlockTimeStrikeGuessPublic {
   guess : 'slow' | 'fast';
 }
 
-export interface BlockTimeStrikePast {
+export interface StrikeDetails {
   block: number;
   creationTime: number;
   futureStrikeCreationTime: number;
@@ -160,6 +160,11 @@ export interface BlockTimeStrikePast {
   observedBlockHash: string;
   observedBlockMediantime: number;
   observedResult: string;
+}
+
+export interface BlockTimeStrikePast {
+  pastStrike: StrikeDetails,
+  guessesCount: number
 }
 
 export interface BlockTimeStrikeGuessResultPublic {
@@ -175,6 +180,11 @@ export interface TableColumn {
   displayName: string;
   columnKey: string;
   isSrNo?: boolean;
-  customSrNoHeader?: string; 
+  customSrNoHeader?: string;
 }
 
+export type PaginationResponse<T> = {
+  nextPage: number;
+  count: number;
+  results: T[];
+};
