@@ -170,3 +170,9 @@ export interface BlockTimeStrikeGuessResultPublic {
   guess : 'slow' | 'fast';
   observedResult : 'slow' | 'fast';
 }
+
+export type PaginationResponse<T> = {
+  nextPage: number;
+  count: number;
+  results: T[];
+};

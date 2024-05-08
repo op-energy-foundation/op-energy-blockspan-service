@@ -50,19 +50,21 @@
       </div>
       <!-- <h3>Guesses</h3> -->
       <div class="content">
-        <table class="table table-borderless table-striped">
-          <tbody>
+        <table class="table table-borderless table-striped text-center">
+          <thead>
             <tr>
-              <td>User</td>
-              <td>Guess</td>
-              <td>Guess Time</td>
+              <th>User</th>
+              <th>Guess Time</th>
+              <th>Guess</th>
+              <th>Observed Result</th>
             </tr>
-            <tr *ngFor="let guess of slowFastGuesses">
-              <td>{{ guess.userName }}</td>
+          </thead>
+          <tbody>
+            <tr *ngFor="let guess of guessStrike">
+              <td>{{ guess.person }}</td>
+              <td>{{ guess.creationTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</td>
               <td>{{ guess.guess }}</td>
-              <td>
-                {{ guess.creationTime * 1000 | date: 'yyyy-MM-dd HH:mm' }}
-              </td>
+              <td>{{ guess.observedResult || "?" }}</td>
             </tr>
           </tbody>
         </table>

@@ -1,4 +1,7 @@
-import { Block } from '../../interfaces/oe-energy.interface';
+import {
+  Block,
+  BlockTimeStrikeGuessResultPublic,
+} from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
@@ -11,7 +14,10 @@ import {
   TimeStrike,
 } from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import { OeEnergyApiService } from '../../services/oe-energy.service';
+import {
+  OeBlocktimeApiService,
+  OeEnergyApiService,
+} from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 
 @Component({
@@ -40,6 +46,8 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   subscription: Subscription;
   slowFastGuesses: SlowFastGuess[] = [];
   currentActiveGuess: 'slow' | 'fast' | null = null;
+  guessStrike: BlockTimeStrikeGuessResultPublic[] = [];
+  curruntPage: number = 0;
 
   get strikeElapsedTime(): number {
     return this.strike.nLockTime - this.fromBlock.mediantime;
@@ -101,7 +109,8 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     private modalService: NgbModal,
     private toastr: ToastrService,
     private oeEnergyApiService: OeEnergyApiService,
-    public stateService: OeStateService
+    public stateService: OeStateService,
+    private oeBlocktimeApiService: OeBlocktimeApiService
   ) {}
 
   ngOnInit() {
@@ -120,6 +129,18 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     }); */
 
     (this.subscription = this.route.paramMap
+      .pipe(
+        switchMap((params: ParamMap) =>
+          this.stateService.latestReceivedBlock$
+            .pipe(take(1)) // don't follow any future update of this object
+            .pipe(
+              switchMap((block: Block) => {
+                this.latestBlock = block;
+                return of(params);
+              })
+            )
+        )
+      )
       .pipe(
         switchMap((params: ParamMap) => {
           const fromBlockHeight: number = parseInt(params.get('from'), 10);
@@ -171,7 +192,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
           }
         })
       )
-      .subscribe(([fromBlock, toBlock]: [Block, Block]) => {
+      .subscribe(async ([fromBlock, toBlock]: [Block, Block]) => {
         this.fromBlock = fromBlock;
         if (typeof toBlock === BlockTypes.NUMBER) {
           this.toBlock = {
@@ -183,6 +204,18 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
         this.blockHeight = fromBlock.height;
         this.nextBlockHeight = fromBlock.height + 1;
         this.setNextAndPreviousBlockLink();
+
+        const strikesFilter = {
+          creationTimeGTE: fromBlock.timestamp,
+          creationTimeLTE: toBlock.timestamp,
+          blockHeightGTE: fromBlock.height,
+          blockHeightLTE: toBlock.height,
+        };
+        if (this.stateService.latestReceivedBlockHeight > toBlock.height) {
+          await this.fetchPastGuessData(this.curruntPage, strikesFilter);
+        } else {
+          await this.fetchFutureGuessData(this.curruntPage, strikesFilter);
+        }
 
         this.isLoadingBlock = false;
 
@@ -254,5 +287,39 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   strikeSummaryLink() {
     return `/hashstrikes/strike_summary/${this.fromBlock.height}/${this.toBlock.height}`;
+  }
+
+  public fetchFutureGuessData(pageNumber: number, filter: any = {}): void {
+    this.oeBlocktimeApiService
+      .$futureGuessStrikesWithFilter(pageNumber, JSON.stringify(filter))
+      .subscribe({
+        next: (data) => {
+          if (!data.results || !Array.isArray(data.results)) {
+            this.guessStrike = [];
+            return;
+          }
+          this.guessStrike = data.results;
+        },
+        error: (error) => this.handleError(error),
+      });
+  }
+
+  public fetchPastGuessData(pageNumber: number, filter: any = {}): void {
+    this.oeBlocktimeApiService
+      .$futureGuessStrikesWithFilter(pageNumber, JSON.stringify(filter))
+      .subscribe({
+        next: (data) => {
+          if (!data.results || !Array.isArray(data.results)) {
+            this.guessStrike = [];
+            return;
+          }
+          this.guessStrike = data.results;
+        },
+        error: (error) => this.handleError(error),
+      });
+  }
+
+  private handleError(error: any): void {
+    this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
   }
 }
