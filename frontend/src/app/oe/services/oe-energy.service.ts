@@ -19,6 +19,7 @@ import {
   BlockTimeStrikeGuessPublic,
   BlockTimeStrikePast,
   BlockTimeStrikeGuessResultPublic,
+  PaginationResponse,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
 import { OeStateService } from './state.service';
