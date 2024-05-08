@@ -526,4 +526,30 @@ export class OeBlocktimeApiService {
       }
     );
   }
+
+  $futureGuessStrikesWithFilter(
+    pageNo: number,
+    filter: string
+  ): Observable<PaginationResponse<BlockTimeStrikeGuessResultPublic>> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/future/strike/guess/page?page=${pageNo}&filter=${filter}`;
+
+    return this.httpClient.get<
+      PaginationResponse<BlockTimeStrikeGuessResultPublic>
+    >(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  $pastGuessStrikesWithFilter(
+    pageNo: number,
+    filter: string
+  ): Observable<PaginationResponse<BlockTimeStrikeGuessResultPublic>> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/past/strike/guess/page?page=${pageNo}&filter=${filter}`;
+
+    return this.httpClient.get<
+      PaginationResponse<BlockTimeStrikeGuessResultPublic>
+    >(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
