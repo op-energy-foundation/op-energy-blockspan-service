@@ -2,7 +2,11 @@
   <div class="observed-blockspan-detail--top" *ngIf="fromBlock && toBlock">
     <div class="blockspan">
       <div style="margin-bottom: 110px" (click)="navigateTo()">
-        <app-energy [fromBlock]="fromBlock" [toBlock]="toBlock"></app-energy>
+        <app-energy 
+          [fromBlock]="fromBlock"
+          [toBlock]="toBlock"
+          [hideFlameStack]="true">
+        </app-energy>
       </div>
       <ng-container>
         <div class="app-strike" *ngFor="let strike of timeStrikes">

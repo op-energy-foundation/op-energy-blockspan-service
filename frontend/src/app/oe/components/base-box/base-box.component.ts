@@ -26,6 +26,7 @@ export class BaseBoxComponent implements OnInit, OnDestroy {
   @Input() isDetailed: boolean;
   @Input() link: string;
   @Input() footerText = 'Time';
+  @Input() hideFlameStack = false;
   maxCount = MAX_COUNT;
 
   get iconArray() {
