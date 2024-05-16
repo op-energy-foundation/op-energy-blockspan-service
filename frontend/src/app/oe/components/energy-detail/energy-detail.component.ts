@@ -130,6 +130,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
         this.nextBlockHeight = fromBlock.height + 1;
         this.setNextAndPreviousBlockLink();
 
+        /*
         this.oeEnergyApiService
           .$getNbdrStatistics(fromBlock.height - this.span * 100, this.span)
           .subscribe({
@@ -141,7 +142,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
               this.toastr.error('Unable to fetch Nbdr Statistics!', 'Failed!');
             },
           });
-
+        */
         this.isLoadingBlock = false;
         this.isLoadingTransactions = true;
 
