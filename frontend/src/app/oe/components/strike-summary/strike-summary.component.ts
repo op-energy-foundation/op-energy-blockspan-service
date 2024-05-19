@@ -141,7 +141,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map((strike) => ({
           ...strike,
-          elapsedTime: strike.nLockTime - this.fromBlock.mediantime,
+          elapsedTime: strike.strikeMediantime - this.fromBlock.mediantime,
         }));
         // Manually add a strike that is higher energy just to show what happens when it doesn't boil
         const highEnergyStrike = {

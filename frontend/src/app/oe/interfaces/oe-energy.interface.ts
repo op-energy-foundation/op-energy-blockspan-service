@@ -16,7 +16,7 @@ export interface Block {
 
 export interface TimeStrike {
   blockHeight: number;
-  nLockTime: number;
+  strikeMediantime: number;
   creationTime: number;
   elapsedTime?: number;
 }
@@ -24,7 +24,7 @@ export interface TimeStrike {
 export interface SlowFastGuess {
   guess: 'slow' | 'fast';
   blockHeight: number;
-  nLockTime: number;
+  strikeMediantime: number;
   creationTime: number;
   userName: string;
   userId: number;
@@ -33,13 +33,13 @@ export interface SlowFastGuess {
 export interface SlowFastGuessOutcome {
   outcome: 'slow' | 'fast';
   blockHeight: number;
-  nLockTime: number;
+  strikeMediantime: number;
 }
 
 export interface TimeStrikesHistory {
   owner: string;
   blockHeight: number;
-  nLockTime: number;
+  strikeMediantime: number;
   mediantime: number;
   creationTime: number;
   archiveTime: number;
@@ -51,7 +51,7 @@ export interface SlowFastResult {
   guess: 'slow' | 'fast';
   result: 'wrong' | 'right';
   blockHeight: number;
-  nLockTime: number;
+  strikeMediantime: number;
   creationTime: number;
 }
 
@@ -139,36 +139,25 @@ export interface BlockSpanHeaders
   extends BlockSpanHeadersNbdr,
     BlockSpanHeadersNbdrHashRate {}
 
-export interface BlockTimeStrikeFuture {
-  block: number;
-  nlocktime: number;
-  creationTime: number;
+export interface BlockTimeStrike {
+  block : number;
+  strikeMediantime : number;
+  observedResult? : 'slow' | 'fast';
+  observedBlockMediantime? : number;
+  observedBlockHash? : string;
+  creationTime : number;
 }
 
 export interface BlockTimeStrikeGuessPublic {
   person : string;
-  strike :  BlockTimeStrikeFuture;
+  strike : BlockTimeStrike;
   creationTime : number;
   guess : 'slow' | 'fast';
 }
 
-export interface BlockTimeStrikePast {
-  block : number;
-  nlocktime : number;
-  observedResult : 'slow' | 'fast';
-  observedBlockMediantime : number;
-  observedBlockHash : string;
-  creationTime : number;
-  futureStrikeCreationTime : number;
-}
-
-export interface BlockTimeStrikeGuessResultPublic {
-  person : string;
-  strike : BlockTimeStrikePast;
-  creationTime : number;
-  archiveTime : number;
-  guess : 'slow' | 'fast';
-  observedResult : 'slow' | 'fast';
+export interface BlockTimeStrikePublic {
+  guessesCount : number;
+  strike : BlockTimeStrike;
 }
 
 export type PaginationResponse<T> = {

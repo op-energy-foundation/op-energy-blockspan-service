@@ -15,10 +15,8 @@ import {
   BlockSpanHeadersNbdr,
   BlockSpanHeaders,
   RegisterResult,
-  BlockTimeStrikeFuture,
+  BlockTimeStrike,
   BlockTimeStrikeGuessPublic,
-  BlockTimeStrikePast,
-  BlockTimeStrikeGuessResultPublic,
   PaginationResponse,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
@@ -43,11 +41,11 @@ export class OeEnergyApiService {
   // adds blocked, locked by time by current user
   // params:
   // - blockHeight - height of the block
-  // - nlocktime - time, by which lock is being blocked
+  // - strikeMediantime - time, by which lock is being blocked
   // returns TimeStrike value in case of success or throws error otherwise
   $addTimeStrike(
     blockHeight: number,
-    nlocktime: number
+    strikeMediantime: number
   ): Observable<TimeStrike> {
     var accountToken;
     // get account token from the state service
@@ -60,7 +58,7 @@ export class OeEnergyApiService {
 
     let params = {
       block_height: blockHeight,
-      nlocktime: nlocktime,
+      strike_mediantime: strikeMediantime,
       account_token: accountToken,
     };
 
@@ -90,49 +88,6 @@ export class OeEnergyApiService {
 
     return this.httpClient.get<TimeStrike[]>(
       this.apiBaseUrl + this.apiBasePath + '/api/v1/strike/block/mediantime',
-      { params }
-    );
-  }
-  // this function returns an observable with value of type SlowFastGuess, meaning, that the guess had been persisted in the DB
-  // params:
-  // - guess: "slow" or "fast"
-  // - lockedBlockHeight: height of the locked block number
-  // - medianSeconds: value of locked block's median time to guess
-  $slowFastGuess(
-    guess: 'slow' | 'fast',
-    timeStrike: TimeStrike
-  ): Observable<SlowFastGuess> {
-    return this.oeEnergyStateService.$accountToken.pipe(take(1)).pipe(
-      switchMap((newAccountToken) => {
-        let params = {
-          account_token: newAccountToken,
-          block_height: timeStrike.blockHeight,
-          nlocktime: timeStrike.nLockTime,
-          guess: guess,
-        };
-
-        return this.httpClient.post<SlowFastGuess>(
-          this.apiBaseUrl +
-            this.apiBasePath +
-            '/api/v1/slowfastguess/mediantime',
-          params,
-          {
-            observe: 'body',
-            responseType: 'json',
-          }
-        );
-      })
-    );
-  }
-  // returns list of the guesses for a given timelocked block
-  $listSlowFastGuesses(timeStrike: TimeStrike): Observable<SlowFastGuess[]> {
-    let params = {
-      block_height: timeStrike.blockHeight,
-      nlocktime: timeStrike.nLockTime,
-    };
-
-    return this.httpClient.get<SlowFastGuess[]>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/slowfastguess/mediantime',
       { params }
     );
   }
@@ -167,28 +122,6 @@ export class OeEnergyApiService {
     return this.httpClient.get<TimeStrikesHistory[]>(
       this.apiBaseUrl + this.apiBasePath + '/api/v1/strikeshistory/mediantime',
       {}
-    );
-  }
-
-  // returns list of the slow/fast guess results for a given timelocked block
-  $listSlowFastResults(
-    timeStrikesHistory: TimeStrikesHistory
-  ): Observable<SlowFastResult | null> {
-    return this.oeEnergyStateService.$accountToken.pipe(take(1)).pipe(
-      switchMap((newAccountToken) => {
-        let params = {
-          account_token: newAccountToken,
-          block_height: timeStrikesHistory.blockHeight,
-          nlocktime: timeStrikesHistory.nLockTime,
-        };
-
-        return this.httpClient.get<SlowFastResult | null>(
-          this.apiBaseUrl +
-            this.apiBasePath +
-            '/api/v1/slowfastresults/mediantime',
-          { params }
-        );
-      })
     );
   }
 
@@ -437,47 +370,23 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $getFutureStrikes(accountToken: string): Observable<BlockTimeStrikeFuture> {
-    return this.httpClient.post<BlockTimeStrikeFuture>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/future/strike',
-      accountToken,
-      {
-        observe: 'body',
-        responseType: 'json',
-      }
-    );
-  }
-
-  $createFutureStrike(
+  $createFutureStrikeGuess(
     accountToken: string,
     blockHeight: number,
-    nlocktime: number
-  ): Observable<void> {
-    return this.httpClient.post<void>(
-      this.apiBaseUrl +
-        this.apiBasePath +
-        `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
-      accountToken,
-      {
-        observe: 'body',
-        responseType: 'json',
-      }
-    );
-  }
-
-  $getFutureStrikeGuesses(
-    accountToken: string,
-    blockHeight: number,
-    nlocktime: number
+    strikeMediantime: number,
+    guess: 'slow' | 'fast'
   ): Observable<BlockTimeStrikeGuessPublic> {
     return this.httpClient.post<BlockTimeStrikeGuessPublic>(
       this.apiBaseUrl +
         this.apiBasePath +
-        `/api/v1/future/strike/${blockHeight}/${nlocktime}`,
+        `/api/v1/future/strike/${blockHeight}/${strikeMediantime}/${guess}`,
       accountToken,
       {
         observe: 'body',
         responseType: 'json',
+        headers: { 'Content-Type': 'application/json',
+                   'AccountToken': accountToken,
+                 }
       }
     );
   }
@@ -500,42 +409,27 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast> {
-    return this.httpClient.post<BlockTimeStrikePast>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike`,
-      accountToken,
-      {
-        observe: 'body',
-        responseType: 'json',
-      }
-    );
-  }
+  $strikesGuessesWithFilter(
+    pageNo: number,
+    filter: string
+  ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/page?page=${pageNo}&filter=${filter}`;
 
-  $getPastStrikeGuesses(
-    accountToken: string,
-    blockHeight: number,
-    nlocktime: number
-  ): Observable<BlockTimeStrikeGuessResultPublic> {
-    return this.httpClient.post<BlockTimeStrikeGuessResultPublic>(
-      this.apiBaseUrl +
-        this.apiBasePath +
-        `/api/v1/past/strike/guess/${blockHeight}/${nlocktime}`,
-      accountToken,
-      {
-        observe: 'body',
-        responseType: 'json',
-      }
-    );
+    return this.httpClient.get<
+      PaginationResponse<BlockTimeStrikeGuessPublic>
+    >(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   $futureGuessStrikesWithFilter(
     pageNo: number,
     filter: string
-  ): Observable<PaginationResponse<BlockTimeStrikeGuessResultPublic>> {
+  ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
     const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/future/strike/guess/page?page=${pageNo}&filter=${filter}`;
 
     return this.httpClient.get<
-      PaginationResponse<BlockTimeStrikeGuessResultPublic>
+      PaginationResponse<BlockTimeStrikeGuessPublic>
     >(url, {
       headers: { 'Content-Type': 'application/json' },
     });
@@ -544,11 +438,11 @@ export class OeBlocktimeApiService {
   $pastGuessStrikesWithFilter(
     pageNo: number,
     filter: string
-  ): Observable<PaginationResponse<BlockTimeStrikeGuessResultPublic>> {
+  ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
     const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/past/strike/guess/page?page=${pageNo}&filter=${filter}`;
 
     return this.httpClient.get<
-      PaginationResponse<BlockTimeStrikeGuessResultPublic>
+      PaginationResponse<BlockTimeStrikeGuessPublic>
     >(url, {
       headers: { 'Content-Type': 'application/json' },
     });
