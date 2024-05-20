@@ -16,6 +16,7 @@ import {
   BlockSpanHeaders,
   RegisterResult,
   BlockTimeStrike,
+  BlockTimeStrikePublic,
   BlockTimeStrikeGuessPublic,
   PaginationResponse,
 } from '../interfaces/oe-energy.interface';
@@ -379,11 +380,8 @@ export class OeBlocktimeApiService {
     return this.httpClient.post<BlockTimeStrikeGuessPublic>(
       this.apiBaseUrl +
         this.apiBasePath +
-        `/api/v1/future/strike/${blockHeight}/${strikeMediantime}/${guess}`,
-      accountToken,
+        `/api/v1/blocktime/future/strike/${blockHeight}/${strikeMediantime}/${guess}`,
       {
-        observe: 'body',
-        responseType: 'json',
         headers: { 'Content-Type': 'application/json',
                    'AccountToken': accountToken,
                  }
@@ -391,22 +389,17 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $createFutureStrikeGuesses(
-    accountToken: string,
-    blockHeight: number,
-    nlocktime: number,
-    guess: 'slow' | 'fast'
-  ): Observable<void> {
-    return this.httpClient.post<void>(
-      this.apiBaseUrl +
-        this.apiBasePath +
-        `/api/v1/future/strike/${blockHeight}/${nlocktime}/${guess}`,
-      accountToken,
-      {
-        observe: 'body',
-        responseType: 'json',
-      }
-    );
+  $strikesWithFilter(
+    pageNo: number,
+    filter: string
+  ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/page?page=${pageNo}&filter=${filter}`;
+
+    return this.httpClient.get<
+      PaginationResponse<BlockTimeStrikePublic>
+    >(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   $strikesGuessesWithFilter(
