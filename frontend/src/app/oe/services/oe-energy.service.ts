@@ -371,7 +371,24 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $createFutureStrikeGuess(
+  $createStrike(
+    accountToken: string,
+    blockHeight: number,
+    strikeMediantime: number,
+  ): Observable<void> {
+    return this.httpClient.post<void>(
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/blocktime/strike/${blockHeight}/${strikeMediantime}`,
+      {
+        headers: { 'Content-Type': 'application/json',
+                   'AccountToken': accountToken,
+                 }
+      }
+    );
+  }
+
+  $createStrikeGuess(
     accountToken: string,
     blockHeight: number,
     strikeMediantime: number,
@@ -380,7 +397,7 @@ export class OeBlocktimeApiService {
     return this.httpClient.post<BlockTimeStrikeGuessPublic>(
       this.apiBaseUrl +
         this.apiBasePath +
-        `/api/v1/blocktime/future/strike/${blockHeight}/${strikeMediantime}/${guess}`,
+        `/api/v1/blocktime/strike/guess/${blockHeight}/${strikeMediantime}/${guess}`,
       {
         headers: { 'Content-Type': 'application/json',
                    'AccountToken': accountToken,
@@ -393,7 +410,7 @@ export class OeBlocktimeApiService {
     pageNo: number,
     filter: string
   ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/page?page=${pageNo}&filter=${filter}`;
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/page?page=${pageNo}&filter=${filter}`;
 
     return this.httpClient.get<
       PaginationResponse<BlockTimeStrikePublic>
@@ -406,12 +423,71 @@ export class OeBlocktimeApiService {
     pageNo: number,
     filter: string
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/page?page=${pageNo}&filter=${filter}`;
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/guesses/page?page=${pageNo}&filter=${filter}`;
 
     return this.httpClient.get<
       PaginationResponse<BlockTimeStrikeGuessPublic>
     >(url, {
       headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  $strikeGuessesWithFilter(
+    blockHeight: number,
+    strikeMediantime: number,
+    pageNo: number,
+    filter: string
+  ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guesses/page/${blockHeight}/${strikeMediantime}?page=${pageNo}&filter=${filter}`;
+
+    return this.httpClient.get<
+      PaginationResponse<BlockTimeStrikeGuessPublic>
+    >(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  $strike(
+    blockHeight: number,
+    strikeMediantime: number,
+  ): Observable<BlockTimeStrikePublic> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/${blockHeight}/${strikeMediantime}`;
+
+    return this.httpClient.get<
+      BlockTimeStrikePublic
+    >(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  $strikeGuess(
+    accountToken: string,
+    blockHeight: number,
+    strikeMediantime: number,
+  ): Observable<BlockTimeStrikeGuessPublic> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/${blockHeight}/${strikeMediantime}`;
+
+    return this.httpClient.get<
+      BlockTimeStrikeGuessPublic
+    >(url, {
+        headers: { 'Content-Type': 'application/json',
+                   'AccountToken': accountToken,
+                 }
+    });
+  }
+
+  $strikeGuessPerson(
+    uuid: string,
+    blockHeight: number,
+    strikeMediantime: number,
+  ): Observable<BlockTimeStrikeGuessPublic> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/person/${uuid}/${blockHeight}/${strikeMediantime}`;
+
+    return this.httpClient.get<
+      BlockTimeStrikeGuessPublic
+    >(url, {
+        headers: { 'Content-Type': 'application/json',
+                 }
     });
   }
 

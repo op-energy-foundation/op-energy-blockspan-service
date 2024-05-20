@@ -278,7 +278,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     let subscription = this.oeEnergyStateService.$accountToken.subscribe(
       (accountToken) => {
         this.oeBlocktimeApiService
-          .$createFutureStrikeGuess(accountToken, this.strike.blockHeight, this.strike.strikeMediantime, guess)
+          .$createStrikeGuess(accountToken, this.strike.blockHeight, this.strike.strikeMediantime, guess)
           .subscribe((slowFastGuess: BlockTimeStrikeGuessPublic) => {
             this.slowFastGuesses = [...this.slowFastGuesses, slowFastGuess];
             this.toastr.success('Guessed successfully!', 'Success!');
