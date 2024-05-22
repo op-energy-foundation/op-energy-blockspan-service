@@ -1,4 +1,8 @@
-import { Block } from '../../interfaces/oe-energy.interface';
+import {
+  Block,
+  BlockTimeStrikeResult,
+  PaginationResponse,
+} from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
@@ -11,7 +15,10 @@ import {
   TimeStrike,
 } from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import { OeEnergyApiService } from '../../services/oe-energy.service';
+import {
+  OeBlocktimeApiService,
+  OeEnergyApiService,
+} from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 
 @Component({
@@ -101,99 +108,121 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     private modalService: NgbModal,
     private toastr: ToastrService,
     private oeEnergyApiService: OeEnergyApiService,
+    private oeBlocktimeApiService: OeBlocktimeApiService,
     public stateService: OeStateService
   ) {}
 
   ngOnInit() {
-    /* this.blocksSubscription = this.stateService.blocks$.subscribe(([block]) => {
-      this.latestBlock = block;
-      this.latestBlocks.unshift(block);
-      this.latestBlocks = this.latestBlocks.slice(
-        0,
-        this.stateService.env.KEEP_BLOCKS_AMOUNT
-      );
-      this.setNextAndPreviousBlockLink();
-
-      if (block.height === this.fromBlockHeight) {
-        this.fromBlock = block;
-      }
-    }); */
-
-    (this.subscription = this.route.paramMap
+    this.subscription = this.route.queryParamMap
+      .pipe(
+        switchMap((params: ParamMap) =>
+          this.stateService.latestReceivedBlock$
+            .pipe(take(1)) // don't follow any future update of this object
+            .pipe(
+              switchMap((block: Block) => {
+                this.latestBlock = block;
+                return of(params);
+              })
+            )
+        )
+      )
       .pipe(
         switchMap((params: ParamMap) => {
-          const fromBlockHeight: number = parseInt(params.get('from'), 10);
-          const toBlockHeight: number = parseInt(params.get('to'), 10);
-          this.strike = {
-            blockHeight: +params.get('strikeBlockHeight'),
-            nLockTime: +params.get('strikeMedianTime'),
-            creationTime: +params.get('strikeCreationTime'),
-          };
-          this.fromBlock = undefined;
-          this.toBlock = undefined;
-          this.error = undefined;
+          const fromBlockHeight =
+            +params.get('blockspanStart') || this.latestBlock.height;
+          const strikeHeight = +params.get('strikeHeight') || 1200000;
+          let strikeTime = +params.get('strikeTime');
 
-          if (history.state.data && history.state.data.blockHeight) {
-            this.blockHeight = history.state.data.blockHeight;
+          if (!strikeTime) {
+            strikeTime =
+              this.latestBlock.mediantime +
+              (strikeHeight - this.latestBlock.height) * 600;
           }
+          // Creating temporary strike
+          this.strike = {
+            blockHeight: strikeHeight,
+            nLockTime: strikeTime,
+            creationTime: undefined,
+          };
 
           this.fromBlockHeight = fromBlockHeight;
-          this.toBlockHeight = toBlockHeight;
+          this.toBlockHeight = strikeHeight;
+          this.blockHeight =
+            history.state.data?.blockHeight ?? this.blockHeight;
+
           document.body.scrollTo(0, 0);
 
-          if (history.state.data && history.state.data.block) {
+          if (history.state.data?.block) {
             this.blockHeight = history.state.data.block.height;
             return of([history.state.data.block, history.state.data.block]);
-          } else {
-            this.isLoadingBlock = true;
-
-            let fromBlockInCache: Block;
-            let toBlockInCache: Block;
-
-            fromBlockInCache = this.latestBlocks.find(
-              (block) => block.height === this.fromBlockHeight
-            );
-            toBlockInCache = this.latestBlocks.find(
-              (block) => block.height === this.toBlockHeight
-            );
-            if (fromBlockInCache && toBlockInCache) {
-              return of([fromBlockInCache, toBlockInCache]);
-            }
-
-            return combineLatest([
-              this.oeEnergyApiService
-                .$getBlockByHeight(fromBlockHeight)
-                .pipe(catchError(() => of(fromBlockHeight))),
-              this.oeEnergyApiService
-                .$getBlockByHeight(toBlockHeight)
-                .pipe(catchError(() => of(toBlockHeight))),
-            ]);
           }
+
+          this.isLoadingBlock = true;
+
+          const fromBlockInCache = this.latestBlocks.find(
+            (block) => block.height === fromBlockHeight
+          );
+          const toBlockInCache = this.latestBlocks.find(
+            (block) => block.height === strikeHeight
+          );
+
+          if (fromBlockInCache && toBlockInCache) {
+            return of([fromBlockInCache, toBlockInCache]);
+          }
+
+          return combineLatest([
+            this.oeEnergyApiService
+              .$getBlockByHeight(fromBlockHeight)
+              .pipe(catchError(() => of(fromBlockHeight))),
+            this.oeEnergyApiService
+              .$getBlockByHeight(strikeHeight)
+              .pipe(catchError(() => of(strikeHeight))),
+            this.oeBlocktimeApiService
+              .$getPastStrikesPaginationWithFilter(
+                JSON.stringify({
+                  strikeMediantimeGTE: strikeTime,
+                  strikeMediantimeLTE: strikeTime,
+                  blockHeightGTE: strikeHeight,
+                  blockHeightLTE: strikeHeight,
+                })
+              )
+              .pipe(catchError(() => of(strikeHeight))),
+          ]);
         })
       )
-      .subscribe(([fromBlock, toBlock]: [Block, Block]) => {
-        this.fromBlock = fromBlock;
-        if (typeof toBlock === BlockTypes.NUMBER) {
-          this.toBlock = {
-            height: +toBlock,
+      .subscribe(
+        ([fromBlock, toBlock, strikesDetails]: [
+          Block,
+          Block,
+          PaginationResponse<BlockTimeStrikeResult>
+        ]) => {
+          this.fromBlock = fromBlock;
+          this.toBlock =
+            typeof toBlock === BlockTypes.NUMBER
+              ? { height: +toBlock }
+              : toBlock;
+          this.blockHeight = fromBlock.height;
+          this.nextBlockHeight = fromBlock.height + 1;
+          this.setNextAndPreviousBlockLink();
+
+          const strikesResult = strikesDetails.results;
+          if (!strikesResult.length) {
+            this.toastr.error('Strikes Not Found!', 'Failed!');
+            return;
+          }
+
+          this.strike = {
+            blockHeight: strikesResult[0].strike.block,
+            creationTime: strikesResult[0].strike.creationTime,
+            nLockTime: strikesResult[0].strike.strikeMediantime,
           };
-        } else {
-          this.toBlock = toBlock;
+          this.isLoadingBlock = false;
+        },
+        (error) => {
+          this.error = error;
+          this.isLoadingBlock = false;
         }
-        this.blockHeight = fromBlock.height;
-        this.nextBlockHeight = fromBlock.height + 1;
-        this.setNextAndPreviousBlockLink();
-
-        this.isLoadingBlock = false;
-
-        /*  this.stateService.$accountToken.pipe(take(1)).subscribe((res) => {
-          this.getGuesses();
-        }); */
-      })),
-      (error) => {
-        this.error = error;
-        this.isLoadingBlock = false;
-      };
+      );
   }
 
   ngOnDestroy() {

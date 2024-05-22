@@ -19,6 +19,8 @@ import {
   BlockTimeStrikeGuessPublic,
   BlockTimeStrikePast,
   BlockTimeStrikeGuessResultPublic,
+  PaginationResponse,
+  BlockTimeStrikeResult,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -525,5 +527,16 @@ export class OeBlocktimeApiService {
         responseType: 'json',
       }
     );
+  }
+
+  $getPastStrikesPaginationWithFilter(
+    filter: string,
+    pageNo: number = 0,
+  ): Observable<PaginationResponse<BlockTimeStrikeResult>> {
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/page?page=${pageNo}&filter=${filter}`;
+
+    return this.httpClient.get<PaginationResponse<BlockTimeStrikeResult>>(url, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

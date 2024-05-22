@@ -160,6 +160,7 @@ export interface BlockTimeStrikePast {
   observedBlockHash : string;
   creationTime : number;
   futureStrikeCreationTime : number;
+  strikeMediantime ?: number
 }
 
 export interface BlockTimeStrikeGuessResultPublic {
@@ -170,3 +171,14 @@ export interface BlockTimeStrikeGuessResultPublic {
   guess : 'slow' | 'fast';
   observedResult : 'slow' | 'fast';
 }
+
+export interface BlockTimeStrikeResult {
+  strike : BlockTimeStrikePast;
+  guessesCount: number
+}
+
+export type PaginationResponse<T> = {
+  nextPage: number;
+  count: number;
+  results: T[];
+};
