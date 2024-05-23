@@ -298,7 +298,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   public fetchFutureGuessData(pageNumber: number, filter: any = {}): void {
     this.oeBlocktimeApiService
-      .$futureGuessStrikesWithFilter(pageNumber, JSON.stringify(filter))
+      .$futureGuessStrikesWithFilter(pageNumber, filter)
       .subscribe({
         next: (data) => {
           if (!data.results || !Array.isArray(data.results)) {
@@ -313,7 +313,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   public fetchPastGuessData(pageNumber: number, filter: any = {}): void {
     this.oeBlocktimeApiService
-      .$futureGuessStrikesWithFilter(pageNumber, JSON.stringify(filter))
+      .$futureGuessStrikesWithFilter(pageNumber, filter)
       .subscribe({
         next: (data) => {
           if (!data.results || !Array.isArray(data.results)) {

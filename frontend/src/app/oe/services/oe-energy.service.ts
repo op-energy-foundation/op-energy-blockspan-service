@@ -408,9 +408,9 @@ export class OeBlocktimeApiService {
 
   $strikesWithFilter(
     pageNo: number,
-    filter: string
+    filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/page?page=${pageNo}&filter=${filter}`;
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/page?page=${pageNo}&filter=${encodeURI(JSON.stringify(filter))}`;
 
     return this.httpClient.get<
       PaginationResponse<BlockTimeStrikePublic>
@@ -421,9 +421,9 @@ export class OeBlocktimeApiService {
 
   $strikesGuessesWithFilter(
     pageNo: number,
-    filter: string
+    filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/guesses/page?page=${pageNo}&filter=${filter}`;
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/guesses/page?page=${pageNo}&filter=${encodeURI(JSON.stringify(filter))}`;
 
     return this.httpClient.get<
       PaginationResponse<BlockTimeStrikeGuessPublic>
@@ -436,9 +436,9 @@ export class OeBlocktimeApiService {
     blockHeight: number,
     strikeMediantime: number,
     pageNo: number,
-    filter: string
+    filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guesses/page/${blockHeight}/${strikeMediantime}?page=${pageNo}&filter=${filter}`;
+    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guesses/page/${blockHeight}/${strikeMediantime}?page=${pageNo}&filter=${encodeURI(JSON.stringify(filter))}`;
 
     return this.httpClient.get<
       PaginationResponse<BlockTimeStrikeGuessPublic>
@@ -493,27 +493,15 @@ export class OeBlocktimeApiService {
 
   $futureGuessStrikesWithFilter(
     pageNo: number,
-    filter: string
+    filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/future/strike/guess/page?page=${pageNo}&filter=${filter}`;
-
-    return this.httpClient.get<
-      PaginationResponse<BlockTimeStrikeGuessPublic>
-    >(url, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return this.$strikesGuessesWithFilter( pageNo, { ... filter, class: 'guessable'} );
   }
 
   $pastGuessStrikesWithFilter(
     pageNo: number,
-    filter: string
+    filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/past/strike/guess/page?page=${pageNo}&filter=${filter}`;
-
-    return this.httpClient.get<
-      PaginationResponse<BlockTimeStrikeGuessPublic>
-    >(url, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return this.$strikesGuessesWithFilter( pageNo, { ... filter, class: 'outcomeKnown'} );
   }
 }
