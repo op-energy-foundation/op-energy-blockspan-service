@@ -48,7 +48,7 @@ const routes: Routes = [
             component: StrikeDetailComponent,
           },
           {
-            path: 'strike_summary/:from/:to',
+            path: 'strike_summary',
             component: StrikeSummaryComponent,
           },
           {

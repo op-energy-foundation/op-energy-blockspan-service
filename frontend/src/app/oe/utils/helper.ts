@@ -1,7 +1,22 @@
 import { Router } from '@angular/router';
 
 export function navigator(router: Router, link: string): void {
-  router.navigate([link]);
+  // Check if the link contains query parameters
+  const [path, queryString] = link.split('?');
+  const queryParams = {};
+
+  if (queryString) {
+    queryString.split('&').forEach((param) => {
+      const [key, value] = param.split('=');
+      queryParams[key] = value;
+    });
+  }
+
+  if (Object.keys(queryParams).length > 0) {
+    router.navigate([path], { queryParams });
+  } else {
+    router.navigate([path]);
+  }
 }
 
 export function toHHMMSS(secs: number): string {

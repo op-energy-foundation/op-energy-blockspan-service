@@ -17,11 +17,11 @@ export class PreviewComponent implements OnInit {
   }
 
   pastStrikeSummaryLink(): string {
-    return '/hashstrikes/strike_summary/89778/89791';
+    return '/hashstrikes/strike_summary?strikeHeight=844447&strikeTime=1716298890&blockspanStart=844433';
   }
 
   futureStrikeSummaryLink(): string {
-    return '/hashstrikes/strike_summary/89778/1200000';
+    return '/hashstrikes/strike_summary?strikeHeight=1200000';
   }
 
   pastStrikeDetailLink(): string {

@@ -103,9 +103,6 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private location: Location,
-    private router: Router,
-    private modalService: NgbModal,
     private toastr: ToastrService,
     private oeEnergyApiService: OeEnergyApiService,
     private oeBlocktimeApiService: OeBlocktimeApiService,
@@ -282,6 +279,6 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   strikeSummaryLink() {
-    return `/hashstrikes/strike_summary/${this.fromBlock.height}/${this.toBlock.height}`;
+    return `/hashstrikes/strike_summary?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.nLockTime}&blockspanStart=${this.fromBlock.height}`;
   }
 }
