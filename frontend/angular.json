@@ -41,7 +41,7 @@
               "src/styles.scss",
               "node_modules/@fortawesome/fontawesome-svg-core/styles.css",
               "node_modules/ngx-toastr/toastr.css",
-              "node_modules/swagger-ui-dist/swagger-ui.css"
+              "src/swagger-ui.css"
             ],
             "scripts": [
             ],
