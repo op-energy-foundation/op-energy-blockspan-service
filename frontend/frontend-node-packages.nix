@@ -10912,13 +10912,13 @@ let
         sha512 = "ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==";
       };
     };
-    "swagger-ui-dist-5.17.14" = {
+    "swagger-ui-dist-5.11.10" = {
       name = "swagger-ui-dist";
       packageName = "swagger-ui-dist";
-      version = "5.17.14";
+      version = "5.11.10";
       src = fetchurl {
-        url = "https://registry.npmjs.org/swagger-ui-dist/-/swagger-ui-dist-5.17.14.tgz";
-        sha512 = "CVbSfaLpstV65OnSjbXfVd6Sta3q3F7Cj/yYuvHMp1P90LztOLs6PfUnKEVAeiIVQt9u2SaPwv0LiH/OyMjHRw==";
+        url = "https://registry.npmjs.org/swagger-ui-dist/-/swagger-ui-dist-5.11.10.tgz";
+        sha512 = "wAHf32iFqJCBkdQRBYB1pR8kJuliJbgCXcdgkU7GkDvrOfD2gVmyEwdTi9rERCur/OrufifnH5UecOzlQ07CYg==";
       };
     };
     "symbol-observable-4.0.0" = {
@@ -14172,7 +14172,7 @@ let
       sources."subarg-1.0.0"
       sources."supports-color-5.5.0"
       sources."supports-preserve-symlinks-flag-1.0.0"
-      sources."swagger-ui-dist-5.17.14"
+      sources."swagger-ui-dist-5.11.10"
       sources."symbol-observable-4.0.0"
       sources."symbol-tree-3.2.4"
       sources."syntax-error-1.4.0"
