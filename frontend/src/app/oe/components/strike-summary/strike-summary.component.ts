@@ -129,10 +129,8 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
             this.oeBlocktimeApiService
               .$getPastStrikesPaginationWithFilter(
                 JSON.stringify({
-                  strikeMediantimeGTE: strikeTime,
-                  strikeMediantimeLTE: strikeTime,
-                  blockHeightGTE: strikeHeight,
-                  blockHeightLTE: strikeHeight,
+                  strikeMediantimeEQ: strikeTime,
+                  blockHeightEQ: strikeHeight,
                 })
               )
               .pipe(catchError(() => of(strikeHeight))),
