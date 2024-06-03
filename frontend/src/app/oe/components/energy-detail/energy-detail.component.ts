@@ -188,15 +188,24 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  navigateTo(): void {
-    const currentUrl = this.router.url;
-    navigator(this.router, currentUrl.replace('energy_detail', 'energy_summary'));
+  navigateTo(event: Event): void {
+    if (window.getSelection()?.toString()) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+    } else {
+      const currentUrl = this.router.url;
+      navigator(
+        this.router,
+        currentUrl.replace('energy_detail', 'energy_summary')
+      );
+    }
   }
 
   openExternalSite(event: Event, hash: string | undefined): void {
-    event.stopPropagation(); // Stop the event propagation
-    if (hash) {
-      // Use window.open or any other method to open the external site
+    if (window.getSelection()?.toString()) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+    } else {
       window.open('https://blockstream.info/block/' + hash, '_blank');
     }
   }
