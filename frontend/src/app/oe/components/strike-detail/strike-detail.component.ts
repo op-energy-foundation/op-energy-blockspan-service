@@ -1,6 +1,7 @@
 import {
   Block,
-  BlockTimeStrikeGuessResultPublic,
+  BlockTimeStrikeGuessPublic,
+  PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
@@ -44,13 +45,13 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   showNextBlocklink = true;
 
   subscription: Subscription;
-  slowFastGuesses: SlowFastGuess[] = [];
+  slowFastGuesses: BlockTimeStrikeGuessPublic[] = [];
   currentActiveGuess: 'slow' | 'fast' | null = null;
-  guessStrike: BlockTimeStrikeGuessResultPublic[] = [];
+  guessStrike: BlockTimeStrikeGuessPublic[] = [];
   curruntPage: number = 0;
 
   get strikeElapsedTime(): number {
-    return this.strike.nLockTime - this.fromBlock.mediantime;
+    return this.strike.strikeMediantime - this.fromBlock.mediantime;
   }
 
   get span(): number {
@@ -77,7 +78,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   get timeDiffWithStrike(): number {
-    return this.strike.nLockTime - this.fromBlock.mediantime;
+    return this.strike.strikeMediantime - this.fromBlock.mediantime;
   }
 
   get energyDiffWithStrike(): number {
@@ -97,7 +98,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   get strikeType(): 'Energy' | 'Strike' | 'Strike_Boiling' {
-    return this.strike.nLockTime > this.toBlock.mediantime
+    return this.strike.strikeMediantime > this.toBlock.mediantime
       ? 'Strike_Boiling'
       : 'Strike';
   }
@@ -110,7 +111,8 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private oeEnergyApiService: OeEnergyApiService,
     public stateService: OeStateService,
-    private oeBlocktimeApiService: OeBlocktimeApiService
+    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private oeEnergyStateService: OeStateService,
   ) {}
 
   ngOnInit() {
@@ -147,7 +149,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
           const toBlockHeight: number = parseInt(params.get('to'), 10);
           this.strike = {
             blockHeight: +params.get('strikeBlockHeight'),
-            nLockTime: +params.get('strikeMedianTime'),
+            strikeMediantime: +params.get('strikeMedianTime'),
             creationTime: +params.get('strikeCreationTime'),
           };
           this.fromBlock = undefined;
@@ -234,10 +236,10 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   getGuesses() {
-    this.oeEnergyApiService
-      .$listSlowFastGuesses(this.strike)
-      .subscribe((slowFastGuess: SlowFastGuess[]) => {
-        this.slowFastGuesses = slowFastGuess;
+    this.oeBlocktimeApiService
+      .$strikesGuessesWithFilter(0, JSON.stringify({ blockHeightGTE: this.strike.blockHeight, blockHeightLTE: this.strike.blockHeight, strikeMediantimeGTE: this.strike.strikeMediantime, strikeMediantimeLTE: this.strike.strikeMediantime}))
+      .subscribe((slowFastGuess: PaginationResponse<BlockTimeStrikeGuessPublic>) => {
+        this.slowFastGuesses = slowFastGuess.results;
       });
   }
 
@@ -273,12 +275,17 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   guess(guess: 'slow' | 'fast') {
     this.currentActiveGuess = guess;
-    this.oeEnergyApiService
-      .$slowFastGuess(guess, this.strike)
-      .subscribe((slowFastGuess: SlowFastGuess) => {
-        this.slowFastGuesses = [...this.slowFastGuesses, slowFastGuess];
-        this.toastr.success('Guessed successfully!', 'Success!');
-      });
+    let subscription = this.oeEnergyStateService.$accountToken.subscribe(
+      (accountToken) => {
+        this.oeBlocktimeApiService
+          .$createStrikeGuess(accountToken, this.strike.blockHeight, this.strike.strikeMediantime, guess)
+          .subscribe((slowFastGuess: BlockTimeStrikeGuessPublic) => {
+            this.slowFastGuesses = [...this.slowFastGuesses, slowFastGuess];
+            this.toastr.success('Guessed successfully!', 'Success!');
+          });
+      }
+    );
+    subscription.unsubscribe();
   }
 
   energyDetailLink() {
@@ -291,7 +298,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   public fetchFutureGuessData(pageNumber: number, filter: any = {}): void {
     this.oeBlocktimeApiService
-      .$futureGuessStrikesWithFilter(pageNumber, JSON.stringify(filter))
+      .$futureGuessStrikesWithFilter(pageNumber, filter)
       .subscribe({
         next: (data) => {
           if (!data.results || !Array.isArray(data.results)) {
@@ -306,7 +313,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   public fetchPastGuessData(pageNumber: number, filter: any = {}): void {
     this.oeBlocktimeApiService
-      .$futureGuessStrikesWithFilter(pageNumber, JSON.stringify(filter))
+      .$futureGuessStrikesWithFilter(pageNumber, filter)
       .subscribe({
         next: (data) => {
           if (!data.results || !Array.isArray(data.results)) {

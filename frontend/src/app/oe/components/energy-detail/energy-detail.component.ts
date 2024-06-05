@@ -166,7 +166,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map((strike) => ({
           ...strike,
-          elapsedTime: strike.nLockTime - this.fromBlock.mediantime,
+          elapsedTime: strike.strikeMediantime - this.fromBlock.mediantime,
         }));
       });
   }

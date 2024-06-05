@@ -17,7 +17,7 @@
           [span]="span"
           [type]="strikeType"
           [fromTime]="fromBlock.mediantime"
-          [toTime]="strike.nLockTime"
+          [toTime]="strike.strikeMediantime"
           color="#eeeeee"
           [link]="strikeSummaryLink()"
         ></app-base-box-hor>
@@ -64,7 +64,7 @@
               <td>{{ guess.person }}</td>
               <td>{{ guess.creationTime * 1000 | date:'yyyy-MM-dd HH:mm' }}</td>
               <td>{{ guess.guess }}</td>
-              <td>{{ guess.observedResult || "?" }}</td>
+              <td>{{ guess.strike.observedResult || "?" }}</td>
             </tr>
           </tbody>
         </table>
