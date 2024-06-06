@@ -2065,13 +2065,13 @@ let
         sha512 = "f0KEEe05NvUnat+boPTZ0dgaLZ4SfSouXUgv5noUiefG2ajgKjmETo9ZJyuqsl7dfl2aHlLJUiki6B4ZYldiiw==";
       };
     };
-    "@types/swagger-ui-dist-3.30.1" = {
+    "@types/swagger-ui-dist-3.30.4" = {
       name = "_at_types_slash_swagger-ui-dist";
       packageName = "@types/swagger-ui-dist";
-      version = "3.30.1";
+      version = "3.30.4";
       src = fetchurl {
-        url = "https://registry.npmjs.org/@types/swagger-ui-dist/-/swagger-ui-dist-3.30.1.tgz";
-        sha512 = "wWojDensMF33dSrhak4iWSPOsWBbvf+rSJ6VWQ7ohQbGdKAiT2IwUexrDZkMvf3+vVAPVnNFDRDtxADFszbh+Q==";
+        url = "https://registry.npmjs.org/@types/swagger-ui-dist/-/swagger-ui-dist-3.30.4.tgz";
+        sha512 = "FeOBc7uj4/lAIh4jkBzorvmNoUU9JgSccyDIRo0E9MJw9KQfSxlwpHCyKGnU9kfV5N5dEdfpY8wm7to3nSwTmA==";
       };
     };
     "@types/ws-8.5.4" = {
@@ -12580,7 +12580,7 @@ let
           sources."@types/node-20.1.4"
         ];
       })
-      sources."@types/swagger-ui-dist-3.30.1"
+      sources."@types/swagger-ui-dist-3.30.4"
       (sources."@types/ws-8.5.4" // {
         dependencies = [
           sources."@types/node-20.1.4"
