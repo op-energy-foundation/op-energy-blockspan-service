@@ -32,7 +32,7 @@ executable op-energy-api
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
-    build-depends:    base ^>=4.15.1.0
+    build-depends:    base >=4.15.1.0
                     , servant, servant-swagger
                     , swagger2
                     , op-energy-api
@@ -51,7 +51,7 @@ library
                    , Data.OpEnergy.API.V1.Hash
                    , Data.OpEnergy.API.V1.WebSocketService.Message
                    , Data.OpEnergy.Client
-    build-depends:    base ^>=4.15.1.0
+    build-depends:    base >=4.15.1.0
                     , aeson
                     , text
                     , bytestring
