@@ -88,6 +88,14 @@ let
           patchShebangs $FILE
         done
       done
+      # update swagger ui in order to be compatible with postcss-loader
+      cp node_modules/swagger-ui-dist/swagger-ui.css ./
+      sed -i "s=\\\\\"=\\\\'=g" swagger-ui.css
+      sed -i 's/<svg/%3Csvg/g'  swagger-ui.css;
+      sed -i 's/></%3E%3C/g'    swagger-ui.css;
+      sed -i 's/svg>/svg%3E/g'  swagger-ui.css;
+      cp swagger-ui.css node_modules/swagger-ui-dist/swagger-ui.css
+
       # we already have populated node_modules dir, so we don't need to run `npm install`
       export DOCKER_COMMIT_HASH=${GIT_COMMIT_HASH}
       npm run build
