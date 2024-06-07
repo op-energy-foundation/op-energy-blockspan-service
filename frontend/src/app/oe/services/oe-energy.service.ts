@@ -19,6 +19,7 @@ import {
   BlockTimeStrikeGuessPublic,
   BlockTimeStrikePast,
   BlockTimeStrikeGuessResultPublic,
+  PaginationResponse,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -499,13 +500,12 @@ export class OeBlocktimeApiService {
     );
   }
 
-  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast> {
-    return this.httpClient.post<BlockTimeStrikePast>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/past/strike`,
+  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast[]> {
+    return this.httpClient.post<BlockTimeStrikePast[]>(
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/blocktime/past/strike`,
       accountToken,
       {
-        observe: 'body',
-        responseType: 'json',
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
@@ -523,6 +523,19 @@ export class OeBlocktimeApiService {
       {
         observe: 'body',
         responseType: 'json',
+      }
+    );
+  }
+
+  $getPastStrikeWithPagination(
+    pageNo: number
+  ): Observable<PaginationResponse<BlockTimeStrikePast>> {
+    return this.httpClient.get<PaginationResponse<BlockTimeStrikePast>>(
+      this.apiBaseUrl +
+        this.apiBasePath +
+        `/api/v1/blocktime/past/strike/page?page=${pageNo}`,
+      {
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
