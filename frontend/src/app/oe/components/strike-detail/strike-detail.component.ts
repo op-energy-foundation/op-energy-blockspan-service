@@ -112,7 +112,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     private oeEnergyApiService: OeEnergyApiService,
     public stateService: OeStateService,
     private oeBlocktimeApiService: OeBlocktimeApiService,
-    private oeEnergyStateService: OeStateService,
+    private oeEnergyStateService: OeStateService
   ) {}
 
   ngOnInit() {
@@ -208,10 +208,8 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
         this.setNextAndPreviousBlockLink();
 
         const strikesFilter = {
-          creationTimeGTE: fromBlock.timestamp,
-          creationTimeLTE: toBlock.timestamp,
-          blockHeightGTE: fromBlock.height,
-          blockHeightLTE: toBlock.height,
+          creationTimeEQ: fromBlock.timestamp,
+          blockHeightEQ: fromBlock.height,
         };
         if (this.stateService.latestReceivedBlockHeight > toBlock.height) {
           await this.fetchPastGuessData(this.curruntPage, strikesFilter);
@@ -237,10 +235,18 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   getGuesses() {
     this.oeBlocktimeApiService
-      .$strikesGuessesWithFilter(0, JSON.stringify({ blockHeightGTE: this.strike.blockHeight, blockHeightLTE: this.strike.blockHeight, strikeMediantimeGTE: this.strike.strikeMediantime, strikeMediantimeLTE: this.strike.strikeMediantime}))
-      .subscribe((slowFastGuess: PaginationResponse<BlockTimeStrikeGuessPublic>) => {
-        this.slowFastGuesses = slowFastGuess.results;
-      });
+      .$strikesGuessesWithFilter(
+        0,
+        JSON.stringify({
+          blockHeightEQ: this.strike.blockHeight,
+          strikeMediantimeEQ: this.strike.strikeMediantime,
+        })
+      )
+      .subscribe(
+        (slowFastGuess: PaginationResponse<BlockTimeStrikeGuessPublic>) => {
+          this.slowFastGuesses = slowFastGuess.results;
+        }
+      );
   }
 
   setNextAndPreviousBlockLink() {
@@ -278,7 +284,12 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     let subscription = this.oeEnergyStateService.$accountToken.subscribe(
       (accountToken) => {
         this.oeBlocktimeApiService
-          .$createStrikeGuess(accountToken, this.strike.blockHeight, this.strike.strikeMediantime, guess)
+          .$createStrikeGuess(
+            accountToken,
+            this.strike.blockHeight,
+            this.strike.strikeMediantime,
+            guess
+          )
           .subscribe((slowFastGuess: BlockTimeStrikeGuessPublic) => {
             this.slowFastGuesses = [...this.slowFastGuesses, slowFastGuess];
             this.toastr.success('Guessed successfully!', 'Success!');
