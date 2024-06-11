@@ -73,5 +73,6 @@ library
                     , websockets
                     , http-media
                     , http-client, http-client-tls, servant-client
+                    , mtl
 
     ghc-options:    -O2 -Wall -Werror -Wno-unticked-promoted-constructors -fno-warn-name-shadowing -Wno-orphans
