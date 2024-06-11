@@ -58,7 +58,7 @@ export class StrikeComponent implements OnInit, OnDestroy {
   }
 
   get timeDiffWithStrike(): number {
-    return this.strike.nLockTime - this.fromBlock.mediantime;
+    return this.strike.strikeMediantime - this.fromBlock.mediantime;
   }
 
   get energyDiffWithStrike(): number {
@@ -78,7 +78,7 @@ export class StrikeComponent implements OnInit, OnDestroy {
   }
 
   get strikeType(): 'Energy' | 'Strike' | 'Strike_Boiling' {
-    return this.strike.nLockTime > this.toBlock.mediantime
+    return this.strike.strikeMediantime > this.toBlock.mediantime
       ? 'Strike_Boiling'
       : 'Strike';
   }
@@ -113,6 +113,6 @@ export class StrikeComponent implements OnInit, OnDestroy {
   }
 
   strikeDetailLink() {
-    return `/hashstrikes/strike_detail/${this.fromBlock.height}/${this.toBlock.height}/${this.strike.blockHeight}/${this.strike.nLockTime}/${this.strike.creationTime}`;
+    return `/hashstrikes/strike_detail/${this.fromBlock.height}/${this.toBlock.height}/${this.strike.blockHeight}/${this.strike.strikeMediantime}/${this.strike.creationTime}`;
   }
 }

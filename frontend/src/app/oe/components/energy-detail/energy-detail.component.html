@@ -3,12 +3,6 @@
     <div class="blockspan">
       <div class="d-flex">
         <div class="energy-container">
-          <app-blockspan
-            *ngIf="fromBlock && toBlock"
-            [fromBlock]="fromBlock"
-            [toBlock]="toBlock"
-            (click)="navigateTo($event)"
-          ></app-blockspan>
           <div class="hashblock">
             <div class="to-block-hash pl-2 pr-2" (click)="openExternalSite($event, toBlock.hash)">
               {{ toBlock.hash || '?'}}
@@ -17,7 +11,13 @@
               {{ fromBlock.hash }}
             </div>
             <div class="footer">Block hashes</div>
-          </div>          
+          </div>
+          <app-blockspan
+            *ngIf="fromBlock && toBlock"
+            [fromBlock]="fromBlock"
+            [toBlock]="toBlock"
+            (click)="navigateTo($event)"
+          ></app-blockspan>          
           <app-base-box-v2
             [span]="span"
             [fromTime]="fromBlock.mediantime"
@@ -27,13 +27,13 @@
         </div>
       </div>
     </div>
-    <div class="blockspan-table" (click)="navigateTo($event)">
+    <!-- <div class="blockspan-table" (click)="navigateTo($event)">
       <div>
         <div>average: {{ average || '???' }}</div>
         <div>stddev: {{ stddev || '???' }}</div>
         <div>last 100 blockspans</div>
       </div>
       <div class="footer">Statistics</div>
-    </div>
+    </div> -->
   </div>
 </div>

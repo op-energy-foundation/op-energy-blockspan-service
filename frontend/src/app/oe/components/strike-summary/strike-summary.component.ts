@@ -52,7 +52,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   }
 
   get strikeDetailLink(): string {
-    return `/hashstrikes/strike_detail?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.nLockTime}&blockspanStart=${this.fromBlock.height}`;
+    return `/hashstrikes/strike_detail?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
   }
 
   constructor(
@@ -91,7 +91,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
           // Creating temporary strike
           this.strike = {
             blockHeight: strikeHeight,
-            nLockTime: strikeTime,
+            strikeMediantime: strikeTime,
             creationTime: undefined,
           };
 
@@ -164,7 +164,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
           this.strike = {
             blockHeight: strikesResult[0].strike.block,
             creationTime: strikesResult[0].strike.creationTime,
-            nLockTime: strikesResult[0].strike.strikeMediantime,
+            strikeMediantime: strikesResult[0].strike.strikeMediantime,
           };
           this.setNextAndPreviousBlockLink();
 
@@ -179,6 +179,23 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  getTimeStrikes(): void {
+    this.oeEnergyApiService
+      .$listTimeStrikesByBlockHeight(this.toBlock.height)
+      .subscribe((timeStrikes: TimeStrike[]) => {
+        this.timeStrikes = timeStrikes.map((strike) => ({
+          ...strike,
+          elapsedTime: strike.strikeMediantime - this.fromBlock.mediantime,
+        }));
+        // Manually add a strike that is higher energy just to show what happens when it doesn't boil
+        const highEnergyStrike = {
+          ...this.timeStrikes[0],
+          nLockTime: this.toBlock.mediantime - 30,
+        };
+        this.timeStrikes.unshift(highEnergyStrike);
+      });
   }
 
   setNextAndPreviousBlockLink(): void {
