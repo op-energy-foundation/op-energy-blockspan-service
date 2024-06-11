@@ -15,12 +15,13 @@ import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust)
 import           Data.Pool(Pool)
 import           Servant.API (BasicAuthData(..))
-import           Servant (err404, errBody, throwError)
+import           Servant (err400 )
 import           Servant.Client.JsonRpc
 import           Control.Monad (foldM)
 import           Control.Monad.Logger (logDebug, logInfo)
 import           Control.Monad.Trans.Reader (ask)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Text( Text)
 import qualified Data.Text.Encoding as Text
 import           Data.Text.Show (tshow)
 
@@ -36,6 +37,7 @@ import           OpEnergy.Server.V1.Metrics(MetricsState(..))
 import qualified OpEnergy.Server.V1.BlockHeadersService.Vector.Service as Cache
 import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
+import           Data.OpEnergy.API.V1.Error(throwJSON)
 
 
 getBlockHeaderByHash :: BlockHash -> AppM BlockHeader
@@ -43,7 +45,7 @@ getBlockHeaderByHash hash = do
   mheader <- mgetBlockHeaderByHash hash
   case mheader of
     Just header -> return header
-    Nothing-> throwError err404 {errBody = "ERROR: getBlockHeaderByHash: failed to find block header by given hash"}
+    Nothing-> throwJSON err400 ("ERROR: getBlockHeaderByHash: failed to find block header by given hash"::Text)
 
 
 -- | returns BlockHeader by given hash
@@ -63,7 +65,7 @@ getBlockHeaderByHeight height = do
   mheader <- mgetBlockHeaderByHeight height
   case mheader of
     Just header -> return header
-    _ -> throwError err404 {errBody = "ERROR: getBlockHeaderByHeight: failed to find block header by given height"}
+    _ -> throwJSON err400 ("ERROR: getBlockHeaderByHeight: failed to find block header by given height"::Text)
 
 -- | returns Just BlockHeader by given height or Nothing if there no block with given height
 -- - O(log n) - in case if block with given height is in Height -> BlockHeader cache;

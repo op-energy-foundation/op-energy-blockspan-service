@@ -21,8 +21,6 @@ import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
 import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
-import qualified Data.Text.Encoding as Text
-import qualified Data.ByteString.Lazy as BS
 import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust)
 
@@ -41,6 +39,7 @@ import           Data.Text.Show(tshow)
 
 import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
+import           Data.OpEnergy.API.V1.Error(throwJSON)
 
 
 websocketHandler :: ServerT WebSocketAPI (AppT Handler)
@@ -91,7 +90,7 @@ getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
         Nothing -> do
           let err = "ERROR: getBlocksByBlockSpan: no current tip had been discovered yet"
           runLogging $ $(logError) err
-          throwError err404 {errBody = BS.fromStrict (Text.encodeUtf8 err)}
+          throwJSON err400 err
     forM spans $ \(BlockSpan startHeight endHeight)-> do
       mstart <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight startHeight
       mend <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight endHeight
@@ -112,7 +111,7 @@ getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
         _ -> do
           let err = "ERROR: getBlocksByBlockSpan: failed to get block headers for block span {" <> tshow startHeight <> ", " <> tshow endHeight <> "}"
           runLogging $ $(logError) err
-          throwError err404 {errBody = BS.fromStrict (Text.encodeUtf8 err)}
+          throwJSON err400 err
 
 getBlocksWithNbdrByBlockSpan
   :: BlockHeight
