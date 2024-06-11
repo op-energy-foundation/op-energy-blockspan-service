@@ -7,9 +7,6 @@ import           Control.Monad.Logger(logError)
 import           Control.Monad.Trans.Reader(ask)
 import qualified Prometheus as P
 import           Servant.Server.Internal.ServerError
-import           Servant
-import qualified Data.ByteString.Lazy as BS
-import qualified Data.Text.Encoding as Text
 
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
@@ -17,6 +14,7 @@ import           Data.OpEnergy.API.V1.Natural
 import           OpEnergy.Server.V1.Class ( AppM, runLogging, State(..))
 import           OpEnergy.Server.V1.Config( Config(..))
 import           OpEnergy.Server.V1.Metrics
+import           Data.OpEnergy.API.V1.Error(throwJSON)
 
 -- | generates list of block spans starting from given BlockHeight
 getBlockSpanList
@@ -36,7 +34,7 @@ getBlockSpanList startHeight span numberOfSpans = do
       then do
         let err = "ERROR: requested blockspan size is too small"
         runLogging $ $(logError) err
-        throwError err404 {errBody = BS.fromStrict (Text.encodeUtf8 err)}
+        throwJSON err400 err
       else return spans
   where
     _span = fromPositive span

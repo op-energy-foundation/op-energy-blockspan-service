@@ -20,6 +20,7 @@ import           Data.OpEnergy.V1.Account
 import           OpEnergy.Server.V1.Config
 import           OpEnergy.Server.V1.DB (tshow)
 import           OpEnergy.Server.V1.Class (AppT, AppM, State(..))
+import           Data.OpEnergy.API.V1.Error(throwJSON)
 
 
 register :: AppM RegisterResult
@@ -37,7 +38,7 @@ getBlockHeaderByHash hash = do
     Nothing -> do -- there is no header in cache
       mheader <- liftIO $ flip runSqlPersistMPool pool $ selectFirst [ BlockHeaderHash ==. hash ] []
       case mheader of
-        Nothing-> throwError err404
+        Nothing-> throwJSON err400 ("block with given hash was not found"::Text)
         Just (Entity _ header) -> do
           height <- liftIO $ STM.atomically $ do
             let height = blockHeaderHeight header
@@ -62,14 +63,14 @@ getBlockHeaderByHeight height = do
             Nothing -> do -- there is no header in cache
               mheader <- liftIO $ flip runSqlPersistMPool pool $ selectFirst [ BlockHeaderHeight ==. height ] []
               case mheader of
-                Nothing-> throwError err404
+                Nothing-> throwJSON err400 ("no block found with given height"::Text)
                 Just (Entity _ header) -> do
                   liftIO $ STM.atomically $ do
                     TVar.modifyTVar blockHeadersHeightCacheV $ \cache-> Map.insert height header cache -- update cache
                     TVar.modifyTVar blockHeadersHashCacheV $ \cache-> Map.insert (blockHeaderHash header) height cache -- update cache
                   liftIO $ Text.putStrLn $ "header with height " <> tshow height <> " inserted in the cache"
                   return header
-    _ -> throwError err404
+    _ -> throwJSON err400 ("given height is in the future"::Text)
 
 mgetLastBlockHeader :: Pool SqlBackend-> IO (Maybe (Entity BlockHeader))
 mgetLastBlockHeader pool = flip runSqlPersistMPool pool $ selectFirst ([] :: [Filter BlockHeader]) [ Desc BlockHeaderHeight ]
