@@ -13,7 +13,7 @@ import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Pool(Pool)
 import qualified Data.Map.Strict as Map
 import           Servant.API (BasicAuthData(..))
-import           Servant (err404, throwError, Handler)
+import           Servant (err400, Handler)
 import           Servant.Client.JsonRpc
 import           Control.Monad (forM_)
 import           Control.Monad.Logger (logDebug, logInfo)
@@ -51,7 +51,7 @@ getBlockHeaderByHash :: BlockHash -> AppM BlockHeader
 getBlockHeaderByHash hash = do
   mheader <- mgetBlockHeaderByHash hash
   case mheader of
-    Nothing-> throwError err404
+    Nothing-> throwJSON err400 ("no block found with given hash"::Text)
     Just header -> return header
 
 
@@ -101,7 +101,7 @@ getBlockHeaderByHeight height = do
   mheader <- mgetBlockHeaderByHeight height
   case mheader of
     Just header -> return header
-    _ -> throwError err404
+    _ -> throwJSON err400 ("no block found with given height" ::Text)
 
 -- | returns Just BlockHeader by given height or Nothing if there no block with given height
 -- - O(log n) - in case if block with given height is in Height -> BlockHeader cache;
