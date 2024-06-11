@@ -208,7 +208,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
         this.setNextAndPreviousBlockLink();
 
         const strikesFilter = {
-          creationTimeEQ: fromBlock.timestamp,
+          strikeMediantimeEQ: fromBlock.timestamp,
           blockHeightEQ: fromBlock.height,
         };
         if (this.stateService.latestReceivedBlockHeight > toBlock.height) {
