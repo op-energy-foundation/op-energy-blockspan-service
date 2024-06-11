@@ -169,11 +169,6 @@ export interface BlockTimeStrikeResult {
   guessesCount: number
 }
 
-export interface BlockTimeStrikePublic {
-  guessesCount : number;
-  strike : BlockTimeStrike;
-}
-
 export type PaginationResponse<T> = {
   nextPage: number;
   count: number;

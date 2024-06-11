@@ -127,7 +127,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
               .$getBlockByHeight(strikeHeight)
               .pipe(catchError(() => of(strikeHeight))),
             this.oeBlocktimeApiService
-              .$getPastStrikesPaginationWithFilter(
+              .$strikesWithFilter(
                 JSON.stringify({
                   strikeMediantimeEQ: strikeTime,
                   blockHeightEQ: strikeHeight,
