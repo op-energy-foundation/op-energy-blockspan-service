@@ -13,9 +13,9 @@ import {
   BlockSpanHeadersNbdr,
   BlockSpanHeaders,
   RegisterResult,
+  BlockTimeStrikePublic,
   BlockTimeStrikeGuessPublic,
   PaginationResponse,
-  BlockTimeStrikeResult,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -406,11 +406,11 @@ export class OeBlocktimeApiService {
   $strikesWithFilter(
     filter: any | {},
     pageNo = 0,
-  ): Observable<PaginationResponse<BlockTimeStrikeResult>> {
+  ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
     const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/page?page=${pageNo}&filter=${encodeURI(JSON.stringify(filter))}`;
 
     return this.httpClient.get<
-      PaginationResponse<BlockTimeStrikeResult>
+      PaginationResponse<BlockTimeStrikePublic>
     >(url, {
       headers: { 'Content-Type': 'application/json' },
     });
@@ -447,11 +447,11 @@ export class OeBlocktimeApiService {
   $strike(
     blockHeight: number,
     strikeMediantime: number,
-  ): Observable<BlockTimeStrikeResult> {
+  ): Observable<BlockTimeStrikePublic> {
     const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/${blockHeight}/${strikeMediantime}`;
 
     return this.httpClient.get<
-      BlockTimeStrikeResult
+      BlockTimeStrikePublic
     >(url, {
       headers: { 'Content-Type': 'application/json' },
     });

@@ -1,6 +1,6 @@
 import {
   Block,
-  BlockTimeStrikeResult,
+  BlockTimeStrikePublic,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -139,7 +139,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
         ([fromBlock, toBlock, strikesDetails]: [
           Block,
           Block,
-          PaginationResponse<BlockTimeStrikeResult>
+          PaginationResponse<BlockTimeStrikePublic>
         ]) => {
           this.fromBlock = fromBlock;
           if (typeof toBlock === BlockTypes.NUMBER) {

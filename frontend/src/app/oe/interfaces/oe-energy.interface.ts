@@ -155,18 +155,9 @@ export interface BlockTimeStrikeGuessPublic {
   guess : 'slow' | 'fast';
 }
 
-export interface BlockTimeStrikeGuessResultPublic {
-  person : string;
+export interface BlockTimeStrikePublic {
+  guessesCount : number;
   strike : BlockTimeStrike;
-  creationTime : number;
-  archiveTime : number;
-  guess : 'slow' | 'fast';
-  observedResult : 'slow' | 'fast';
-}
-
-export interface BlockTimeStrikeResult {
-  strike : BlockTimeStrike;
-  guessesCount: number
 }
 
 export type PaginationResponse<T> = {

@@ -1,6 +1,6 @@
 import {
   Block,
-  BlockTimeStrikeResult,
+  BlockTimeStrikePublic,
   BlockTimeStrikeGuessPublic,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
@@ -144,7 +144,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
             +params.get('blockspanStart') || this.latestBlock.height;
           const strikeHeight = +params.get('strikeHeight') || 1200000;
           let strikeTime = +params.get('strikeTime');
-  
+
           if (!strikeTime) {
             strikeTime =
               this.latestBlock.mediantime +
@@ -202,7 +202,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
         async ([fromBlock, toBlock, strikesDetails]: [
           Block,
           Block,
-          PaginationResponse<BlockTimeStrikeResult>
+          PaginationResponse<BlockTimeStrikePublic>
         ]) => {
           this.fromBlock = fromBlock;
           this.toBlock =
