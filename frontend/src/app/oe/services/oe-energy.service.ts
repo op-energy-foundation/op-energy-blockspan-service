@@ -3,9 +3,7 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   TimeStrike,
-  SlowFastGuess,
   TimeStrikesHistory,
-  SlowFastResult,
   EnergyNbdrStatistics,
   BlockSpan,
   BlockHeader,
@@ -15,7 +13,6 @@ import {
   BlockSpanHeadersNbdr,
   BlockSpanHeaders,
   RegisterResult,
-  BlockTimeStrike,
   BlockTimeStrikePublic,
   BlockTimeStrikeGuessPublic,
   PaginationResponse,
@@ -407,8 +404,8 @@ export class OeBlocktimeApiService {
   }
 
   $strikesWithFilter(
-    pageNo: number,
-    filter: any | {}
+    filter: any | {},
+    pageNo = 0,
   ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
     const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/page?page=${pageNo}&filter=${encodeURI(JSON.stringify(filter))}`;
 
@@ -420,8 +417,8 @@ export class OeBlocktimeApiService {
   }
 
   $strikesGuessesWithFilter(
-    pageNo: number,
-    filter: any | {}
+    filter: any | {},
+    pageNo = 0,
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
     const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strikes/guesses/page?page=${pageNo}&filter=${encodeURI(JSON.stringify(filter))}`;
 
@@ -495,13 +492,13 @@ export class OeBlocktimeApiService {
     pageNo: number,
     filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    return this.$strikesGuessesWithFilter( pageNo, { ... filter, class: 'guessable'} );
+    return this.$strikesGuessesWithFilter( { ... filter, class: 'guessable'}, pageNo );
   }
 
   $pastGuessStrikesWithFilter(
     pageNo: number,
     filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    return this.$strikesGuessesWithFilter( pageNo, { ... filter, class: 'outcomeKnown'} );
+    return this.$strikesGuessesWithFilter( { ... filter, class: 'outcomeKnown'}, pageNo );
   }
 }

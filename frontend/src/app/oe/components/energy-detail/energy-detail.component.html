@@ -1,6 +1,6 @@
 <div class="observed-blockspan-detail">
   <div class="observed-blockspan-detail--top" *ngIf="fromBlock && toBlock">
-    <div class="blockspan" (click)="navigateTo()">
+    <div class="blockspan">
       <div class="d-flex">
         <div class="energy-container">
           <div class="hashblock">
@@ -16,16 +16,18 @@
             *ngIf="fromBlock && toBlock"
             [fromBlock]="fromBlock"
             [toBlock]="toBlock"
+            (click)="navigateTo($event)"
           ></app-blockspan>          
           <app-base-box-v2
             [span]="span"
             [fromTime]="fromBlock.mediantime"
             [toTime]="toBlock.mediantime"
+            (click)="navigateTo($event)"
           ></app-base-box-v2>
         </div>
       </div>
     </div>
-    <!-- <div class="blockspan-table" (click)="navigateTo()">
+    <!-- <div class="blockspan-table" (click)="navigateTo($event)">
       <div>
         <div>average: {{ average || '???' }}</div>
         <div>stddev: {{ stddev || '???' }}</div>

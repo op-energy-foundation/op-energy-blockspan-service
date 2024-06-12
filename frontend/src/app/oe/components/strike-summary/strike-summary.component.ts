@@ -1,17 +1,20 @@
-import { Block } from '../../interfaces/oe-energy.interface';
+import {
+  Block,
+  BlockTimeStrikePublic,
+  PaginationResponse,
+} from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Location } from '@angular/common';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap, catchError, take } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import {
-  TimeStrike,
-  NavigationObject,
-} from 'src/app/oe/interfaces/oe-energy.interface';
+import { TimeStrike } from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import { OeEnergyApiService } from '../../services/oe-energy.service';
+import {
+  OeBlocktimeApiService,
+  OeEnergyApiService,
+} from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-strike-summary',
@@ -25,6 +28,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   blockHeight: number;
   nextBlockHeight: number;
   fromBlockHash: string;
+  strike: TimeStrike;
   toBlockHash: string;
   isLoadingBlock = true;
   latestBlock: Block;
@@ -32,9 +36,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   error: any;
   showPreviousBlocklink = true;
   showNextBlocklink = true;
-
   subscription: Subscription;
-
   timeStrikes: TimeStrike[] = [];
 
   get span(): number {
@@ -50,31 +52,53 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   }
 
   get strikeDetailLink(): string {
-    return `/hashstrikes/strike_detail/${this.fromBlock.height}/${this.toBlock.height}/${this.toBlock.height}/${this.fromBlock.mediantime}/${this.toBlock.mediantime}`;
+    return `/hashstrikes/strike_detail?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
   }
 
   constructor(
     private route: ActivatedRoute,
-    private location: Location,
-    private router: Router,
-    private modalService: NgbModal,
     private oeEnergyApiService: OeEnergyApiService,
-    private stateService: OeStateService
+    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private stateService: OeStateService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
-    (this.subscription = this.route.paramMap
+    (this.subscription = this.route.queryParamMap
+      .pipe(
+        switchMap((params: ParamMap) =>
+          this.stateService.latestReceivedBlock$
+            .pipe(take(1)) // don't follow any future update of this object
+            .pipe(
+              switchMap((block: Block) => {
+                this.latestBlock = block;
+                return of(params);
+              })
+            )
+        )
+      )
       .pipe(
         switchMap((params: ParamMap) => {
-          const fromBlockHeight: number = parseInt(params.get('from'), 10);
-          const toBlockHeight: number = parseInt(params.get('to'), 10);
-          this.fromBlock = null;
-          this.toBlock = null;
-          this.error = null;
-
-          if (history.state.data && history.state.data.blockHeight) {
-            this.blockHeight = history.state.data.blockHeight;
+          const fromBlockHeight =
+            +params.get('blockspanStart') || this.latestBlock.height;
+          const strikeHeight = +params.get('strikeHeight') || 1200000;
+          let strikeTime = +params.get('strikeTime');
+          if (!strikeTime) {
+            strikeTime =
+              this.latestBlock.mediantime +
+              (strikeHeight - this.latestBlock.height) * 600;
           }
+          // Creating temporary strike
+          this.strike = {
+            blockHeight: strikeHeight,
+            strikeMediantime: strikeTime,
+            creationTime: undefined,
+          };
+
+          // this.fromBlockHeight = fromBlockHeight;
+          // this.toBlockHeight = strikeHeight;
+          this.blockHeight =
+            history.state.data?.blockHeight ?? this.blockHeight;
 
           document.body.scrollTo(0, 0);
 
@@ -92,7 +116,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
             (block: Block) => block.height === fromBlockHeight
           );
           toBlockInCache = this.latestBlocks.find(
-            (block: Block) => block.height === toBlockHeight
+            (block: Block) => block.height === strikeHeight
           );
           if (fromBlockInCache && toBlockInCache) {
             return of([fromBlockInCache, toBlockInCache]);
@@ -100,31 +124,51 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
           return combineLatest([
             this.oeEnergyApiService.$getBlockByHeight(fromBlockHeight),
             this.oeEnergyApiService
-              .$getBlockByHeight(toBlockHeight)
-              .pipe(catchError(() => of(toBlockHeight))),
+              .$getBlockByHeight(strikeHeight)
+              .pipe(catchError(() => of(strikeHeight))),
+            this.oeBlocktimeApiService
+              .$strikesWithFilter({
+                strikeMediantimeEQ: strikeTime,
+                blockHeightEQ: strikeHeight,
+              })
+              .pipe(catchError(() => of(strikeHeight))),
           ]);
         })
       )
-      .subscribe(([fromBlock, toBlock]: [Block, Block]) => {
-        this.fromBlock = fromBlock;
-        if (typeof toBlock === BlockTypes.NUMBER) {
-          this.toBlock = {
-            ...this.fromBlock,
-            height: +toBlock,
+      .subscribe(
+        ([fromBlock, toBlock, strikesDetails]: [
+          Block,
+          Block,
+          PaginationResponse<BlockTimeStrikePublic>
+        ]) => {
+          this.fromBlock = fromBlock;
+          if (typeof toBlock === BlockTypes.NUMBER) {
+            this.toBlock = {
+              ...this.fromBlock,
+              height: +toBlock,
+            };
+          } else {
+            this.toBlock = toBlock;
+          }
+          this.blockHeight = fromBlock.height;
+          this.nextBlockHeight = fromBlock.height + 1;
+
+          const strikesResult = strikesDetails.results;
+          if (!strikesResult.length) {
+            this.toastr.error('Strikes Not Found!', 'Failed!');
+            return;
+          }
+
+          this.strike = {
+            blockHeight: strikesResult[0].strike.block,
+            creationTime: strikesResult[0].strike.creationTime,
+            strikeMediantime: strikesResult[0].strike.strikeMediantime,
           };
-        } else {
-          this.toBlock = toBlock;
+          this.setNextAndPreviousBlockLink();
+
+          this.isLoadingBlock = false;
         }
-        this.blockHeight = fromBlock.height;
-        this.nextBlockHeight = fromBlock.height + 1;
-        this.setNextAndPreviousBlockLink();
-
-        this.isLoadingBlock = false;
-
-        this.stateService.$accountToken.pipe(take(1)).subscribe(() => {
-          this.getTimeStrikes();
-        });
-      })),
+      )),
       (error: Error): void => {
         this.error = error;
         this.isLoadingBlock = false;
@@ -152,10 +196,6 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
       });
   }
 
-  getNavigationObject(block: Block, nextBlockHeight: number): NavigationObject {
-    return { state: { data: { block, blockHeight: nextBlockHeight } } };
-  }
-
   setNextAndPreviousBlockLink(): void {
     if (this.latestBlock && this.blockHeight) {
       this.showPreviousBlocklink = this.blockHeight !== 0;
@@ -163,21 +203,5 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
         this.latestBlock.height && this.latestBlock.height === this.blockHeight
       );
     }
-  }
-
-  open(content): void {
-    this.modalService.open(content, { ariaLabelledBy: 'modal-basic-title' })
-      .result;
-  }
-
-  goDetail(fromBlock, strike): void {
-    this.router.navigate([
-      '/hashstrikes/strike_detail/',
-      fromBlock.height,
-      strike.blockHeight,
-      strike.blockHeight,
-      strike.nLockTime,
-      strike.creationTime,
-    ]);
   }
 }

@@ -44,11 +44,11 @@ const routes: Routes = [
             component: EnergySummaryComponent,
           },
           {
-            path: 'strike_detail/:from/:to/:strikeBlockHeight/:strikeMedianTime/:strikeCreationTime',
+            path: 'strike_detail',
             component: StrikeDetailComponent,
           },
           {
-            path: 'strike_summary/:from/:to',
+            path: 'strike_summary',
             component: StrikeSummaryComponent,
           },
           {
