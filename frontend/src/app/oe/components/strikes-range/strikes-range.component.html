@@ -2,7 +2,7 @@
     <div class="strike-table m-5 text-center">
         <div class="content">
             <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)"
-                (getNextPage)="fetchPastStrikes($event)" [isLoading]="isLoading">
+                (getNextPage)="fetchPastStrikes($event)" [isLoading]="isLoading" [totalPages]="totalPages">
             </app-data-table>
         </div>
     </div>

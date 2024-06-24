@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PastStrikeListComponent } from './past-strike-list.component';
+import { StrikesRangeComponent } from './strikes-range.component';
 
-describe('PastStrikeListComponent', () => {
-  let component: PastStrikeListComponent;
-  let fixture: ComponentFixture<PastStrikeListComponent>;
+describe('StrikesRangeComponent', () => {
+  let component: StrikesRangeComponent;
+  let fixture: ComponentFixture<StrikesRangeComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PastStrikeListComponent ]
+      declarations: [ StrikesRangeComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PastStrikeListComponent);
+    fixture = TestBed.createComponent(StrikesRangeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

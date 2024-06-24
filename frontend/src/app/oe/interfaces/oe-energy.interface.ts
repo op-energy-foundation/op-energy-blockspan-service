@@ -159,7 +159,7 @@ export interface StrikeDetails {
   block: number;
   creationTime: number;
   futureStrikeCreationTime: number;
-  nlocktime: number;
+  strikeMediantime: number;
   observedBlockHash: string;
   observedBlockMediantime: number;
   observedResult: string;

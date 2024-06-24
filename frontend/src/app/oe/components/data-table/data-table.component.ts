@@ -14,11 +14,12 @@ export class DataTableComponent implements OnInit {
   @Output() getNextPage: EventEmitter<number> = new EventEmitter<number>();
   @Input() currentPage: number = 1;
   @Input() pageSize: number = 100;
+  @Input() totalPages: number;
   showSerialNumberColumn: boolean = false;
   startIndex: number = 0;
 
   get pages(): number[] {
-    const totalVisiblePages = 5;
+    const totalVisiblePages = Math.min(this.totalPages, 5);
     const currentPageIndex = this.currentPage - 1;
     const startPage = Math.max(
       0,

@@ -12,7 +12,7 @@ import { StrikeDetailComponent } from './components/strike-detail/strike-detail.
 import { StrikeSummaryComponent } from './components/strike-summary/strike-summary.component';
 import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
 import { LoginComponent } from './components/login/login.component';
-import { PastStrikeListComponent } from './components/past-strike-list/past-strike-list.component';
+import { StrikesRangeComponent } from './components/strikes-range/strikes-range.component';
 
 const routes: Routes = [
   { path: 'login/:secret', component: LoginComponent },
@@ -61,16 +61,8 @@ const routes: Routes = [
             component: BlockspansHomeComponent,
           },
           {
-            path: 'pasts_strikes_oldest_to_newest',
-            component: PastStrikeListComponent
-          },
-          {
-            path: 'past_strikes_newest_to_oldest',
-            component: PastStrikeListComponent
-          },
-          {
-            path: 'past_strikes_with_guesses_descending_on_guesses',
-            component: PastStrikeListComponent
+            path: 'strikes-range',
+            component: StrikesRangeComponent
           }
         ],
       },

@@ -1,4 +1,4 @@
-import { TableColumn } from './../../interfaces/oe-energy.interface';
+import { TableColumn } from '../../interfaces/oe-energy.interface';
 
 export const TABLE_HEADERS: TableColumn[] = [
   {
@@ -7,15 +7,7 @@ export const TABLE_HEADERS: TableColumn[] = [
     isSrNo: true,
   },
   { displayName: 'Block', columnKey: 'block' },
-  // {
-  //   displayName: 'Creation Time',
-  //   columnKey: 'creationTime',
-  // },
-  // {
-  //   displayName: 'Future Strike Creation Time',
-  //   columnKey: 'futureStrikeCreationTime',
-  // },
-  { displayName: 'NLock Time', columnKey: 'nlocktime' },
+  { displayName: 'Median Time', columnKey: 'strikeMediantime' },
   {
     displayName: 'Observed Block Mediantime',
     columnKey: 'observedBlockMediantime',

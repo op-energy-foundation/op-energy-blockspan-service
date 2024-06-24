@@ -41,7 +41,7 @@ import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { LoginComponent } from './components/login/login.component';
-import { PastStrikeListComponent } from './components/past-strike-list/past-strike-list.component';
+import { StrikesRangeComponent } from './components/strikes-range/strikes-range.component';
 import { DataTableComponent } from './components/data-table/data-table.component';
 
 @NgModule({
@@ -66,7 +66,7 @@ import { DataTableComponent } from './components/data-table/data-table.component
     BlockRatesGraphComponent,
     LoginComponent,
     ClipboardComponent,
-    PastStrikeListComponent,
+    StrikesRangeComponent,
     DataTableComponent,
   ],
   imports: [
@@ -100,7 +100,7 @@ import { DataTableComponent } from './components/data-table/data-table.component
     BlockspansHomeComponent,
     OeDocsComponent,
     AboutComponent,
-    PastStrikeListComponent,
+    StrikesRangeComponent,
   ],
   exports: [ToastrModule, AngularSvgIconModule, FontAwesomeModule],
 })

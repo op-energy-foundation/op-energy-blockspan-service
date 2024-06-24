@@ -416,6 +416,21 @@ export class OeBlocktimeApiService {
     });
   }
 
+  $futureStrikesWithFilter(
+    pageNo: number,
+    filter: any | {}
+  ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
+    return this.$strikesWithFilter( { ... filter, class: 'guessable'}, pageNo );
+  }
+
+  $pastStrikesWithFilter(
+    pageNo: number,
+    filter: any | {}
+  ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
+    console.log(filter);
+    return this.$strikesWithFilter( { ... filter, class: 'outcomeKnown'}, pageNo );
+  }
+
   $strikesGuessesWithFilter(
     filter: any | {},
     pageNo = 0,
@@ -471,16 +486,6 @@ export class OeBlocktimeApiService {
                    'AccountToken': accountToken,
                  }
     });
-  }
-
-  $getPastStrikes(accountToken: string): Observable<BlockTimeStrikePast[]> {
-    return this.httpClient.post<BlockTimeStrikePast[]>(
-      this.apiBaseUrl + this.apiBasePath + `/api/v1/blocktime/past/strike`,
-      accountToken,
-      {
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
   }
 
   $strikeGuessPerson(
