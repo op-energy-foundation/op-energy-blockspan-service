@@ -174,7 +174,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
       .subscribe((timeStrikes: TimeStrike[]) => {
         this.timeStrikes = timeStrikes.map((strike) => ({
           ...strike,
-          elapsedTime: strike.nLockTime - this.pastBlocks[0].mediantime,
+          elapsedTime: strike.strikeMediantime - this.pastBlocks[0].mediantime,
         }));
         const existingElapsedTimes = this.timeStrikes.map((s) => s.elapsedTime);
         while (existingElapsedTimes.includes(this.initStrike)) {

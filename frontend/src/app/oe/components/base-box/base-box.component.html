@@ -3,7 +3,7 @@
   [ngClass]="{ 'is-link': link }"
   (click)="navigateTo()"
 >
-  <div class="tank-box--top" [ngStyle]="{ 'background-color': this.color }">
+  <div class="tank-box--top" [ngStyle]="{ 'background-color': this.color }" [style.opacity]="hideFlameStack ? 0 : 1">
     <span *ngIf="isUnknown">?????</span>
     <ng-container *ngIf="!isUnknown"> 0% </ng-container>
   </div>

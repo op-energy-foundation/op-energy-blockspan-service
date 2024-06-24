@@ -12,6 +12,7 @@
 
   &--nbdr {
     min-width: 300px !important;
+    flex-grow: 1;
 
     .main {
       display: flex;

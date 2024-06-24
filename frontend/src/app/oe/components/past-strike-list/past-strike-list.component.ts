@@ -45,7 +45,7 @@ export class PastStrikeListComponent implements OnInit {
   fetchPastStrikes(pageNumber: number): void {
     this.isLoading = true;
     this.oeBlocktimeApiService
-      .$getPastStrikeWithPagination(pageNumber - 1)
+      .$pastGuessStrikesWithFilter(pageNumber - 1, {})
       .subscribe({
         next: (data) => this.handleData(data),
         error: (error) => this.handleError(error),

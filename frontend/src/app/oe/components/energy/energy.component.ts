@@ -18,6 +18,7 @@ export class EnergyComponent implements OnInit, OnDestroy {
   @Input() fromBlock: Block;
   @Input() toBlock: Block;
   @Input() isDetailed: boolean;
+  @Input() hideFlameStack = false;
 
   get span(): number {
     return this.toBlock.height - this.fromBlock.height;
