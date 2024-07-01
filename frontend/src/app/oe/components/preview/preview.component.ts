@@ -53,11 +53,11 @@ export class PreviewComponent implements OnInit {
   }
 
   pastStrikeListOldestToNewestLink(): string {
-    return '/hashstrikes/pasts_strikes_oldest_to_newest';
+    return '/hashstrikes/strikes-range?sort=ascend';
   }
 
   pastStrikeListNewestToOldestLink(): string {
-    return '/hashstrikes/past_strikes_newest_to_oldest';
+    return '/hashstrikes/strikes-range';
   }
 
   pastStrikeListQWithGuess(): string {

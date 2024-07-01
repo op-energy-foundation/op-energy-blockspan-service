@@ -60,6 +60,9 @@ export class StrikesRangeComponent implements OnInit {
     if (params.endTime) {
       this.filter.strikeMediantimeLTE = +params.endTime;
     }
+    if(params.sort) {
+      this.filter.sort = params.sort;
+    }
   }
 
   fetchPastStrikes(pageNumber: number): void {
