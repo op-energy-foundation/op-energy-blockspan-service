@@ -37,13 +37,9 @@ export class StrikesRangeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.url.subscribe((url) => {
-      const path = url[0].path;
-      this.reverseOrder = path === URL_PAST_STRIKES_NEWEST_TO_OLDEST;
-      this.route.queryParams.subscribe((params) => {
-        this.setFilterFromParams(params);
-        this.fetchPastStrikes(this.currentPage);
-      });
+    this.route.queryParams.subscribe((params) => {
+      this.setFilterFromParams(params);
+      this.fetchPastStrikes(this.currentPage);
     });
   }
 
@@ -63,10 +59,19 @@ export class StrikesRangeComponent implements OnInit {
     if(params.sort) {
       this.filter.sort = params.sort;
     }
+    if (params.page) {
+      this.currentPage = +params.page;
+    }
   }
 
   fetchPastStrikes(pageNumber: number): void {
     this.isLoading = true;
+    this.currentPage = pageNumber;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { ...this.filter, page: this.currentPage },
+      queryParamsHandling: 'merge',
+    });
     this.oeBlocktimeApiService
       .$pastStrikesWithFilter(pageNumber - 1, this.filter)
       .subscribe({

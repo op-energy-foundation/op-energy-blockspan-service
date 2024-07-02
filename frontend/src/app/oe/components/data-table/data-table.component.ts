@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { TableColumn } from '../../interfaces/oe-energy.interface';
 
 @Component({
@@ -17,8 +17,9 @@ export class DataTableComponent implements OnInit {
   @Input() totalPages: number;
   showSerialNumberColumn: boolean = false;
   startIndex: number = 0;
+  pages: number[] = [];
 
-  get pages(): number[] {
+  updatePages(): void {
     const totalVisiblePages = Math.min(this.totalPages, 5);
     const currentPageIndex = this.currentPage - 1;
     const startPage = Math.max(
@@ -26,10 +27,16 @@ export class DataTableComponent implements OnInit {
       currentPageIndex - Math.floor(totalVisiblePages / 2)
     );
 
-    return Array.from(
+    this.pages = Array.from(
       { length: totalVisiblePages },
       (_, i) => startPage + i + 1
     );
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.currentPage || changes.totalPages) {
+      this.updatePages();
+    }
   }
 
   constructor() {}
@@ -37,6 +44,7 @@ export class DataTableComponent implements OnInit {
   ngOnInit(): void {
     // Determine if the "Sr No" column should be displayed
     this.showSerialNumberColumn = this.headers.some((header) => header.isSrNo);
+    this.updatePages();
   }
 
   onPageChange(pageNumber: number): void {
