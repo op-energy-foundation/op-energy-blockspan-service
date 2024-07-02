@@ -155,6 +155,23 @@ export interface BlockTimeStrikeGuessPublic {
   guess : 'slow' | 'fast';
 }
 
+export interface StrikeDetails {
+  block: number;
+  creationTime: number;
+  futureStrikeCreationTime: number;
+  strikeMediantime: number;
+  observedBlockHash: string;
+  observedBlockMediantime: number;
+  observedResult: string;
+}
+
+export interface TableColumn {
+  displayName: string;
+  columnKey: string;
+  isSrNo?: boolean;
+  customSrNoHeader?: string;
+}
+
 export interface BlockTimeStrikePublic {
   guessesCount : number;
   strike : BlockTimeStrike;

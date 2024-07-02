@@ -51,4 +51,32 @@ export class PreviewComponent implements OnInit {
   blockRateChartLink(): string {
     return '/graphs/blockratecharts/144';
   }
+
+  pastStrikeListOldestToNewestLink(): string {
+    return '/hashstrikes/strikes-range?sort=ascend';
+  }
+
+  pastStrikeListNewestToOldestLink(): string {
+    return '/hashstrikes/strikes-range';
+  }
+
+  pastStrikeListQWithGuess(): string {
+    return '/hashstrikes/past_strikes_with_guesses_descending_on_guesses';
+  }
+  
+  strikesRangeWithStartblockEndblock(): string {
+    return '/hashstrikes/strikes-range?startblock=849237&endblock=849251';
+  }
+
+  strikesRangeWithStarttimeEndtime(): string {
+    return '/hashstrikes/strikes-range?startTime=1719194635&endTime=1719201779';
+  }
+
+  strikesRangeWithStartblockEndtime(): string {
+    return '/hashstrikes/strikes-range?startblock=849237&endTime=1719201779';
+  }
+
+  strikesRangeWithstarttimeEndBlock(): string {
+    return '/hashstrikes/strikes-range?startTime=1719194635&endblock=849251';
+  }
 }

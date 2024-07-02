@@ -8,6 +8,30 @@
   <div>
     <a [href]="futureStrikeDetailLink()">Strike Detail(Future)</a>
   </div>
+  <div>
+    <a [href]="pastStrikeListOldestToNewestLink()">All Past Strike List(oldest to newest)</a>
+  </div>
+  <div>
+    <a [href]="pastStrikeListNewestToOldestLink()">All Past Strike List(newest to oldest)</a>
+  </div>
+  <div>
+    <a [href]="strikesRangeWithStartblockEndblock()">Strikes Range(With startblock and endblock)</a>
+  </div>
+  <div>
+    <a [href]="strikesRangeWithStarttimeEndtime()">Strikes Range(With starttime and endtime)</a>
+  </div>
+  <div>
+    <a [href]="strikesRangeWithStartblockEndtime()">Strikes Range(With startblock and endtime)</a>
+  </div>
+  <div>
+    <a [href]="strikesRangeWithstarttimeEndBlock()">Strikes Range(With starttime and endblock)</a>
+  </div>
+  <!-- <div>
+    <a [routerLink]="pastStrikeListQWithGuess()">All Past Strike List With Guess(Sorted by Guess Descending)</a>
+  </div> -->
+  <!-- <div>
+    <a [routerLink]="futureStrikeSummaryLink()">Strike Summary(Future)</a>
+  </div> -->
   <div><a [routerLink]="pastEnergySummaryLink()">Energy Summary(Past)</a></div>
   <div>
     <a [routerLink]="futureEnergySummaryLink()">Energy Summary(Future)</a>
