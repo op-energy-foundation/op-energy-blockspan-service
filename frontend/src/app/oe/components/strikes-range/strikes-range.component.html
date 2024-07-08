@@ -1,8 +1,7 @@
 <div class="past-strike-list">
     <div class="strike-table m-5 text-center">
         <div class="content">
-            <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)"
-                (getNextPage)="fetchPastStrikes($event)" [isLoading]="isLoading" [totalPages]="totalPages" [currentPage]="currentPage">
+            <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)" [isLoading]="isLoading">
             </app-data-table>
         </div>
     </div>

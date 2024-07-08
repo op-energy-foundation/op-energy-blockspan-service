@@ -427,7 +427,6 @@ export class OeBlocktimeApiService {
     pageNo: number,
     filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
-    console.log(filter);
     return this.$strikesWithFilter( { ... filter, class: 'outcomeKnown'}, pageNo );
   }
 
@@ -501,19 +500,5 @@ export class OeBlocktimeApiService {
         headers: { 'Content-Type': 'application/json',
                  }
     });
-  }
-
-  $futureGuessStrikesWithFilter(
-    pageNo: number,
-    filter: any | {}
-  ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    return this.$strikesGuessesWithFilter( { ... filter, class: 'guessable'}, pageNo );
-  }
-
-  $pastGuessStrikesWithFilter(
-    pageNo: number,
-    filter: any | {}
-  ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
-    return this.$strikesGuessesWithFilter( { ... filter, class: 'outcomeKnown'}, pageNo );
   }
 }

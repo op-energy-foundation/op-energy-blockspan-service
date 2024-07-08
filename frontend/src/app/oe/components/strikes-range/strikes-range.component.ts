@@ -73,7 +73,10 @@ export class StrikesRangeComponent implements OnInit {
       queryParamsHandling: 'merge',
     });
     this.oeBlocktimeApiService
-      .$pastStrikesWithFilter(pageNumber - 1, this.filter)
+      .$pastStrikesWithFilter(pageNumber - 1, {
+        ...this.filter,
+        linesPerPage: 15,
+      })
       .subscribe({
         next: (data) => this.handleData(data),
         error: (error) => this.handleError(error),
@@ -95,7 +98,7 @@ export class StrikesRangeComponent implements OnInit {
       return;
     }
     this.tableData = data.results.map((result) => result.strike);
-    this.totalPages = Math.floor(data.count / data.results.length);
+    // this.totalPages = Math.floor(data.count / data.results.length);
     this.isLoading = false;
   }
 
