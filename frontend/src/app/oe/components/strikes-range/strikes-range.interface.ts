@@ -12,6 +12,3 @@ export const TABLE_HEADERS: TableColumn[] = [
     columnKey: 'observedResult',
   },
 ];
-
-export const URL_PAST_STRIKES_NEWEST_TO_OLDEST =
-  'past_strikes_newest_to_oldest';

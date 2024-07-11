@@ -62,10 +62,7 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private addToken(request: HttpRequest<any>, token: string): HttpRequest<any> {
-    let body = request.body;
-    if (request.url.includes('blocktime/past/strike')) {
-      body = `"${token}"`;
-    }
+    const body = request.body;
     const cloneRequest = request.clone({
       setHeaders: {
         Authorization: `${token}`,

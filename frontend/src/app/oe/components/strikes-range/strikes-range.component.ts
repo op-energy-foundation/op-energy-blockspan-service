@@ -1,7 +1,4 @@
-import {
-  TABLE_HEADERS,
-  URL_PAST_STRIKES_NEWEST_TO_OLDEST,
-} from './strikes-range.interface';
+import { TABLE_HEADERS } from './strikes-range.interface';
 import { Component, OnInit } from '@angular/core';
 import { OeBlocktimeApiService } from '../../services/oe-energy.service';
 import {
@@ -23,7 +20,6 @@ export class StrikesRangeComponent implements OnInit {
   reverseOrder: boolean = false;
   isLoading = true;
   headers: TableColumn[] = TABLE_HEADERS;
-  pastStrikes: BlockTimeStrikePublic[] = [];
   currentPage: number = 1;
   totalPages: number = 1;
   tableData: BlockTimeStrike[] = [];
@@ -39,7 +35,7 @@ export class StrikesRangeComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       this.setFilterFromParams(params);
-      this.fetchPastStrikes(this.currentPage);
+      this.fetchOutcomeKnownStrikes(this.currentPage);
     });
   }
 
@@ -56,7 +52,7 @@ export class StrikesRangeComponent implements OnInit {
     if (params.endTime) {
       this.filter.strikeMediantimeLTE = +params.endTime;
     }
-    if(params.sort) {
+    if (params.sort) {
       this.filter.sort = params.sort;
     }
     if (params.page) {
@@ -64,7 +60,7 @@ export class StrikesRangeComponent implements OnInit {
     }
   }
 
-  fetchPastStrikes(pageNumber: number): void {
+  fetchOutcomeKnownStrikes(pageNumber: number): void {
     this.isLoading = true;
     this.currentPage = pageNumber;
     this.router.navigate([], {
@@ -73,7 +69,7 @@ export class StrikesRangeComponent implements OnInit {
       queryParamsHandling: 'merge',
     });
     this.oeBlocktimeApiService
-      .$pastStrikesWithFilter(pageNumber - 1, {
+      .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
         ...this.filter,
         linesPerPage: 15,
       })
@@ -85,7 +81,7 @@ export class StrikesRangeComponent implements OnInit {
 
   private handleData(data: PaginationResponse<BlockTimeStrikePublic>): void {
     if (!data.results || !Array.isArray(data.results)) {
-      this.pastStrikes = [];
+      this.tableData = [];
       this.isLoading = false;
       return;
     }

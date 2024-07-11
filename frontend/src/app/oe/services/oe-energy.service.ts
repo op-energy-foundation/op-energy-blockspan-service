@@ -416,14 +416,14 @@ export class OeBlocktimeApiService {
     });
   }
 
-  $futureStrikesWithFilter(
+  $guessableStrikesWithFilter(
     pageNo: number,
     filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
     return this.$strikesWithFilter( { ... filter, class: 'guessable'}, pageNo );
   }
 
-  $pastStrikesWithFilter(
+  $outcomeKnownStrikesWithFilter(
     pageNo: number,
     filter: any | {}
   ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
