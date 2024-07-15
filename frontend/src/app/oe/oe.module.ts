@@ -41,6 +41,8 @@ import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { LoginComponent } from './components/login/login.component';
+import { StrikesRangeComponent } from './components/strikes-range/strikes-range.component';
+import { DataTableComponent } from './components/data-table/data-table.component';
 
 @NgModule({
   declarations: [
@@ -63,7 +65,9 @@ import { LoginComponent } from './components/login/login.component';
     GraphsComponent,
     BlockRatesGraphComponent,
     LoginComponent,
-    ClipboardComponent
+    ClipboardComponent,
+    StrikesRangeComponent,
+    DataTableComponent,
   ],
   imports: [
     CommonModule,
@@ -96,6 +100,7 @@ import { LoginComponent } from './components/login/login.component';
     BlockspansHomeComponent,
     OeDocsComponent,
     AboutComponent,
+    StrikesRangeComponent,
   ],
   exports: [ToastrModule, AngularSvgIconModule, FontAwesomeModule],
 })

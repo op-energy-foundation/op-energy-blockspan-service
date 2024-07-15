@@ -12,6 +12,7 @@ import { StrikeDetailComponent } from './components/strike-detail/strike-detail.
 import { StrikeSummaryComponent } from './components/strike-summary/strike-summary.component';
 import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
 import { LoginComponent } from './components/login/login.component';
+import { StrikesRangeComponent } from './components/strikes-range/strikes-range.component';
 
 const routes: Routes = [
   { path: 'login/:secret', component: LoginComponent },
@@ -59,6 +60,10 @@ const routes: Routes = [
             path: 'blockspans/:from/:to',
             component: BlockspansHomeComponent,
           },
+          {
+            path: 'strikes-range',
+            component: StrikesRangeComponent
+          }
         ],
       },
       {
