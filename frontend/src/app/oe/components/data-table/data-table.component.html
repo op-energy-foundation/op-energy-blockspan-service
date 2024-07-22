@@ -21,7 +21,7 @@
                 </td>
                 <td *ngFor="let header of headers">
                     <ng-container *ngIf="!header.isSrNo">
-                        {{ item[header.columnKey] }}
+                        {{ item[header.columnKey] || header.defaultValue }}
                     </ng-container>
                 </td>
             </tr>

@@ -170,6 +170,7 @@ export interface TableColumn {
   columnKey: string;
   isSrNo?: boolean;
   customSrNoHeader?: string;
+  defaultValue?: string;
 }
 
 export interface BlockTimeStrikePublic {

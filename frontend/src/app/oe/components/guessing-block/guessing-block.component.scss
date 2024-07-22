@@ -1,0 +1,28 @@
+.oe-guessing-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    margin: auto;
+
+    .oe-guessing-box {
+        height: 95px;
+        width: 125px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 5px solid transparent;
+        cursor: pointer;
+
+        &.selected {
+            height: 95px;
+            width: 125px;
+            border-color: #ff9900;
+        }
+
+        &.disabled {
+           cursor: not-allowed;
+        }
+    }
+}
