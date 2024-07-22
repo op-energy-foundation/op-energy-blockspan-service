@@ -6,9 +6,10 @@ module Data.OpEnergy.API.V1.WebSocketService.Message where
 
 import           Data.Aeson as Aeson
 import           Data.Text(Text)
+import           Control.Monad.Trans.Maybe(runMaybeT, MaybeT(..))
 import           Network.WebSockets (DataMessage(..), WebSocketsData(..))
 
-import           Data.OpEnergy.API.V1.Block( BlockHeader)
+import           Data.OpEnergy.API.V1.Block( BlockHeader, BlockHeight)
 
 -- | Request from frontend
 data WebsocketRequest
@@ -48,12 +49,14 @@ instance WebSocketsData WebsocketRequest where
       _ -> error "failed to parse Action from websockets data message"
 
 data MempoolInfo = MempoolInfo
-  { newestConfirmedBlock :: Maybe BlockHeader
+  { newestConfirmedBlock :: BlockHeader
+  , latestUnconfirmedBlockHeight :: BlockHeight
   }
   deriving (Show)
 instance ToJSON MempoolInfo where
   toJSON mpi = object
     [ "oe-newest-confirmed-block" .= newestConfirmedBlock mpi -- the only field which should be interesting for OpEnergy frontend
+    , "oe-latest-unconfirmed-block-height" .= latestUnconfirmedBlockHeight mpi
     , "mempoolInfo" .= object
       [ "loaded" .= True
       , "size" .= (0:: Int)
@@ -67,7 +70,7 @@ instance ToJSON MempoolInfo where
 
 -- | Message from backend
 data Message
-  = MessageNewestBlockHeader BlockHeader
+  = MessageNewestBlockHeader BlockHeader BlockHeight
   | MessagePong
   deriving (Show)
 
@@ -87,17 +90,21 @@ instance WebSocketsData Message where
       _ -> error "failed to parse Action from websockets data message"
 instance FromJSON Message where
   parseJSON = withObject "Message" $ \v-> do
-    mblock <- v .:? "oe-newest-confirmed-block"
-    case mblock of
-      Just block -> return $! MessageNewestBlockHeader block
+    mnewest <- runMaybeT $ do
+      confirmedBlock <- MaybeT $ v .:? "oe-newest-confirmed-block"
+      latestUnconfirmedBlockHeight <- MaybeT $ v .:? "oe-latest-unconfirmed-block-height"
+      return $! MessageNewestBlockHeader confirmedBlock latestUnconfirmedBlockHeight
+    case mnewest of
+      Just newest -> return newest
       Nothing -> do
         (mpong :: Maybe Bool) <- v .:? "pong"
         case mpong of
           Just _ -> return MessagePong
           Nothing-> error "unable to parse Message"
 instance ToJSON Message where
-  toJSON (MessageNewestBlockHeader header) = object
+  toJSON (MessageNewestBlockHeader header unconfirmedBlockHeight) = object
     [ "oe-newest-confirmed-block" .= toJSON header
+    , "oe-latest-unconfirmed-block-height" .= unconfirmedBlockHeight
     ]
   toJSON (MessagePong) = object
     [ "pong" .= True

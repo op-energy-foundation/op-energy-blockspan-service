@@ -50,22 +50,32 @@ webSocketConnection conn = do
             writeIORef timeoutCounterV (naturalFromPositive configWebsocketKeepAliveSecs )
   where
     checkIteration state _ witnessedHeightV timeoutCounterV = do
-      let State{ currentTip = currentTipV, config = Config {configWebsocketKeepAliveSecs = configWebsocketKeepAliveSecs} } = state
+      let State{ currentTip = currentTipV
+               , config = Config { configWebsocketKeepAliveSecs = configWebsocketKeepAliveSecs
+                                 , configBlocksToConfirm = configBlocksToConfirm
+                                 }
+               } = state
       mwitnessedHeight <- readIORef witnessedHeightV
       mcurrentTip <- STM.atomically $ TVar.readTVar currentTipV
       case (mwitnessedHeight, mcurrentTip) of
         ( _, Nothing) -> do -- haven't witnessed current tip and there is no tip loaded yet. decrease timeout
           decreaseTimeoutOrSendPing state
         (Nothing, Just currentTip) -> do -- current connection saw no current tip yet: need to send one to the client and store
-          sendTextData conn $ MessageNewestBlockHeader currentTip
+          let
+              confirmedTipBlockHeight = blockHeaderHeight currentTip
+              unconfirmedTipBlockHeight = confirmedTipBlockHeight + configBlocksToConfirm
+          sendTextData conn $ MessageNewestBlockHeader currentTip unconfirmedTipBlockHeight
           writeIORef timeoutCounterV (naturalFromPositive configWebsocketKeepAliveSecs)
-          writeIORef witnessedHeightV $! Just $! blockHeaderHeight currentTip
+          writeIORef witnessedHeightV $! Just $! confirmedTipBlockHeight
         ( Just witnessedHeight, Just currentTip)
           | witnessedHeight == blockHeaderHeight currentTip -> decreaseTimeoutOrSendPing state -- current tip had already been witnessed
           | otherwise -> do -- notify client about newest confirmed block
-              sendTextData conn $ MessageNewestBlockHeader currentTip
+              let
+                  confirmedTipBlockHeight = blockHeaderHeight currentTip
+                  unconfirmedTipBlockHeight = confirmedTipBlockHeight + configBlocksToConfirm
+              sendTextData conn $ MessageNewestBlockHeader currentTip unconfirmedTipBlockHeight
               writeIORef timeoutCounterV (naturalFromPositive configWebsocketKeepAliveSecs)
-              writeIORef witnessedHeightV $! Just $! blockHeaderHeight currentTip
+              writeIORef witnessedHeightV $! Just $! confirmedTipBlockHeight
       where
         decreaseTimeoutOrSendPing :: State-> IO ()
         decreaseTimeoutOrSendPing state = do
@@ -100,8 +110,17 @@ webSocketConnection conn = do
 -- currently, frontend expects 'mempool info' initial message from backend. This function provides such info
 getMempoolInfo :: AppT IO MempoolInfo
 getMempoolInfo = do
-  State{ currentTip = currentTipV} <- ask
+  State{ currentTip = currentTipV
+       , config = Config{ configBlocksToConfirm = configBlocksToConfirm}
+       } <- ask
   mtip <- liftIO $ TVar.readTVarIO currentTipV
-  return $ MempoolInfo
-    { newestConfirmedBlock = mtip
-    }
+  case mtip of
+    Nothing -> do -- this is the unexpected case as we don't allow connections without existing connection to btc node
+      error "getMempoolInfo: there is no confirmed tip yet"
+    Just tip -> do
+      let
+          unconfirmedTipBlockHeight = blockHeaderHeight tip + configBlocksToConfirm
+      return $ MempoolInfo
+        { newestConfirmedBlock = tip
+        , latestUnconfirmedBlockHeight = unconfirmedTipBlockHeight
+        }
