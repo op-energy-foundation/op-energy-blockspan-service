@@ -16,7 +16,8 @@ export const MAX_COUNT = 14;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BaseBoxComponent implements OnInit, OnDestroy {
-  @Input() type: 'Energy' | 'Strike' | 'Strike_Boiling' = 'Energy';
+  @Input() type: 'Energy' | 'Strike' | 'Strike_Boiling' | 'Ice' | 'Cloud' =
+    'Energy';
   @Input() color = 'red';
   @Input() totalIconCount: number;
   @Input() fromTime: number;
@@ -27,6 +28,8 @@ export class BaseBoxComponent implements OnInit, OnDestroy {
   @Input() link: string;
   @Input() footerText = 'Time';
   @Input() hideFlameStack = false;
+  @Input() customNbdrValue: string;
+  @Input() showIcons: boolean = false;
   maxCount = MAX_COUNT;
 
   get iconArray() {
@@ -48,7 +51,10 @@ export class BaseBoxComponent implements OnInit, OnDestroy {
   }
 
   get nbdr() {
+    if (this.customNbdrValue) return this.customNbdrValue;
+
     if (!this.span || !this.toTime || !this.fromTime) return '???';
+
     return ((600 * 100 * this.span) / (this.toTime - this.fromTime)).toFixed(2);
   }
 

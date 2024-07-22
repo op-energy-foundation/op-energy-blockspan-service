@@ -24,6 +24,10 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/strike_summary?strikeHeight=1200000';
   }
 
+  strikeSummaryWithGuess(): string {
+    return '/hashstrikes/strike_summary_with_guess?strikeHeight=852329&strikeTime=1721063768&blockspanStart=852316';
+  }
+
   pastStrikeDetailLink(): string {
     return '/hashstrikes/strike_detail?strikeHeight=844447&strikeTime=1716298890&blockspanStart=844433';
   }
@@ -60,10 +64,14 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/strikes-range';
   }
 
+  guessableStrikeListNewestToOldestLink(): string {
+    return '/hashstrikes/strikes-range?outcome=guessable';
+  }
+
   pastStrikeListQWithGuess(): string {
     return '/hashstrikes/past_strikes_with_guesses_descending_on_guesses';
   }
-  
+
   strikesRangeWithStartblockEndblock(): string {
     return '/hashstrikes/strikes-range?startblock=849237&endblock=849251';
   }

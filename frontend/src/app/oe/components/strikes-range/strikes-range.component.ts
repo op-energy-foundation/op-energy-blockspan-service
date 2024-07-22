@@ -24,6 +24,7 @@ export class StrikesRangeComponent implements OnInit {
   totalPages: number = 1;
   tableData: BlockTimeStrike[] = [];
   filter: any = {};
+  guessableScreen = false;
 
   constructor(
     private oeBlocktimeApiService: OeBlocktimeApiService,
@@ -58,6 +59,10 @@ export class StrikesRangeComponent implements OnInit {
     if (params.page) {
       this.currentPage = +params.page;
     }
+    if (params.outcome) {
+      this.guessableScreen = true;
+      this.filter.class = params.outcome;
+    }
   }
 
   fetchOutcomeKnownStrikes(pageNumber: number): void {
@@ -70,6 +75,7 @@ export class StrikesRangeComponent implements OnInit {
     });
     this.oeBlocktimeApiService
       .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
+        class: 'outcomeKnown',
         ...this.filter,
         linesPerPage: 15,
       })
@@ -110,6 +116,13 @@ export class StrikesRangeComponent implements OnInit {
       strikeTime: item.strikeMediantime,
       blockspanStart: item.block - 13,
     };
+
+    if (this.guessableScreen) {
+      this.router.navigate(['/hashstrikes/strike_summary_with_guess'], {
+        queryParams,
+      });
+      return;
+    }
 
     // Use the Router service to navigate with query parameters
     this.router.navigate(['/hashstrikes/strike_detail'], { queryParams });

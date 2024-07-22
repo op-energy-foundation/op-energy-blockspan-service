@@ -43,6 +43,12 @@ import * as echarts from 'echarts';
 import { LoginComponent } from './components/login/login.component';
 import { StrikesRangeComponent } from './components/strikes-range/strikes-range.component';
 import { DataTableComponent } from './components/data-table/data-table.component';
+import { CloudsvgComponent } from './components/svg/cloudsvg/cloudsvg.component';
+import { WatersvgComponent } from './components/svg/watersvg/watersvg.component';
+import { IcesvgComponent } from './components/svg/icesvg/icesvg.component';
+import { FiresvgComponent } from './components/svg/firesvg/firesvg.component';
+import { GuessingBlockComponent } from './components/guessing-block/guessing-block.component';
+import { StrikeSummaryWithGuessComponent } from './components/strike-summary-with-guess/strike-summary-with-guess.component';
 
 @NgModule({
   declarations: [
@@ -68,6 +74,12 @@ import { DataTableComponent } from './components/data-table/data-table.component
     ClipboardComponent,
     StrikesRangeComponent,
     DataTableComponent,
+    GuessingBlockComponent,
+    CloudsvgComponent,
+    FiresvgComponent,
+    IcesvgComponent,
+    WatersvgComponent,
+    StrikeSummaryWithGuessComponent,
   ],
   imports: [
     CommonModule,
