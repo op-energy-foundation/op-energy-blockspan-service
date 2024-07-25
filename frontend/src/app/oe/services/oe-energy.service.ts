@@ -502,3 +502,27 @@ export class OeBlocktimeApiService {
     });
   }
 }
+
+@Injectable({
+  providedIn: 'root',
+})
+export class OeInternalBlocktimeApiService {
+  private apiBaseUrl: string; // base URL is protocol, hostname, and port
+  private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
+  constructor(
+    private httpClient: HttpClient,
+    private oeEnergyStateService: OeStateService
+  ) {
+    this.apiBaseUrl =
+      document.location.protocol + '//' + document.location.host; // use relative URL by default
+    this.apiBasePath = '';
+  }
+
+  // returns swagger API json
+  $getSwaggerFile(): Observable<SwaggerJson> {
+    return this.httpClient.get<SwaggerJson>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v1/blocktime/internal/api/v1/blocktime/swagger.json',
+      {}
+    );
+  }
+}

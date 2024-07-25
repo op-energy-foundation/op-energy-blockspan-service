@@ -2,7 +2,7 @@ import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { AfterViewInit } from '@angular/core';
 import { OeEnergyApiService } from './../../services/oe-energy.service';
 import { OeAccountApiService } from './../../services/oe-energy.service';
-import { OeBlocktimeApiService } from './../../services/oe-energy.service';
+import { OeBlocktimeApiService, OeInternalBlocktimeApiService } from './../../services/oe-energy.service';
 import { Subscription } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
 import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist';
@@ -18,15 +18,18 @@ export class OeDocsComponent implements OnDestroy, OnInit, AfterViewInit {
   swaggerDomBlockspanService: HTMLElement;
   swaggerDomAccountService: HTMLElement;
   swaggerDomBlocktimeService: HTMLElement;
+  swaggerDomInternalBlocktimeService: HTMLElement;
   blockspanServiceSpecSubscription: Subscription;
   accountServiceSpecSubscription: Subscription;
   blocktimeServiceSpecSubscription: Subscription;
+  internalBlocktimeServiceSpecSubscription: Subscription;
 
   constructor(
     @Inject(DOCUMENT) public document: Document,
     private oeEnergyApiService: OeEnergyApiService,
     private oeAccountApiService: OeAccountApiService,
-    private oeBlocktimeApiService: OeBlocktimeApiService
+    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private oeInternalBlocktimeApiService: OeInternalBlocktimeApiService,
   ) {}
 
   ngOnInit() {}
@@ -41,6 +44,7 @@ export class OeDocsComponent implements OnDestroy, OnInit, AfterViewInit {
     this.swaggerDomBlockspanService = this.document.getElementById('swagger-blockspan-service');
     this.swaggerDomAccountService = this.document.getElementById('swagger-account-service');
     this.swaggerDomBlocktimeService = this.document.getElementById('swagger-blocktime-service');
+    this.swaggerDomInternalBlocktimeService = this.document.getElementById('swagger-internal-blocktime-service');
     this.blockspanServiceSpecSubscription = this.oeEnergyApiService
       .$getSwaggerFile()
       .subscribe((data) => {
@@ -64,6 +68,17 @@ export class OeDocsComponent implements OnDestroy, OnInit, AfterViewInit {
         });
       });
     this.blocktimeServiceSpecSubscription = this.oeBlocktimeApiService
+      .$getSwaggerFile()
+      .subscribe((data) => {
+        SwaggerUIBundle({
+          spec: data,
+          domNode: this.swaggerDomBlocktimeService,
+          deepLinking: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          layout: 'StandaloneLayout',
+        });
+      });
+    this.internalBlocktimeServiceSpecSubscription = this.oeInternalBlocktimeApiService
       .$getSwaggerFile()
       .subscribe((data) => {
         SwaggerUIBundle({
