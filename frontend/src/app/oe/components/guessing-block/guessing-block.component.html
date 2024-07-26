@@ -1,0 +1,14 @@
+<div class="oe-guessing-block">
+    <ng-container *ngIf="type === 'cloud'">
+        <div class="oe-guessing-box selected" [ngClass]="{ 'selected': isSelected, 'disabled': disabled }"
+            [ngStyle]="{ 'background-color': this.color }" (click)="selectGuessingBox()">
+            <app-cloudsvg></app-cloudsvg>
+        </div>
+    </ng-container>
+    <ng-container *ngIf="type === 'ice'">
+        <div class="oe-guessing-box" [ngClass]="{ 'selected': isSelected, 'disabled': disabled }"
+            [ngStyle]="{ 'background-color': this.color }" (click)="selectGuessingBox()">
+            <app-icesvg></app-icesvg>
+        </div>
+    </ng-container>
+</div>

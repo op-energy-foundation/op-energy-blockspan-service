@@ -6,9 +6,11 @@ export const TABLE_HEADERS: TableColumn[] = [
   {
     displayName: 'Observed Block Mediantime',
     columnKey: 'observedBlockMediantime',
+    defaultValue: '?',
   },
   {
     displayName: 'Observed Result',
     columnKey: 'observedResult',
+    defaultValue: '?',
   },
 ];

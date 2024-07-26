@@ -4,8 +4,16 @@
   (click)="navigateTo()"
 >
   <div class="tank-box--top" [ngStyle]="{ 'background-color': this.color }" [style.opacity]="hideFlameStack ? 0 : 1">
-    <span *ngIf="isUnknown">?????</span>
-    <ng-container *ngIf="!isUnknown"> 0% </ng-container>
+    <ng-container *ngIf="!showIcons">
+      <span *ngIf="isUnknown">?????</span>
+      <ng-container *ngIf="!isUnknown"> 0% </ng-container>
+    </ng-container>
+    <ng-container *ngIf="showIcons">
+      <app-watersvg *ngIf="type==='Strike'"></app-watersvg>
+      <app-cloudsvg *ngIf="type==='Cloud'"></app-cloudsvg>
+      <app-icesvg *ngIf="type==='Ice'"></app-icesvg>
+      <app-firesvg *ngIf="type==='Energy'"></app-firesvg>
+    </ng-container>
   </div>
   <div
     *ngIf="!isDetailed"
