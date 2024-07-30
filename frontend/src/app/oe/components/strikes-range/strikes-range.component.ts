@@ -2,14 +2,18 @@ import { TABLE_HEADERS } from './strikes-range.interface';
 import { Component, OnInit } from '@angular/core';
 import { OeBlocktimeApiService } from '../../services/oe-energy.service';
 import {
+  Block,
   BlockTimeStrike,
   BlockTimeStrikePublic,
   PaginationResponse,
   StrikeDetails,
+  StrikesFilter,
   TableColumn,
 } from '../../interfaces/oe-energy.interface';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { Subscription, take } from 'rxjs';
+import { OeStateService } from '../../services/state.service';
 
 @Component({
   selector: 'app-strikes-range',
@@ -17,51 +21,82 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./strikes-range.component.scss'],
 })
 export class StrikesRangeComponent implements OnInit {
+  private blockSubscription: Subscription;
+  private paramsSubscription: Subscription;
   reverseOrder: boolean = false;
   isLoading = true;
   headers: TableColumn[] = TABLE_HEADERS;
   currentPage: number = 1;
   totalPages: number = 1;
   tableData: BlockTimeStrike[] = [];
-  filter: any = {};
+  filter: any = {
+    class: 'outcomeKnown',
+  }; // This will be used for API calls
+  urlFilter: StrikesFilter = {}; // This will be used for URL parameters
   guessableScreen = false;
+  paramMappings = {
+    startblock: 'strikeBlockHeightGTE',
+    endblock: 'strikeBlockHeightLTE',
+    startTime: 'strikeMediantimeGTE',
+    endTime: 'strikeMediantimeLTE',
+    sort: 'sort',
+    page: 'page',
+    outcome: 'class',
+  };
+  currentTip = null;
+  linesPerPage = 15;
 
   constructor(
     private oeBlocktimeApiService: OeBlocktimeApiService,
+    private stateService: OeStateService,
     private route: ActivatedRoute,
     private toastr: ToastrService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe((params) => {
-      this.setFilterFromParams(params);
-      this.fetchOutcomeKnownStrikes(this.currentPage);
-    });
+    this.blockSubscription = this.stateService.latestReceivedBlock$
+      .pipe(take(1)) // take only the latest block once
+      .subscribe((block: Block) => {
+        this.currentTip = block.height;
+
+        this.paramsSubscription = this.route.queryParams.subscribe((params) => {
+          this.setFilterFromParams(params);
+          this.fetchOutcomeKnownStrikes(this.currentPage);
+        });
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.blockSubscription) {
+      this.blockSubscription.unsubscribe();
+    }
+    if (this.paramsSubscription) {
+      this.paramsSubscription.unsubscribe();
+    }
   }
 
   setFilterFromParams(params: any): void {
-    if (params.startblock) {
-      this.filter.strikeBlockHeightGTE = +params.startblock;
+    Object.keys(this.paramMappings).forEach((key) => {
+      if (params[key]) {
+        this.filter[this.paramMappings[key]] = +params[key] || params[key];
+        this.urlFilter[key] = params[key];
+        if (key === 'page') {
+          this.currentPage = +params[key];
+        }
+        if (key === 'outcome') {
+          this.guessableScreen = true;
+        }
+      }
+    });
+    if (params.hasOwnProperty('nextStrikes')) {
+      delete this.filter.class;
+      this.filter.strikeBlockHeightGTE = this.currentTip;
+      this.filter.strikeBlockHeightLTE = this.currentTip + this.linesPerPage;
     }
-    if (params.endblock) {
-      this.filter.strikeBlockHeightLTE = +params.endblock;
-    }
-    if (params.startTime) {
-      this.filter.strikeMediantimeGTE = +params.startTime;
-    }
-    if (params.endTime) {
-      this.filter.strikeMediantimeLTE = +params.endTime;
-    }
-    if (params.sort) {
-      this.filter.sort = params.sort;
-    }
-    if (params.page) {
-      this.currentPage = +params.page;
-    }
-    if (params.outcome) {
-      this.guessableScreen = true;
-      this.filter.class = params.outcome;
+    if (params.hasOwnProperty('lastStrikes')) {
+      this.filter.strikeBlockHeightGTE = this.currentTip - this.linesPerPage;
+      this.filter.strikeBlockHeightLTE = this.currentTip;
     }
   }
 
@@ -70,14 +105,13 @@ export class StrikesRangeComponent implements OnInit {
     this.currentPage = pageNumber;
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { ...this.filter, page: this.currentPage },
+      queryParams: { ...this.urlFilter, page: this.currentPage },
       queryParamsHandling: 'merge',
     });
     this.oeBlocktimeApiService
       .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
-        class: 'outcomeKnown',
         ...this.filter,
-        linesPerPage: 15,
+        linesPerPage: this.linesPerPage,
       })
       .subscribe({
         next: (data) => this.handleData(data),
