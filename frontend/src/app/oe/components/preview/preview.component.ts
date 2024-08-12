@@ -57,15 +57,15 @@ export class PreviewComponent implements OnInit {
   }
 
   pastStrikeListOldestToNewestLink(): string {
-    return '/hashstrikes/strikes-range?sort=ascend';
+    return '/hashstrikes/strikes-range?sort=ascend&page=1';
   }
 
   pastStrikeListNewestToOldestLink(): string {
-    return '/hashstrikes/strikes-range';
+    return '/hashstrikes/strikes-range?page=1';
   }
 
   guessableStrikeListNewestToOldestLink(): string {
-    return '/hashstrikes/strikes-range?outcome=guessable';
+    return '/hashstrikes/strikes-range?outcome=guessable&page=1';
   }
 
   pastStrikeListQWithGuess(): string {
@@ -73,18 +73,26 @@ export class PreviewComponent implements OnInit {
   }
 
   strikesRangeWithStartblockEndblock(): string {
-    return '/hashstrikes/strikes-range?startblock=849237&endblock=849251';
+    return '/hashstrikes/strikes-range?startblock=849237&endblock=849251&page=1';
   }
 
   strikesRangeWithStarttimeEndtime(): string {
-    return '/hashstrikes/strikes-range?startTime=1719194635&endTime=1719201779';
+    return '/hashstrikes/strikes-range?startTime=1719194635&endTime=1719201779&page=1';
   }
 
   strikesRangeWithStartblockEndtime(): string {
-    return '/hashstrikes/strikes-range?startblock=849237&endTime=1719201779';
+    return '/hashstrikes/strikes-range?startblock=849237&endTime=1719201779&page=1';
   }
 
   strikesRangeWithstarttimeEndBlock(): string {
-    return '/hashstrikes/strikes-range?startTime=1719194635&endblock=849251';
+    return '/hashstrikes/strikes-range?startTime=1719194635&endblock=849251&page=1';
+  }
+
+  strikesRangeWithLastStrikes(): string {
+    return '/hashstrikes/strikes-range?lastStrikes&page=1';
+  }
+
+  strikesRangeWithNextStrikes(): string {
+    return '/hashstrikes/strikes-range?nextStrikes&page=1';
   }
 }
