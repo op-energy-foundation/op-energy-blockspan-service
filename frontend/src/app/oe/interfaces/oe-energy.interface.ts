@@ -183,3 +183,13 @@ export type PaginationResponse<T> = {
   count: number;
   results: T[];
 };
+
+export interface StrikesFilter {
+  strikeBlockHeightGTE?: number;
+  strikeBlockHeightLTE?: number;
+  strikeMediantimeGTE?: number;
+  strikeMediantimeLTE?: number;
+  sort?: string;
+  class?: string;
+  linesPerPage?: number;
+}
