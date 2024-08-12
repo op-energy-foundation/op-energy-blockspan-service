@@ -7,6 +7,7 @@ import {
   Block,
   BlockTimeStrikePublic,
   PaginationResponse,
+  StrikesFilter,
   TimeStrike,
 } from '../../interfaces/oe-energy.interface';
 import {
@@ -39,7 +40,7 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
   timeStrikes: TimeStrike[] = [];
   subscription: Subscription;
   blocksSubscription: Subscription;
-  filter: any = {};
+  filter: StrikesFilter = {};
   strikesData = [] as BlockTimeStrikePublic[];
 
   constructor(
