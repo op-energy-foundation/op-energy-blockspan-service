@@ -42,7 +42,7 @@ const routes: Routes = [
             component: EnergyDetailComponent,
           },
           {
-            path: 'energy_summary/:from/:to',
+            path: 'energy_summary',
             component: EnergySummaryComponent,
           },
           {

@@ -1,4 +1,5 @@
 import { Router } from '@angular/router';
+import { BlockHeader } from '../interfaces/oe-energy.interface';
 
 export function navigator(router: Router, link: string): void {
   // Check if the link contains query parameters
@@ -87,5 +88,21 @@ export const getBlockSpanByHeight = (
   return {
     fromBlock,
     toBlock: fromBlock + span,
+  };
+};
+
+export const getEmptyBlockHeader = (height: number): BlockHeader => {
+  return {
+    height: height,
+    version: 0,
+    merkle_root: '',
+    current_block_hash: '',
+    previous_block_hash: '',
+    timestamp: 0,
+    difficulty: 0,
+    nonce: 0,
+    reward: 0,
+    chainwork: '',
+    mediantime: 0,
   };
 };

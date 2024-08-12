@@ -49,6 +49,7 @@ import { IcesvgComponent } from './components/svg/icesvg/icesvg.component';
 import { FiresvgComponent } from './components/svg/firesvg/firesvg.component';
 import { GuessingBlockComponent } from './components/guessing-block/guessing-block.component';
 import { StrikeSummaryWithGuessComponent } from './components/strike-summary-with-guess/strike-summary-with-guess.component';
+import { GuessingGameComponent } from './components/guessing-game/guessing-game.component';
 
 @NgModule({
   declarations: [
@@ -80,6 +81,7 @@ import { StrikeSummaryWithGuessComponent } from './components/strike-summary-wit
     IcesvgComponent,
     WatersvgComponent,
     StrikeSummaryWithGuessComponent,
+    GuessingGameComponent,
   ],
   imports: [
     CommonModule,

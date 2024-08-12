@@ -1,11 +1,21 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, ParamMap, Route, Router } from '@angular/router';
-import { switchMap, catchError } from 'rxjs/operators';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { switchMap, catchError, take } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { BlockTypes } from '../../types/constant';
-import { Block, TimeStrike } from '../../interfaces/oe-energy.interface';
-import { OeEnergyApiService } from '../../services/oe-energy.service';
-import { navigator } from '../../utils/helper';
+import {
+  Block,
+  BlockTimeStrikePublic,
+  PaginationResponse,
+  TimeStrike,
+} from '../../interfaces/oe-energy.interface';
+import {
+  OeBlocktimeApiService,
+  OeEnergyApiService,
+} from '../../services/oe-energy.service';
+import { getEmptyBlockHeader, navigator } from '../../utils/helper';
+import { OeStateService } from '../../services/state.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-energy-summary',
@@ -25,36 +35,51 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
   latestBlocks: Block[] = [];
   error: any;
   paginationMaxSize: number;
-  showPreviousBlocklink = true;
   showNextBlocklink = true;
   timeStrikes: TimeStrike[] = [];
   subscription: Subscription;
   blocksSubscription: Subscription;
+  filter: any = {};
+  strikesData = [] as BlockTimeStrikePublic[];
 
   constructor(
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
+    private oeBlocktimeApiService: OeBlocktimeApiService,
     private router: Router,
+    private stateService: OeStateService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit() {
-    /* this.blocksSubscription = this.stateService.blocks$
-      .subscribe(([block]) => {
-        this.latestBlock = block;
-        this.latestBlocks.unshift(block);
-        this.latestBlocks = this.latestBlocks.slice(0, this.stateService.env.KEEP_BLOCKS_AMOUNT);
-        this.setNextAndPreviousBlockLink();
-
-        if (block.height === this.fromBlockHeight) {
-          this.fromBlock = block;
-        }
-      }); */
-
-    (this.subscription = this.route.paramMap
+    (this.subscription = this.route.queryParamMap
+      .pipe(
+        switchMap((params: ParamMap) =>
+          this.stateService.latestReceivedBlock$
+            .pipe(take(1)) // don't follow any future update of this object
+            .pipe(
+              switchMap((block: Block) => {
+                this.latestBlock = block;
+                return of(params);
+              })
+            )
+        )
+      )
       .pipe(
         switchMap((params: ParamMap) => {
-          const fromBlockHeight: number = parseInt(params.get('from'), 10);
-          const toBlockHeight: number = parseInt(params.get('to'), 10);
+          const startBlock = params.get('startblock');
+          const endBlock = params.get('endblock');
+
+          const fromBlockHeight: number =
+            endBlock && startBlock
+              ? parseInt(startBlock, 10)
+              : endBlock
+              ? parseInt(endBlock, 10) - 14
+              : parseInt(startBlock, 10) || this.latestBlock.height;
+
+          const toBlockHeight: number =
+            parseInt(endBlock, 10) || (startBlock ? +startBlock + 13 : 1200000);
+
           this.fromBlock = undefined;
           this.toBlock = undefined;
           this.error = undefined;
@@ -89,10 +114,12 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
             return combineLatest([
               this.oeEnergyApiService
                 .$getBlockByHeight(fromBlockHeight)
-                .pipe(catchError(() => of(fromBlockHeight))),
+                .pipe(
+                  catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))
+                ),
               this.oeEnergyApiService
                 .$getBlockByHeight(toBlockHeight)
-                .pipe(catchError(() => of(toBlockHeight))),
+                .pipe(catchError(() => of(getEmptyBlockHeader(toBlockHeight)))),
             ]);
           }
         })
@@ -109,13 +136,10 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
         }
         this.blockHeight = fromBlock.height;
         this.nextBlockHeight = fromBlock.height + 1;
-        this.setNextAndPreviousBlockLink();
 
+        //fetching strikes
+        this.fetchOutcomeKnownStrikes();
         this.isLoadingBlock = false;
-
-        /* this.stateService.$accountToken.pipe(take(1)).subscribe(res => {
-        this.getTimeStrikes();
-      }) */
       })),
       (error) => {
         this.error = error;
@@ -127,42 +151,47 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  /* getTimeStrikes() {
-    this.oeEnergyApiService.$listTimeStrikesByBlockHeight(this.toBlock.height)
-      .subscribe((timeStrikes: TimeStrike[]) => {
-        this.timeStrikes = timeStrikes.map(strike => ({
-          ...strike,
-          elapsedTime: strike.nLockTime - this.fromBlock.mediantime
-        }));
-        // Manually add a strike that is higher energy just to show what happens when it doesn't boil
-        const highEnergyStrike = {
-          ...this.timeStrikes[0],
-          nLockTime: this.toBlock.mediantime - 30
-        }
-        this.timeStrikes.unshift(highEnergyStrike);
+  fetchOutcomeKnownStrikes(pageNumber: number = 1): void {
+    this.isLoadingBlock = true;
+    this.oeBlocktimeApiService
+      .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
+        strikeBlockHeightEQ: this.toBlockHeight,
+        linesPerPage: 15,
+      })
+      .subscribe({
+        next: (data) => this.handleData(data),
+        error: (error) => this.handleError(error),
       });
-  } */
+  }
 
-  setNextAndPreviousBlockLink() {
-    if (this.latestBlock && this.blockHeight) {
-      if (this.blockHeight === 0) {
-        this.showPreviousBlocklink = false;
-      } else {
-        this.showPreviousBlocklink = true;
-      }
-      if (
-        this.latestBlock.height &&
-        this.latestBlock.height === this.blockHeight
-      ) {
-        this.showNextBlocklink = false;
-      } else {
-        this.showNextBlocklink = true;
-      }
+  private handleError(error: any): void {
+    this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
+    this.isLoadingBlock = false;
+  }
+
+  private handleData(data: PaginationResponse<BlockTimeStrikePublic>): void {
+    if (!data.results || !Array.isArray(data.results)) {
+      this.strikesData = [];
+      this.isLoadingBlock = false;
+      return;
     }
+    if (data.results.length === 0) {
+      this.toastr.warning(
+        `Strikes not found please check provided filters`,
+        'Warning!'
+      );
+      this.isLoadingBlock = false;
+      return;
+    }
+    this.strikesData = data.results;
+    this.isLoadingBlock = false;
   }
 
   navigateTo(): void {
     const currentUrl = this.router.url;
-    navigator(this.router, currentUrl.replace('energy_summary', 'energy_detail'));
+    navigator(
+      this.router,
+      currentUrl.replace('energy_summary', 'energy_detail')
+    );
   }
 }
