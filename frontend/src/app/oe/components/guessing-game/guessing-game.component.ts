@@ -21,9 +21,6 @@ export class GuessingGameComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // if (this.strike) {
-    //   this.checkExistingGuess();
-    // }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
