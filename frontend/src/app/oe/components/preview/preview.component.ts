@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { OeBlocktimeApiService } from '../../services/oe-energy.service';
+import { BlockTimeStrikePublic } from '../../interfaces/oe-energy.interface';
 
 @Component({
   selector: 'app-preview',
@@ -8,7 +10,32 @@ import { Router } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PreviewComponent implements OnInit {
-  constructor(private router: Router) {}
+  latestStrike: BlockTimeStrikePublic;
+  isLoading = true;
+  constructor(
+    private router: Router,
+    private oeBlocktimeApiService: OeBlocktimeApiService
+  ) {
+    this.fetchLatestStrike();
+  }
+
+  fetchLatestStrike(pageNumber: number = 1): void {
+    this.isLoading = true;
+    this.oeBlocktimeApiService
+      .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
+        class: 'guessable',
+        linesPerPage: 1,
+      })
+      .subscribe({
+        next: (data) => {
+          this.latestStrike = data.results[0];
+          this.isLoading = false;
+        },
+        error: (_error) => {
+          this.isLoading = false;
+        },
+      });
+  }
 
   ngOnInit() {}
 
@@ -20,36 +47,40 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/strike_summary?strikeHeight=844447&strikeTime=1716298890&blockspanStart=844433';
   }
 
-  futureStrikeSummaryLink(): string {
-    return '/hashstrikes/strike_summary?strikeHeight=1200000';
+  futureStrikeSummaryLink(): void {
+    window.location.href = `/hashstrikes/strike_summary?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
   }
 
-  strikeSummaryWithGuess(): string {
-    return '/hashstrikes/strike_summary_with_guess?strikeHeight=852329&strikeTime=1721063768&blockspanStart=852316';
+  strikeSummaryWithGuess(): void {
+    window.location.href = `/hashstrikes/strike_summary_with_guess?strikeHeight=${
+      this.latestStrike?.strike?.block
+    }&strikeTime=${
+      this.latestStrike?.strike?.strikeMediantime
+    }&blockspanStart=${this.latestStrike?.strike?.block - 14}`;
   }
 
   pastStrikeDetailLink(): string {
     return '/hashstrikes/strike_detail?strikeHeight=844447&strikeTime=1716298890&blockspanStart=844433';
   }
 
-  futureStrikeDetailLink(): string {
-    return '/hashstrikes/strike_detail?strikeHeight=1200000';
+  futureStrikeDetailLink(): void {
+    window.location.href = `/hashstrikes/strike_detail?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
   }
 
   pastEnergySummaryLink(): string {
     return '/hashstrikes/energy_summary?startblock=849237&endblock=849251';
   }
 
-  futureEnergySummaryLink(): string {
-    return '/hashstrikes/energy_summary';
+  futureEnergySummaryLink(): void {
+    window.location.href = `/hashstrikes/energy_summary?endblock=${this.latestStrike?.strike?.block}`;
   }
 
   pastEnergyDetailLink(): string {
     return '/hashstrikes/energy_detail/89778/89791';
   }
 
-  futureEnergyDetailLink(): string {
-    return '/hashstrikes/energy_detail/89778/1200000';
+  futureEnergyDetailLink(): void {
+    window.location.href = `/hashstrikes/energy_detail/89778/${this.latestStrike?.strike?.block}`;
   }
 
   blockRateChartLink(): string {
