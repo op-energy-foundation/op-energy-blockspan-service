@@ -1,0 +1,41 @@
+<div class="guess-game">
+    <div class="guess-game--top" *ngIf="fromBlock && toBlock">
+        <div class="blockspan">
+            <div style="margin-bottom: 110px" class="d-flex">
+                <div class="energy-container">
+                    <app-blockspan class="guess-blockspan" footerText="" [fromBlock]="fromBlock" [toBlock]="toBlock">
+                    </app-blockspan>
+                    <app-base-box footerText="" [showIcons]=true [span]="span" [fromTime]="fromBlock.mediantime"
+                        [toTime]="toBlock.mediantime" [isUnknown]="true"></app-base-box>
+                    <app-base-box footerText=""
+                        [type]="strike.observedResult === 'fast' ? 'Cloud' : (strike.observedResult === 'slow' ? 'Ice' : 'Strike')"
+                        [showIcons]=true [span]="span" [fromTime]="fromBlock.mediantime" [toTime]="toBlock.mediantime"
+                        color="#eeeeee" customNbdrValue="100"></app-base-box>
+                    <div class="oe-guessing-blocks">
+                        <app-guessing-block type="cloud" color="white" (selectedBlock)="handleSelectedGuess($event)"
+                            [disabled]="!!selectedGuess" [isSelected]="selectedGuess === 'fast'"></app-guessing-block>
+                        <app-guessing-block type="ice" color="#6fa8dc" (selectedBlock)="handleSelectedGuess($event)"
+                            [disabled]="!!selectedGuess" [isSelected]="selectedGuess === 'slow'"></app-guessing-block>
+                    </div>
+                    <div class="oe-message-container">
+                        <div class="oe-message-text" *ngIf="!strike.observedResult && selectedGuess === 'fast'">You
+                            guessed
+                            nbdr&nbsp;&gt;&nbsp;100<br>(bitcoin running hotter)</div>
+                        <div class="oe-message-text" *ngIf="!strike.observedResult && selectedGuess === 'slow'">You
+                            guessed
+                            nbdr&nbsp;&lt;&nbsp;100<br>(bitcoin
+                            running cooler)</div>
+                        <div class="oe-message-text"
+                            *ngIf="strike.observedResult && strike.observedResult === selectedGuess">
+                            <h1>🤠&nbsp;💰You<br>Won</h1>
+                        </div>
+                        <div class="oe-message-text"
+                            *ngIf="strike.observedResult && strike.observedResult !== selectedGuess && selectedGuess && selectedGuess !== 'disabled'">
+                            <h1>😭&nbsp;💩You<br>Lost</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

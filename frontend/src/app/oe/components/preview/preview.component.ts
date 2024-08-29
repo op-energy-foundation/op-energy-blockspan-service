@@ -37,11 +37,11 @@ export class PreviewComponent implements OnInit {
   }
 
   pastEnergySummaryLink(): string {
-    return '/hashstrikes/energy_summary/89778/89791';
+    return '/hashstrikes/energy_summary?startblock=849237&endblock=849251';
   }
 
   futureEnergySummaryLink(): string {
-    return '/hashstrikes/energy_summary/89778/1200000';
+    return '/hashstrikes/energy_summary';
   }
 
   pastEnergyDetailLink(): string {

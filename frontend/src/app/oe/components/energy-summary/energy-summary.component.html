@@ -19,4 +19,15 @@
       </ng-container>
     </div>
   </div>
+  <div>
+    <div *ngFor="let strike of strikesData">
+      <div class="guessing-block">
+        <app-guessing-game
+          [fromBlock]="fromBlock"
+          [toBlock]="toBlock"
+          [strike]="strike.strike">
+        </app-guessing-game>
+      </div>
+    </div>
+  </div>
 </div>
