@@ -95,4 +95,8 @@ export class PreviewComponent implements OnInit {
   strikesRangeWithNextStrikes(): string {
     return '/hashstrikes/strikes-range?nextStrikes&page=1';
   }
+
+  strikeListSortByGuess(): string {
+    return '/hashstrikes/strikes-range?sort=descend_guesses_count&page=1';
+  }
 }

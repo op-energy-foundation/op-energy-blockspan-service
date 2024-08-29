@@ -13,4 +13,9 @@ export const TABLE_HEADERS: TableColumn[] = [
     columnKey: 'observedResult',
     defaultValue: '?',
   },
+  {
+    displayName: 'Total Number Of Guess',
+    columnKey: 'guessesCount',
+    defaultValue: '0',
+  },
 ];

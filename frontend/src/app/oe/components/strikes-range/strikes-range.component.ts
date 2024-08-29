@@ -98,6 +98,9 @@ export class StrikesRangeComponent implements OnInit {
       this.filter.strikeBlockHeightGTE = this.currentTip - this.linesPerPage;
       this.filter.strikeBlockHeightLTE = this.currentTip;
     }
+    if (params['sort'] === 'descend_guesses_count') {
+      delete this.filter.class;
+    }
   }
 
   fetchOutcomeKnownStrikes(pageNumber: number): void {
@@ -133,7 +136,12 @@ export class StrikesRangeComponent implements OnInit {
       this.isLoading = false;
       return;
     }
-    this.tableData = data.results.map((result) => result.strike);
+    this.tableData = data.results.map((result) => {
+      return {
+        ...result.strike,
+        guessesCount: result.guessesCount,
+      };
+    });
     // this.totalPages = Math.floor(data.count / data.results.length);
     this.isLoading = false;
   }
