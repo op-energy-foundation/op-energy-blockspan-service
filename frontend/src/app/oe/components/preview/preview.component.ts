@@ -99,4 +99,8 @@ export class PreviewComponent implements OnInit {
   strikeListSortByGuess(): string {
     return '/hashstrikes/strikes-range?sort=descend_guesses_count&page=1';
   }
+
+  blockspanDetails(): string {
+    return '/hashstrikes/blockspan-details?endblock=861135';
+  }
 }

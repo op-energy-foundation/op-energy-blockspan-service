@@ -1,0 +1,96 @@
+:host {
+  height: 100%;
+  min-width: 100px;
+}
+
+.blockspan {
+  position: relative;
+  height: 100%;
+
+  .to-block.dummy {
+    top: 0;
+    height: 30%;
+    visibility: hidden;
+  }
+
+  .to-block,
+  .from-block {
+    height: 15%;
+    background-color: yellow;
+    border: 1px solid black;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: 700;
+  }
+
+  .to-block {
+    padding-bottom: 1rem;
+  }
+
+  .from-block {
+    padding-top: 1rem;
+
+  }
+
+  .span-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: bold;
+    position: absolute;
+    min-width: 40%;
+    width: min-content;
+    padding: 0 8px;
+    height: 9%;
+    background-color: orange;
+    top: 45%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 1;
+    border: 1px solid black;
+  }
+
+  .logo-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: bold;
+    position: absolute;
+    min-width: 5%;
+    width: min-content;
+    padding: 0 4px;
+    height: 6%;
+    background-color: white;
+    top: 45%;
+    left: 80%;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 1;
+    border: 1px solid black;
+    font-size: 20px;
+  }
+  .footer {
+    margin-top: 0.05rem;
+    background-color: yellow;
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: 700;
+  }
+}
+
+.is-link {
+  color: #1bd8f4;
+  cursor: pointer;
+
+  &:hover {
+    color: #09a3ba;
+    text-decoration: underline;
+  }
+}

@@ -17,3 +17,10 @@ export enum BlockTypes {
 export enum BlockParts {
   PRE_HASH = 'blocktxs-',
 }
+
+export enum Logos {
+  BLOCKS = '🕋',
+  STRIKES = '🔥',
+  TIMES = '🕢',
+  SATOSHIS = '💰',
+}
