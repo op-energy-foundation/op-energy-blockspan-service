@@ -34,8 +34,9 @@ export class LoginComponent implements OnInit {
 
   performLogin(secret: string) {
     this.oeAccountApiService.$login(secret).subscribe({
-      next: (accountToken) => {
-        this.oeAccountApiService.$saveToken(accountToken);
+      next: (loginResult) => {
+        this.oeAccountApiService.$saveToken(loginResult.accountToken);
+        this.oeAccountApiService.$saveAccountUUID(loginResult.personUUID)
         this.isLoading = false;
         this.router.navigate(['/preview-page']);
       },

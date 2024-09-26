@@ -35,7 +35,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 import { AboutComponent } from './components/about/about.component';
-import { NgbDatepickerModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDatepickerModule, NgbDropdownModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
@@ -50,6 +50,7 @@ import { FiresvgComponent } from './components/svg/firesvg/firesvg.component';
 import { GuessingBlockComponent } from './components/guessing-block/guessing-block.component';
 import { StrikeSummaryWithGuessComponent } from './components/strike-summary-with-guess/strike-summary-with-guess.component';
 import { GuessingGameComponent } from './components/guessing-game/guessing-game.component';
+import { MyGuessesComponent } from './components/my-guesses/my-guesses.component';
 
 @NgModule({
   declarations: [
@@ -82,6 +83,7 @@ import { GuessingGameComponent } from './components/guessing-game/guessing-game.
     WatersvgComponent,
     StrikeSummaryWithGuessComponent,
     GuessingGameComponent,
+    MyGuessesComponent,
   ],
   imports: [
     CommonModule,
@@ -94,6 +96,7 @@ import { GuessingGameComponent } from './components/guessing-game/guessing-game.
     NgbDropdownModule,
     NgbDatepickerModule,
     NgxEchartsModule.forRoot({ echarts }),
+    NgbTooltipModule,
   ],
   providers: [
     WebsocketService,

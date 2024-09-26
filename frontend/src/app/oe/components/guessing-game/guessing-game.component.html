@@ -13,9 +13,9 @@
                         color="#eeeeee" customNbdrValue="100"></app-base-box>
                     <div class="oe-guessing-blocks">
                         <app-guessing-block type="cloud" color="white" (selectedBlock)="handleSelectedGuess($event)"
-                            [disabled]="!!selectedGuess" [isSelected]="selectedGuess === 'fast'"></app-guessing-block>
+                            [disabled]="!!selectedGuess" [isSelected]="selectedGuess === 'fast'" [ngbTooltip]="strikeKnown ? 'Can\'t add guess as strike outcome is known' : null"></app-guessing-block>
                         <app-guessing-block type="ice" color="#6fa8dc" (selectedBlock)="handleSelectedGuess($event)"
-                            [disabled]="!!selectedGuess" [isSelected]="selectedGuess === 'slow'"></app-guessing-block>
+                            [disabled]="!!selectedGuess" [isSelected]="selectedGuess === 'slow'" [ngbTooltip]="strikeKnown ? 'Can\'t add guess as strike outcome is known' : null"></app-guessing-block>
                     </div>
                     <div class="oe-message-container">
                         <div class="oe-message-text" *ngIf="!strike.observedResult && selectedGuess === 'fast'">You

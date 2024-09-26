@@ -16,6 +16,7 @@ import {
   BlockTimeStrikePublic,
   BlockTimeStrikeGuessPublic,
   PaginationResponse,
+  LoginResult,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -252,6 +253,7 @@ export class OeAccountApiService {
         .pipe(
           tap((data) => {
             this.$saveToken(data.accountToken);
+            this.$saveAccountUUID(data.personUUID);
             this.registrationInProgress.next(false);
           }),
           shareReplay(1),
@@ -270,13 +272,13 @@ export class OeAccountApiService {
   // that require authentication.
   // params:
   // - secret: secret value returned by $register() call
-  $login(secret: string): Observable<string> {
+  $login(secret: string): Observable<LoginResult> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
 
-    return this.httpClient.post<string>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/account/login',
+    return this.httpClient.post<LoginResult>(
+      this.apiBaseUrl + this.apiBasePath + '/api/v2/account/login',
       JSON.stringify(secret),
       {
         observe: 'body',
@@ -329,11 +331,23 @@ export class OeAccountApiService {
   }
 
   $saveToken(token: string): void {
-    this.cookieService.set('accountToken', token);
+    this.cookieService.set('accountToken', token, undefined, '/');
+  }
+
+  $saveAccountUUID(accountUUID: string): void {
+    this.cookieService.set('accountUUID', accountUUID , undefined, '/');
   }
 
   $tokenExists(): boolean {
     return this.cookieService.check('accountToken');
+  }
+
+  $getAccountToken(): string {
+    return this.cookieService.get('accountToken');
+  }
+
+  $getAccountUUID(): string {
+    return this.cookieService.get('accountUUID');
   }
 }
 
@@ -438,7 +452,7 @@ export class OeBlocktimeApiService {
   ): Observable<PaginationResponse<BlockTimeStrikeGuessPublic>> {
     const url = `${this.apiBaseUrl}${
       this.apiBasePath
-    }/api/v1/blocktime/strikes/guesses/page?page=${pageNo}&filter=${encodeURI(
+    }/api/v1/blocktime/strikes/guesses/page?page=${pageNo}&filter=${encodeURIComponent(
       JSON.stringify(filter)
     )}`;
 
