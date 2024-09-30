@@ -51,6 +51,7 @@ BlockHeader
   chainwork (Natural Integer) -- bitcoin/src/chain.h arith_uint256 nChainWork{}; (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
   mediantime Word32
   reward Word64
+  chainreward Word64 -- sum of BlockHeader.reward for a range [ 0 .. height]
   UniqueHash hash
   UniqueHeight height
   deriving Eq Show Generic
@@ -74,6 +75,7 @@ defaultBlockHeader = BlockHeader
   , blockHeaderChainwork = verifyNatural $ fst $ head $ readHex "00000000000000000000000000000000000000003dfd08c2b6932fc194a1fee4"
   , blockHeaderMediantime = 1674012509
   , blockHeaderReward = 5000000000
+  , blockHeaderChainreward = 5000000000
   }
 
 instance ToJSON BlockHeader where -- generic instance adds 'blockHeader' prefix to each field, which breaks compatibility, so provide custom instance
@@ -93,6 +95,7 @@ instance ToJSON BlockHeader where -- generic instance adds 'blockHeader' prefix 
     , "chainwork"         .= blockHeaderChainwork bh
     , "mediantime"        .= blockHeaderMediantime bh
     , "reward"            .= blockHeaderReward bh
+    , "chainreward"       .= blockHeaderChainreward bh
     ]
 instance FromJSON BlockHeader where
   parseJSON = withObject "BlockHeader" $ \v -> BlockHeader
@@ -111,6 +114,7 @@ instance FromJSON BlockHeader where
     <*> v .: "chainwork"
     <*> v .: "mediantime"
     <*> v .: "reward"
+    <*> v .: "chainreward"
 instance ToSchema BlockHeader where
   declareNamedSchema proxy = genericDeclareNamedSchema defaultSchemaOptions proxy
     & mapped.schema.description ?~ "BlockHeader schema"
@@ -138,7 +142,7 @@ type BlockHeight = Natural Int
 
 defaultBlockHeight :: BlockHeight
 defaultBlockHeight = verifyNaturalInt 1
-  
+
 
 newtype Bits = Bits Word32
   deriving (Eq, Show, Num, Generic)

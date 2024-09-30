@@ -49,6 +49,7 @@ library
                    , OpEnergy.Server
                    , OpEnergy.Server.V1.Config
                    , OpEnergy.Server.V1.DB
+                   , OpEnergy.Server.V1.DB.Migrations
                    , OpEnergy.Server.V1.Class
                    , OpEnergy.Server.V1.Metrics
                    , OpEnergy.Server.V1.BlockHeadersService
@@ -64,6 +65,7 @@ library
                    , Data.Bitcoin.API
                    , Data.Bitcoin.BlockStats
                    , Data.Bitcoin.BlockInfo
+
     build-depends:    base ^>=4.15.1.0
                     , aeson
                     , aeson-pretty

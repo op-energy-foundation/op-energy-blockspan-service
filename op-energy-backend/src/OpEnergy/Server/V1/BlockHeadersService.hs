@@ -1,6 +1,7 @@
 {-- | This module provides service responsible for synchronizing BlockHeaders DB with Bitcoin node
  -}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 module OpEnergy.Server.V1.BlockHeadersService
   ( syncBlockHeaders
   , getBlockHeaderByHash
@@ -18,12 +19,15 @@ import           Servant.API (BasicAuthData(..))
 import           Servant (err400 )
 import           Servant.Client.JsonRpc
 import           Control.Monad (foldM)
-import           Control.Monad.Logger (logDebug, logInfo)
+import           Control.Monad.Logger (logDebug, logInfo, logError)
 import           Control.Monad.Trans.Reader (ask)
+import           Control.Monad.Trans.Except (runExceptT, ExceptT(..))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Text( Text)
+import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import           Data.Text.Show (tshow)
+import           Data.Word
 
 import           Database.Persist.Postgresql
 
@@ -144,8 +148,8 @@ syncBlockHeaders = do
       Cache.ensureCapacity confirmedHeightTo
       mlastBH <- foldM  ( \_ height -> do -- fold over all blocks returning the last block header
           runLogging $ $(logDebug) $ "height " <> tshow height
-          (bi, reward) <- getBlockInfos height
-          let bh = blockHeaderFromBlockInfos bi reward
+          (bi, blockReward, chainReward) <- getBlockInfos height
+          let bh = blockHeaderFromBlockInfos bi blockReward chainReward
           persistBlockHeader bh
           Cache.maybeInsert bh
           return $! Just bh
@@ -163,6 +167,10 @@ syncBlockHeaders = do
           _ <- liftIO $ P.observeDuration blockHeaderDBInsertH $ flip runSqlPersistMPool pool $ insert header
           return ()
 
+        getBlockInfos
+          :: (MonadIO m, MonadMonitor m)
+          => BlockHeight
+          -> AppT m (BlockInfo, Word64, Word64)
         getBlockInfos height = do
           State{ config = config
                , metrics = MetricsState { btcGetBlockHashH = btcGetBlockHashH
@@ -171,16 +179,50 @@ syncBlockHeaders = do
                                         }
                } <- ask
           let userPass = BasicAuthData (Text.encodeUtf8 $ configBTCUser config) (Text.encodeUtf8 $ configBTCPassword config)
-          liftIO $ do
-            Result _ hash <- P.observeDuration btcGetBlockHashH $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlockHash userPass [height]
-            Result _ bi <- P.observeDuration btcGetBlockH $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlock userPass [ hash ]
-            if height == 0
-              then return (bi, 5000000000 {- default subsidy-} )
-              else do
-                Result _ bs <- P.observeDuration btcGetBlockStatsH $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlockStats userPass [height]
-                return (bi, BlockStats.totalfee bs + BlockStats.subsidy bs)
+          eret <- runExceptT $ do
+            hash <- ExceptT $ do
+              response <- liftIO $ P.observeDuration btcGetBlockHashH
+                $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlockHash userPass [height]
+              case response of
+                Result _ hash -> return $! Right hash
+                _ -> return $! Left $! Text.pack $! show response
+            bi <- ExceptT $ do
+              response <- liftIO $ P.observeDuration btcGetBlockH
+                $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlock userPass [ hash ]
+              case response of
+                Result _ bi -> return $! Right bi
+                _ -> return $! Left $! "getBlockInfos: getBlock returned " <> Text.pack (show response)
+            blockReward <- ExceptT $ do
+              if height == 0
+                then return $! Right 5000000000 {- default subsidy-}
+                else do
+                  response <- liftIO $ P.observeDuration btcGetBlockStatsH
+                    $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlockStats userPass [height]
+                  case response of
+                    Result _ bs -> return $! Right $! (BlockStats.totalfee bs + BlockStats.subsidy bs)
+                    _ -> return $! Left $! "getBlockInfos: getBlockStats returned: "
+                                        <> Text.pack (show response)
+            chainReward <- ExceptT $ do
+              let isNeedPreviousBlockChainReward = height > 0
+              if not isNeedPreviousBlockChainReward
+                then return $! Right blockReward
+                else do
+                  mprevBlock <- mgetBlockHeaderByHeight (height - 1)
+                  case mprevBlock of
+                    Just prevBlock -> return $! Right (blockHeaderChainreward prevBlock + blockReward)
+                    Nothing -> return $! Left $! "getBlockInfos: mgetBlockHeaderByHeight failed for height "
+                                              <> Text.pack (show (height - 1))
+            return (bi, blockReward, chainReward)
+          case eret of
+            Right ret -> return ret
+            Left reason -> do
+              let
+                  err = reason <> ", crashing to retry"
+              runLogging $ $(logError) err
+              error (Text.unpack err)
 
-        blockHeaderFromBlockInfos bi reward = BlockHeader
+
+        blockHeaderFromBlockInfos bi reward chainreward = BlockHeader
           { blockHeaderHash = BlockInfo.hash bi
           , blockHeaderPreviousblockhash = BlockInfo.previousblockhash bi
           , blockHeaderHeight = BlockInfo.height bi
@@ -196,6 +238,7 @@ syncBlockHeaders = do
           , blockHeaderChainwork = BlockInfo.chainwork bi
           , blockHeaderMediantime = BlockInfo.mediantime bi
           , blockHeaderReward = reward
+          , blockHeaderChainreward = chainreward
           }
 
 cacheBlockHeadersFromDB
