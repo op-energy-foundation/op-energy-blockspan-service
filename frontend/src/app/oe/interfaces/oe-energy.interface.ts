@@ -12,6 +12,7 @@ export interface Block {
   chainwork: string;
   mediantime: number;
   stage?: number;
+  chainreward?: number;
 }
 
 export interface TimeStrike {

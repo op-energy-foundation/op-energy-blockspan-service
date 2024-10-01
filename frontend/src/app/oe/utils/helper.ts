@@ -106,3 +106,20 @@ export const getEmptyBlockHeader = (height: number): BlockHeader => {
     mediantime: 0,
   };
 };
+
+export const getHexValue = (hexString: string): number => {
+  // Use parseInt to convert hex string to decimal
+  const decimal = parseInt(hexString, 16);
+
+  // Check if the conversion was successful, return NaN if invalid hex string
+  if (isNaN(decimal)) {
+    throw new Error('Invalid hexadecimal string');
+  }
+  return decimal;
+};
+
+export const toScientificNotation = (
+  decimal: number,
+  decimalPlaces: number = 2
+): string => decimal.toExponential(decimalPlaces);
+

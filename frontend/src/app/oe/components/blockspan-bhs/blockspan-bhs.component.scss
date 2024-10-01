@@ -1,0 +1,200 @@
+.observed-blockspan-detail {
+    margin-top: 100px;
+  
+    &--top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 25px;
+  
+      .blockspan {
+        display: flex;
+        align-items: center;
+        position: relative;
+        height: 340px;
+        font-size: 18px;
+  
+        @media (max-width: 420px) {
+          width: 50%;
+          padding: 0 30px;
+        }
+  
+        > div {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        
+        .blockspan-block , .hashblock, .timeblock, .timeblock-utc, .satoshis, .hashes {
+          width: 250px;
+          height: 500px;
+        }
+
+        .hashes {
+          width: 35rem;
+          margin-left: 1rem;
+          
+          ::ng-deep {
+            .to-block, .from-block {
+              font-size: 12px;
+            }
+          }
+        }
+
+        .timeblock {
+          margin-left: 1rem;
+        }
+
+        .timeblock-utc {
+          margin-left: 0.25rem;
+        }
+      }
+
+      .blockspan-bottom {
+        display: flex;
+        align-items: center;
+        position: relative;
+        height: 0px;
+        font-size: 18px;
+        margin-left: -0.5rem;
+        align-self: flex-start;
+        
+
+        .blockrate, .hashrate, .sathash {
+          position: relative;
+          padding-bottom: 3rem;
+          width: 26rem;
+          height: 350px;
+          margin-left: 0.5rem;
+        
+          .to-block.dummy {
+            top: 0;
+            height: 30%;
+            visibility: hidden;
+          }
+        
+          .to-block,
+          .from-block {
+            height: 15%;
+            background-color: yellow;
+            border: 1px solid black;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: 700;
+          }
+        
+          .to-block {
+            font-size: 4rem;
+            height: 45%;
+          }
+        
+          .from-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            font-size: 1rem;
+            height: 25%;
+
+            .blockrate-value {
+              font-size: 48px;
+              font-weight: bold;
+              color: black;
+            }
+            
+            .blockrate-equation {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              width: 100%;
+              margin: 10px 0;
+            }
+            
+            .equation-part, .equation-block {
+              font-size: 18px;
+              background-color: white; /* Orange background */
+              border: 2px solid black;
+              padding: 0.125rem 0.5rem;
+
+              &:first-child {
+                margin-left: 0.5rem;
+              }
+
+              &:last-child {
+                margin-right: 0.5rem;
+              }
+            }
+
+            .highlight-block {
+              background-color: #e69138; /* Orange background */
+              border: 2px solid black;
+              padding: 5px 10px;
+              font-weight: bold;
+            }
+          }
+
+          .footer {
+            background-color: yellow;
+            border: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: 700;
+            font-size: 18px;
+            height: 15%;
+          }
+          
+          .logo {
+            font-size: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 2px solid black;
+            height: 5rem;
+            width: 5rem;
+            margin-left: 40%;
+            margin-right: 35%;
+          }
+        }
+
+        .hashrate {
+          .to-block,
+          .from-block,
+          .footer {
+            background-color: red;
+          }
+
+          .from-block {
+            justify-content: center;
+
+            .equation-part, .highlight-block {
+              margin-left: 1rem;
+            }
+          }
+        }
+
+        .sathash  {
+          .to-block,
+          .from-block,
+          .footer {
+            background-color: #b6d7a8;
+          }
+
+          .from-block {
+            justify-content: center;
+
+            .equation-part, .highlight-block {
+              margin-left: 1rem;
+            }
+          }
+        }
+      }
+    }
+  }
+  

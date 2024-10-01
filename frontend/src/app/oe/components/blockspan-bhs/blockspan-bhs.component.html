@@ -1,0 +1,69 @@
+<div class="observed-blockspan-detail">
+    <div class="text-center loadingGraphs" *ngIf="isLoadingBlock">
+        <div class="spinner-border text-light"></div>
+    </div>
+    <div class="observed-blockspan-detail--top" *ngIf="!isLoadingBlock">
+        <div>
+            <div class="blockspan">
+                <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
+                    footerText="blocks" [logo]="logos.BLOCKS"></app-box>
+                <app-box class="hashblock" [fromLabel]="getChainWork(this.fromBlock.chainwork)"
+                    [toLabel]="getChainWork(this.toBlock.chainwork)" footerText="hashes" [spanLabel]="getSpan('hashes')"
+                    background="red" [logo]="logos.STRIKES"></app-box>
+                <app-box class="timeblock" [fromLabel]="fromBlock.mediantime" [toLabel]="toBlock.mediantime"
+                    footerText="time (seconds)" background="#f1c232" [logo]="logos.TIMES"></app-box>
+                <app-box class="timeblock-utc" [fromLabel]="convertToUTC(fromBlock.mediantime)"
+                    [toLabel]="convertToUTC(toBlock.mediantime)"
+                    [spanLabel]="calculateTimeDifference(fromBlock.mediantime, toBlock.mediantime)"
+                    footerText="time (utc)" background="#f1c232" [logo]="logos.TIMES"></app-box>
+                <app-box class="satoshis" [fromLabel]="fromBlock.chainreward" [toLabel]="toBlock.chainreward"
+                    footerText="satoshis" background="#b6d7a8" [logo]="logos.SATOSHIS"></app-box>
+                <app-box class="hashes" [fromLabel]="toBlock.hash" [toLabel]="fromBlock.hash" footerText="block hashes"
+                    background="#ffff00" [displayBlock]="false" [displayLogo]="false"></app-box>
+            </div>
+            <div class="blockspan-bottom">
+                <div class="blockrate">
+                    <a class="to-block dummy"></a>
+                    <div class="to-block">{{getBlockRate()}}</div>
+                    <div class="from-block">
+                        <span class="equation-part">(</span>
+                        <span class="equation-block">600 * 100</span>
+                        <span class="equation-part">*</span>
+                        <span class="highlight-block">{{getSpan('blockspan')}}</span>
+                        <span class="equation-part">/</span>
+                        <span class="highlight-block">{{getSpan('time')}}</span>
+                        <span class="equation-part">)</span>
+                    </div>
+                    <div class="footer">blockrate</div>
+                    <div class="logo">{{ logos.BLOCKS }}</div>
+                </div>
+                <div class="hashrate">
+                    <a class="to-block dummy"></a>
+                    <div class="to-block">{{getHashRate()}}</div>
+                    <div class="from-block">
+                        <span class="equation-part">(</span>
+                        <span class="highlight-block">{{getSpan('hashes')}}</span>
+                        <span class="equation-part">/</span>
+                        <span class="highlight-block">{{getSpan('time')}}</span>
+                        <span class="equation-part">)</span>
+                    </div>
+                    <div class="footer">hashrate</div>
+                    <div class="logo">{{ logos.STRIKES }}</div>
+                </div>
+                <div class="sathash">
+                    <a class="to-block dummy"></a>
+                    <div class="to-block">{{getSathash()}}</div>
+                    <div class="from-block">
+                        <span class="equation-part">(</span>
+                        <span class="highlight-block">{{getSpan('hashes')}}&nbsp;</span>&nbsp;
+                        <span class="equation-part">/</span>&nbsp;
+                        <span class="highlight-block">{{getSpan('satoshis')}}</span>
+                        <span class="equation-part">)</span>
+                    </div>
+                    <div class="footer">sathash</div>
+                    <div class="logo">{{ logos.SATOSHIS }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -50,6 +50,8 @@ import { FiresvgComponent } from './components/svg/firesvg/firesvg.component';
 import { GuessingBlockComponent } from './components/guessing-block/guessing-block.component';
 import { StrikeSummaryWithGuessComponent } from './components/strike-summary-with-guess/strike-summary-with-guess.component';
 import { GuessingGameComponent } from './components/guessing-game/guessing-game.component';
+import { BoxComponent } from './components/box/box.component';
+import { BlockspanBHSComponent } from './components/blockspan-bhs/blockspan-bhs.component';
 import { MyGuessesComponent } from './components/my-guesses/my-guesses.component';
 
 @NgModule({
@@ -83,6 +85,8 @@ import { MyGuessesComponent } from './components/my-guesses/my-guesses.component
     WatersvgComponent,
     StrikeSummaryWithGuessComponent,
     GuessingGameComponent,
+    BlockspanBHSComponent,
+    BoxComponent,
     MyGuessesComponent,
   ],
   imports: [
