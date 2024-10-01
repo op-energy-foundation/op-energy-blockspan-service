@@ -1,5 +1,6 @@
 <div class="past-strike-list">
     <div class="strike-table m-5 text-center">
+        <p class="text-right">Showing Maximum 15 results. If you want to see the next page, change the page URL parameter to the next page.</p>
         <div class="content">
             <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)" [isLoading]="isLoading">
             </app-data-table>

@@ -134,4 +134,8 @@ export class PreviewComponent implements OnInit {
   blockspanDetails(): string {
     return `/hashstrikes/blockspan-details?endblock=${this.latestStrike?.strike?.block}`;
   }
+  
+  myGuesses(): string {
+    return '/hashstrikes/my_guesses';
+  }
 }

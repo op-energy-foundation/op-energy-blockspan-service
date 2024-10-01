@@ -1,0 +1,34 @@
+<div class="m-5">
+    <table class="table table-striped text-center">
+        <thead>
+            <tr>
+                <th>Strike</th>
+                <th>Guess</th>
+                <th>Observed Result</th>
+                <th>Guess Time</th>
+                <th>Strike Median Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngIf="guessStrike.length > 0; else noData">
+                <tr *ngFor="let guess of guessStrike"
+                    (click)="redirectToSummary(guess.strike.block, guess.strike.strikeMediantime, guess.strike.observedResult)">
+                    <td>{{ guess.strike.block }}</td>
+                    <td>{{ guess.guess }}</td>
+                    <td>
+                        {{ guess.strike.observedResult || '?' }}
+                    </td>
+                    <td>
+                        {{ (guess.creationTime * 1000 | date:'medium')}}
+                    </td>
+                    <td>{{ guess.strike.strikeMediantime * 1000 | date:'medium' }}</td>
+                </tr>
+            </ng-container>
+            <ng-template #noData>
+                <tr>
+                    <td colspan="5">No guesses found</td>
+                </tr>
+            </ng-template>
+        </tbody>
+    </table>
+</div>

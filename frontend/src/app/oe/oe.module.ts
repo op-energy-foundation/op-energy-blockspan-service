@@ -35,7 +35,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { OeDocsComponent } from './components/oe-docs/oe-docs.component';
 import { AboutComponent } from './components/about/about.component';
-import { NgbDatepickerModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDatepickerModule, NgbDropdownModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { BlockRatesGraphComponent } from './components/blockrates-graph/block-rates-graph.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { NgxEchartsModule } from 'ngx-echarts';
@@ -52,6 +52,7 @@ import { StrikeSummaryWithGuessComponent } from './components/strike-summary-wit
 import { GuessingGameComponent } from './components/guessing-game/guessing-game.component';
 import { BoxComponent } from './components/box/box.component';
 import { BlockspanBHSComponent } from './components/blockspan-bhs/blockspan-bhs.component';
+import { MyGuessesComponent } from './components/my-guesses/my-guesses.component';
 
 @NgModule({
   declarations: [
@@ -86,6 +87,7 @@ import { BlockspanBHSComponent } from './components/blockspan-bhs/blockspan-bhs.
     GuessingGameComponent,
     BlockspanBHSComponent,
     BoxComponent,
+    MyGuessesComponent,
   ],
   imports: [
     CommonModule,
@@ -98,6 +100,7 @@ import { BlockspanBHSComponent } from './components/blockspan-bhs/blockspan-bhs.
     NgbDropdownModule,
     NgbDatepickerModule,
     NgxEchartsModule.forRoot({ echarts }),
+    NgbTooltipModule,
   ],
   providers: [
     WebsocketService,

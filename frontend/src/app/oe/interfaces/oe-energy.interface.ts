@@ -134,6 +134,12 @@ export interface BlockSpanHeadersNbdr {
 export interface RegisterResult {
   accountSecret: string;
   accountToken: string;
+  personUUID: string;
+}
+
+export interface LoginResult {
+  accountToken: string;
+  personUUID: string;
 }
 
 export interface BlockSpanHeaders

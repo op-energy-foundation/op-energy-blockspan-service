@@ -15,6 +15,7 @@ import { BlockRatesGraphComponent } from './components/blockrates-graph/block-ra
 import { LoginComponent } from './components/login/login.component';
 import { StrikesRangeComponent } from './components/strikes-range/strikes-range.component';
 import { BlockspanBHSComponent } from './components/blockspan-bhs/blockspan-bhs.component';
+import { MyGuessesComponent } from './components/my-guesses/my-guesses.component';
 
 const routes: Routes = [
   { path: 'login/:secret', component: LoginComponent },
@@ -73,7 +74,11 @@ const routes: Routes = [
           {
             path: 'blockspan-details',
             component: BlockspanBHSComponent,
-          }
+          },
+          {
+            path: 'my_guesses',
+            component: MyGuessesComponent
+          },
         ],
       },
       {

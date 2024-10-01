@@ -1,4 +1,3 @@
-import { OeStateService } from 'src/app/oe/services/state.service';
 import { OeAccountApiService } from './../services/oe-energy.service';
 // auth.interceptor.ts
 import { Injectable } from '@angular/core';
@@ -11,6 +10,7 @@ import {
 import { Observable, throwError, switchMap } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
 import { catchError } from 'rxjs/operators';
+import { OeStateService } from '../services/state.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
