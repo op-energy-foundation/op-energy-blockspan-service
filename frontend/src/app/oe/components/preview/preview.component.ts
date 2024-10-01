@@ -130,4 +130,8 @@ export class PreviewComponent implements OnInit {
   strikeListSortByGuess(): string {
     return '/hashstrikes/strikes-range?sort=descend_guesses_count&page=1';
   }
+
+  myGuesses(): string {
+    return '/hashstrikes/my_guesses';
+  }
 }

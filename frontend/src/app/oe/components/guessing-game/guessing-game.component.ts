@@ -14,6 +14,7 @@ export class GuessingGameComponent implements OnInit {
   @Input() strike: BlockTimeStrike;
   selectedGuess: string;
   isLoadingBlock = false;
+  strikeKnown: boolean = false;
 
   constructor(
     private oeBlocktimeApiService: OeBlocktimeApiService,
@@ -49,10 +50,7 @@ export class GuessingGameComponent implements OnInit {
         (error) => {
           if (this.strike.observedResult) {
             this.selectedGuess = 'disabled';
-            this.toastr.warning(
-              "Can't add guess as strike outcome is known.",
-              'Warning'
-            );
+            this.strikeKnown = true;
           }
           this.isLoadingBlock = false;
         }
