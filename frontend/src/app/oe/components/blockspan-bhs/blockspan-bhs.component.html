@@ -16,7 +16,7 @@
                     [toLabel]="convertToUTC(toBlock.mediantime)"
                     [spanLabel]="calculateTimeDifference(fromBlock.mediantime, toBlock.mediantime)"
                     footerText="time (utc)" background="#f1c232" [logo]="logos.TIMES"></app-box>
-                <app-box class="satoshis" [fromLabel]="fromBlock.satoshis" [toLabel]="toBlock.satoshis"
+                <app-box class="satoshis" [fromLabel]="fromBlock.chainreward" [toLabel]="toBlock.chainreward"
                     footerText="satoshis" background="#b6d7a8" [logo]="logos.SATOSHIS"></app-box>
                 <app-box class="hashes" [fromLabel]="toBlock.hash" [toLabel]="fromBlock.hash" footerText="block hashes"
                     background="#ffff00" [displayBlock]="false" [displayLogo]="false"></app-box>
