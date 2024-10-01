@@ -191,7 +191,7 @@ syncBlockHeaders = do
                 $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlock userPass [ hash ]
               case response of
                 Result _ bi -> return $! Right bi
-                _ -> return $! Left $! "getBlockInfos: getBlock returned " <> Text.pack (show response)
+                _ -> return $! Left $! "getBlock returned " <> Text.pack (show response)
             blockReward <- ExceptT $ do
               if height == 0
                 then return $! Right 5000000000 {- default subsidy-}
@@ -200,27 +200,26 @@ syncBlockHeaders = do
                     $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlockStats userPass [height]
                   case response of
                     Result _ bs -> return $! Right $! (BlockStats.totalfee bs + BlockStats.subsidy bs)
-                    _ -> return $! Left $! "getBlockInfos: getBlockStats returned: "
+                    _ -> return $! Left $! "getBlockStats returned: "
                                         <> Text.pack (show response)
             chainReward <- ExceptT $ do
-              let isNeedPreviousBlockChainReward = height > 0
-              if not isNeedPreviousBlockChainReward
+              let isPreviousBlockChainRewardNeeded = height > 0
+              if not isPreviousBlockChainRewardNeeded
                 then return $! Right blockReward
                 else do
                   mprevBlock <- mgetBlockHeaderByHeight (height - 1)
                   case mprevBlock of
                     Just prevBlock -> return $! Right (blockHeaderChainreward prevBlock + blockReward)
-                    Nothing -> return $! Left $! "getBlockInfos: mgetBlockHeaderByHeight failed for height "
+                    Nothing -> return $! Left $! "mgetBlockHeaderByHeight failed for height "
                                               <> Text.pack (show (height - 1))
             return (bi, blockReward, chainReward)
           case eret of
             Right ret -> return ret
             Left reason -> do
               let
-                  err = reason <> ", crashing to retry"
+                  err = "getBlockInfos: " <> reason <> ", crashing to retry"
               runLogging $ $(logError) err
               error (Text.unpack err)
-
 
         blockHeaderFromBlockInfos bi reward chainreward = BlockHeader
           { blockHeaderHash = BlockInfo.hash bi

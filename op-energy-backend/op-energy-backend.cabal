@@ -47,9 +47,12 @@ library
     exposed-modules: OpEnergy.Server.V1
                    , OpEnergy.Server.GitCommitHash
                    , OpEnergy.Server
+                   , OpEnergy.Server.Common
                    , OpEnergy.Server.V1.Config
                    , OpEnergy.Server.V1.DB
                    , OpEnergy.Server.V1.DB.Migrations
+                   , OpEnergy.Server.V1.DB.Migrations.BlockHeaderAddChainreward.Model
+                   , OpEnergy.Server.V1.DB.Migrations.BlockHeaderAddChainreward
                    , OpEnergy.Server.V1.Class
                    , OpEnergy.Server.V1.Metrics
                    , OpEnergy.Server.V1.BlockHeadersService
@@ -102,6 +105,9 @@ library
                     , unliftio-core
                     , vector
                     , ghc-compact
+                    , resourcet
+                    , persistent-pagination
+
     ghc-options:    -O2 -Wall -Werror -Wno-unticked-promoted-constructors -fno-warn-name-shadowing -Wno-orphans
     extensions:       OverloadedStrings
                     , ScopedTypeVariables
