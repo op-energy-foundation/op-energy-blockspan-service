@@ -27,6 +27,10 @@ import           Data.Int
 import           Data.Word
 import qualified Data.Text                  as T
 
+import           Data.Default
+import           Data.Proxy
+
+import           Data.OpEnergy.Common
 import           Data.OpEnergy.API.V1.Natural
 import           Data.OpEnergy.API.V1.Hash
 import           Database.Persist.TH
@@ -78,47 +82,20 @@ defaultBlockHeader = BlockHeader
   , blockHeaderChainreward = 5000000000
   }
 
+instance Default BlockHeader where
+  def = defaultBlockHeader
 instance ToJSON BlockHeader where -- generic instance adds 'blockHeader' prefix to each field, which breaks compatibility, so provide custom instance
-  toJSON bh = object
-    [ "hash"              .= blockHeaderHash bh
-    , "previousblockhash" .= blockHeaderPreviousblockhash bh
-    , "height"            .= blockHeaderHeight bh
-    , "version"           .= blockHeaderVersion bh
-    , "timestamp"         .= blockHeaderTimestamp bh
-    , "bits"              .= blockHeaderBits bh
-    , "nonce"             .= blockHeaderNonce bh
-    , "difficulty"        .= blockHeaderDifficulty bh
-    , "merkle_root"       .= blockHeaderMerkle_root bh
-    , "tx_count"          .= blockHeaderTx_count bh
-    , "size"              .= blockHeaderSize bh
-    , "weight"            .= blockHeaderWeight bh
-    , "chainwork"         .= blockHeaderChainwork bh
-    , "mediantime"        .= blockHeaderMediantime bh
-    , "reward"            .= blockHeaderReward bh
-    , "chainreward"       .= blockHeaderChainreward bh
-    ]
+  toJSON = commonToJSON genericToJSON
+  toEncoding = commonToJSON genericToEncoding
 instance FromJSON BlockHeader where
-  parseJSON = withObject "BlockHeader" $ \v -> BlockHeader
-    <$> v .: "hash"
-    <*> v .: "previousblockhash"
-    <*> v .: "height"
-    <*> v .: "version"
-    <*> v .: "timestamp"
-    <*> v .: "bits"
-    <*> v .: "nonce"
-    <*> v .: "difficulty"
-    <*> v .: "merkle_root"
-    <*> v .: "tx_count"
-    <*> v .: "size"
-    <*> v .: "weight"
-    <*> v .: "chainwork"
-    <*> v .: "mediantime"
-    <*> v .: "reward"
-    <*> v .: "chainreward"
+  parseJSON = commonParseJSON
 instance ToSchema BlockHeader where
-  declareNamedSchema proxy = genericDeclareNamedSchema defaultSchemaOptions proxy
+  declareNamedSchema proxy = genericDeclareNamedSchema (commonSchemaOptions (def1 proxy)) proxy
     & mapped.schema.description ?~ "BlockHeader schema"
     & mapped.schema.example ?~ toJSON defaultBlockHeader
+    where
+      def1 :: Default a => Proxy a-> a
+      def1 _ = def
 
 type BlockHash = Hash
 
