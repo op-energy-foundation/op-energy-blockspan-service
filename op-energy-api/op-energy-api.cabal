@@ -52,6 +52,8 @@ library
                    , Data.OpEnergy.API.V1.WebSocketService.Message
                    , Data.OpEnergy.API.V1.Error
                    , Data.OpEnergy.Client
+                   , Data.OpEnergy.Common
+
     build-depends:    base >=4.15.1.0
                     , aeson
                     , text
@@ -75,5 +77,6 @@ library
                     , http-client, http-client-tls, servant-client
                     , mtl
                     , transformers
+                    , data-default
 
     ghc-options:    -O2 -Wall -Werror -Wno-unticked-promoted-constructors -fno-warn-name-shadowing -Wno-orphans

@@ -61,6 +61,8 @@ data Config = Config
     -- ^ defines size of chunk with which cache is grown
   , configBlockspanMinimumSize :: Positive Int
     -- ^ defines minimum size of blockspan
+  , configRecordsPerReply :: Positive Int
+    -- ^ defines how many rows shoud be contained within 1 page of the reply/request
   }
   deriving Show
 instance FromJSON Config where
@@ -85,6 +87,7 @@ instance FromJSON Config where
     <*> ( v .:? "PROMETHEUS_PORT" .!= (configPrometheusPort defaultConfig))
     <*> ( v .:? "CACHE_CHUNK_SIZE" .!= (configCacheChunkSize defaultConfig))
     <*> ( v .:? "BLOCKSPAN_MINIMUM_SIZE" .!= (configBlockspanMinimumSize defaultConfig))
+    <*> ( v .:? "RECORDS_PER_REPLY" .!= (configRecordsPerReply defaultConfig))
 
 defaultConfig:: Config
 defaultConfig = Config
@@ -108,6 +111,7 @@ defaultConfig = Config
   , configPrometheusPort = 7999
   , configCacheChunkSize = 50000
   , configBlockspanMinimumSize = 6
+  , configRecordsPerReply = 1000
   }
 
 getConfigFromEnvironment :: IO Config

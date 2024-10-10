@@ -14,6 +14,7 @@
 , http-client
 , http-client-tls
 , servant-client
+, data-default
 , ...
 }:
 mkDerivation {
@@ -38,6 +39,7 @@ mkDerivation {
     http-client
     http-client-tls
     servant-client
+    data-default
   ];
   executableHaskellDepends = [
     base
