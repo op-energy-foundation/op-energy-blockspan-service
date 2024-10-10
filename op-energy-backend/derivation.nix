@@ -21,8 +21,10 @@
 , prometheus-proc
 , wai-middleware-prometheus
 , GIT_COMMIT_HASH
+, persistent-pagination
 , ...
 }:
+
 mkDerivation {
   pname = "op-energy-backend";
   version = "0.1.0.0";
@@ -51,6 +53,7 @@ mkDerivation {
     prometheus-metrics-ghc
     prometheus-proc
     wai-middleware-prometheus
+    persistent-pagination
   ];
   preBuild = ''
     sed -i 's/GIT_COMMIT_HASH/${GIT_COMMIT_HASH}/' src/OpEnergy/Server/GitCommitHash.hs
