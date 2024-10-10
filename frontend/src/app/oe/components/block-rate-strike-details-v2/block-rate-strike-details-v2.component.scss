@@ -1,0 +1,364 @@
+.observed-blockspan-detail {
+    margin-top: 100px;
+  
+    &--top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 25px;
+  
+      .blockspan {
+        display: flex;
+        align-items: center;
+        position: relative;
+        height: 340px;
+        font-size: 18px;
+  
+        @media (max-width: 420px) {
+          width: 50%;
+          padding: 0 30px;
+        }
+  
+        > div {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        
+        .timeblocks {
+          display: flex;
+          flex-direction: column;
+          gap: 0px;
+
+          .timeblocks-upper {
+            background: #ff9900;
+            height: 17rem;
+            position: absolute;
+            top: -1.25rem;
+            width: 32.75rem;
+            left: 16rem;
+
+            .timeblocks-upper-header {
+              font-size: 4rem;
+              height: 45%;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              margin-top: -1rem;
+              color: black;
+              font-weight: 700;
+            }
+          }
+
+          .timeblocks-lower {
+            display: flex;
+            flex-direction: row;
+            gap: 0px;
+          }
+        }
+        
+        .blockspan-block , .hashblock, .timeblock, .timeblock-utc, .satoshis, .hashes {
+          width: 250px;
+          height: 500px;
+        }
+
+        .hashes {
+          width: 35rem;
+          margin-left: 1rem;
+          
+          ::ng-deep {
+            .to-block, .from-block {
+              font-size: 12px;
+            }
+          }
+        }
+
+        .timeblock {
+          margin-left: 1rem;
+        }
+
+        .timeblock-utc {
+          margin-left: 0.25rem;
+        }
+      
+        .judgement-block-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem; /* Spacing between the blocks */
+          font-size: 18px;
+          font-weight: 700;
+          color: black;
+          margin-left: 1rem;
+        
+          .top-blocks {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            gap: 0.5rem;
+        
+            .judgement-block {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              border: 2px solid black;
+              padding: 1rem;
+              text-align: center;
+            }
+        
+            .yellow-block {
+              background-color: yellow;
+              width: 15rem;
+              height: 6rem;
+            }
+        
+            .orange-block {
+              background-color: orange;
+              width: 15rem;
+              height: 6rem;
+            }
+          }
+        
+          .hash-block {
+            background-color: #d5a6bd;
+            width: 32.75rem;
+            height: 6rem;
+            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.7rem;
+          }
+        
+          .footer-block {
+            background-color: #d5a6bd;
+            width: 32.75rem;
+            height: 3rem;
+            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+          }
+        }
+        
+      }
+
+      .blockspan-bottom {
+        display: flex;
+        align-items: center;
+        position: relative;
+        height: 8rem;
+        font-size: 18px;
+        align-self: flex-start;
+        
+
+        .blockspan-bottom-upper {
+          background: #ff9900;
+          height: 20.25rem;
+          position: absolute;
+          top: -5.25rem;
+          width: 27rem;
+
+        .blockspan-bottom-upper-header {
+            font-size: 4rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -1rem;
+            color: black;
+            font-weight: 700;
+          }
+        }
+
+        .blockrate, .hashrate, .sathash {
+          position: relative;
+          padding-bottom: 3rem;
+          width: 26rem;
+          height: 350px;
+          margin-left: 0.5rem;
+        
+          .to-block.dummy {
+            top: 0;
+            height: 30%;
+            visibility: hidden;
+          }
+        
+          .to-block,
+          .from-block {
+            height: 15%;
+            background-color: yellow;
+            border: 1px solid black;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: 700;
+          }
+        
+          .to-block {
+            font-size: 4rem;
+            height: 45%;
+          }
+        
+          .from-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            font-size: 1rem;
+            height: 25%;
+
+            .blockrate-value {
+              font-size: 48px;
+              font-weight: bold;
+              color: black;
+            }
+            
+            .blockrate-equation {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              width: 100%;
+              margin: 10px 0;
+            }
+            
+            .equation-part, .equation-block {
+              font-size: 18px;
+              background-color: white; /* Orange background */
+              border: 2px solid black;
+              padding: 0.125rem 0.5rem;
+
+              &:first-child {
+                margin-left: 0.5rem;
+              }
+
+              &:last-child {
+                margin-right: 0.5rem;
+              }
+            }
+
+            .highlight-block {
+              background-color: #e69138; /* Orange background */
+              border: 2px solid black;
+              padding: 5px 10px;
+              font-weight: bold;
+            }
+          }
+
+          .footer {
+            background-color: yellow;
+            border: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: 700;
+            font-size: 18px;
+            height: 15%;
+          }
+          
+          .logo {
+            font-size: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 2px solid black;
+            height: 5rem;
+            width: 5rem;
+            margin-left: 40%;
+            margin-right: 35%;
+          }
+        }
+
+        .hashrate {
+          display: flex;
+          justify-content: center;
+          flex-direction: column;
+          align-items: center;
+          height: 250px;
+          margin-top: 10rem;
+
+          .oe-guessing-box {
+            .btn {
+              color: black;
+              font-size: 1.5rem;
+              width: 14rem;
+            }
+            .oe-icon {
+              font-size: 2rem;
+            }
+          }
+
+          .btn {
+            // Default button styles
+            // padding: 10px 20px;
+            // font-size: 1.2rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        
+            // Styles for the disabled state
+            &:disabled {
+              background-color: #e0e0e0; // Light gray background for disabled
+              border-color: #d3d3d3;     // Gray border
+              color: #a0a0a0;            // Light gray text
+              cursor: not-allowed;       // Show "not-allowed" cursor on hover
+        
+              // Optional hover effects for disabled stateoe-message-container
+              &:hover {
+                background-color: #e0e0e0;
+                border-color: #d3d3d3;
+                color: #a0a0a0;
+              }
+            }
+        
+            // Active button styles
+            &.active {
+              background-color: #ffc107;
+              border-color: #ffc107;     // Gold border for active state
+              color: #fff;               // White text for active state
+              box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); // Add slight shadow for emphasis
+        
+              // Add hover effect for active button
+              &:hover {
+                background-color: darken(#ffc107, 5%); // Darken on hover
+                border-color: darken(#ffc107, 5%);
+              }
+            }
+          }
+        }
+
+        .oe-message-text {
+          font-size: 20px;
+          font-weight: bold;
+          text-align: center;
+          padding: 20px;
+          border-radius: 8px;
+          color: #f5f5f5;
+        }
+
+        .sathash  {
+          .to-block,
+          .from-block,
+          .footer {
+            background-color: #b6d7a8;
+          }
+
+          .from-block {
+            justify-content: center;
+
+            .equation-part, .highlight-block {
+              margin-left: 1rem;
+            }
+          }
+        }
+      }
+    }
+  }
+  

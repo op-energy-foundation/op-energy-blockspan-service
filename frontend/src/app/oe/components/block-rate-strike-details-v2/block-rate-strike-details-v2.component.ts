@@ -1,8 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { Block } from '../../interfaces/oe-energy.interface';
+import {
+  Block,
+  BlockTimeStrike,
+  BlockTimeStrikePublic,
+  PaginationResponse,
+} from '../../interfaces/oe-energy.interface';
 import { BlockTypes, Logos } from '../../types/constant';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { OeEnergyApiService } from '../../services/oe-energy.service';
+import {
+  OeBlocktimeApiService,
+  OeEnergyApiService,
+} from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import {
@@ -20,22 +28,29 @@ import {
 } from '../../utils/helper';
 
 @Component({
-  selector: 'app-blockspan-bhs',
-  templateUrl: './blockspan-bhs.component.html',
-  styleUrls: ['./blockspan-bhs.component.scss'],
+  selector: 'app-block-rate-strike-details-v2',
+  templateUrl: './block-rate-strike-details-v2.component.html',
+  styleUrls: ['./block-rate-strike-details-v2.component.scss'],
 })
-export class BlockspanBHSComponent implements OnInit {
+export class BlockRateStrikeDetailsV2Component implements OnInit {
   logos = Logos;
   isLoadingBlock = true;
   subscription: Subscription;
+  strike: BlockTimeStrike;
   fromBlock: Block;
   toBlock: Block;
   latestBlock: Block;
+  disabled: boolean = false;
+  isSelected: boolean = false;
+  selectedGuess: string;
+  strikeKnown = false;
+  color = 'red';
 
   constructor(
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
     private stateService: OeStateService,
+    private oeBlocktimeApiService: OeBlocktimeApiService,
     private toastr: ToastrService
   ) {}
 
@@ -55,21 +70,24 @@ export class BlockspanBHSComponent implements OnInit {
       )
       .pipe(
         switchMap((params: ParamMap) => {
+          const fromBlockHeight =
+            +params.get('blockspanStart') || this.latestBlock.height;
+          const strikeHeight = +params.get('strikeHeight') || 1200000;
+          let strikeTime = +params.get('strikeTime');
+          if (!strikeTime) {
+            strikeTime =
+              this.latestBlock.mediantime +
+              (strikeHeight - this.latestBlock.height) * 600;
+          }
+          // Creating temporary strike
+          this.strike = {
+            block: strikeHeight,
+            strikeMediantime: strikeTime,
+            creationTime: undefined,
+          };
+
           const startBlock = params.get('startblock');
           const endBlock = params.get('endblock');
-
-          const fromBlockHeight: number =
-            endBlock && startBlock
-              ? parseInt(startBlock, 10)
-              : endBlock
-              ? parseInt(endBlock, 10) - 14
-              : parseInt(startBlock, 10) || this.latestBlock.height;
-
-          const toBlockHeight: number =
-            parseInt(endBlock, 10) || (startBlock ? +startBlock + 13 : 1200000);
-
-          this.fromBlock = undefined;
-          this.toBlock = undefined;
 
           this.isLoadingBlock = true;
 
@@ -78,16 +96,49 @@ export class BlockspanBHSComponent implements OnInit {
               .$getBlockByHeight(fromBlockHeight)
               .pipe(catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))),
             this.oeEnergyApiService
-              .$getBlockByHeight(toBlockHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(toBlockHeight)))),
+              .$getBlockByHeight(strikeHeight)
+              .pipe(catchError(() => of(getEmptyBlockHeader(strikeHeight)))),
+            this.oeBlocktimeApiService
+              .$strikesWithFilter({
+                strikeMediantimeEQ: strikeTime,
+                blockHeightEQ: strikeHeight,
+              })
+              .pipe(catchError(() => of(strikeHeight))),
           ]);
         })
       )
-      .subscribe(([fromBlock, toBlock]: [Block, Block]) => {
-        this.fromBlock = fromBlock;
-        this.toBlock = toBlock;
-        this.isLoadingBlock = false;
-      })),
+      .subscribe(
+        ([fromBlock, toBlock, strikesDetails]: [
+          Block,
+          Block,
+          PaginationResponse<BlockTimeStrikePublic>
+        ]) => {
+          this.fromBlock = fromBlock;
+          if (typeof toBlock === BlockTypes.NUMBER) {
+            this.toBlock = {
+              ...this.fromBlock,
+              height: +toBlock,
+            };
+          } else {
+            this.toBlock = toBlock;
+          }
+          const strikesResult = strikesDetails.results;
+          if (!strikesResult.length) {
+            this.toastr.error('Strikes Not Found!', 'Failed!');
+            return;
+          }
+
+          this.strike = {
+            block: strikesResult[0].strike.block,
+            creationTime: strikesResult[0].strike.creationTime,
+            strikeMediantime: strikesResult[0].strike.strikeMediantime,
+            observedResult: strikesResult[0].strike.observedResult,
+          };
+
+          this.isLoadingBlock = false;
+          this.checkExistingGuess();
+        }
+      )),
       (error) => {
         this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
         this.isLoadingBlock = false;
@@ -95,7 +146,9 @@ export class BlockspanBHSComponent implements OnInit {
   }
 
   convertToUTC(unixTimestamp: number): string {
-    if (unixTimestamp === 0) return '?';
+    if (unixTimestamp === 0) {
+      return '?';
+    }
 
     const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
 
@@ -128,39 +181,28 @@ export class BlockspanBHSComponent implements OnInit {
   getSpan(type: string): string {
     if (!this.fromBlock || !this.toBlock) return '?';
 
-    const {
-      height: fromHeight,
-      mediantime: fromMediantime,
-      chainwork: fromChainwork,
-    } = this.fromBlock;
-    const {
-      height: toHeight,
-      mediantime: toMediantime,
-      chainwork: toChainwork,
-    } = this.toBlock;
-
-    switch (type) {
-      case 'blockspan':
-        return (toHeight - fromHeight).toString();
-
-      case 'time':
-        return fromMediantime !== 0 && toMediantime !== 0
-          ? (toMediantime - fromMediantime).toString()
-          : '?';
-
-      case 'hashes':
-        return fromChainwork && toChainwork
-          ? toScientificNotation(
-              getHexValue(toChainwork) - getHexValue(fromChainwork)
-            )
-          : '?';
-
-      case 'satoshis':
-        return '?';
-
-      default:
-        return '?';
+    if (type === 'blockspan') {
+      return (this.toBlock.height - this.fromBlock.height).toString();
     }
+
+    if (type === 'time') {
+      return !this.fromBlock.mediantime || !this.toBlock.mediantime
+        ? '?'
+        : (this.toBlock.mediantime - this.fromBlock.mediantime).toString();
+    }
+
+    if (type === 'hashes') {
+      return toScientificNotation(
+        getHexValue(this.toBlock.chainwork) -
+          getHexValue(this.fromBlock.chainwork)
+      );
+    }
+
+    if (type === 'satoshis') {
+      return '?';
+    }
+
+    return '?';
   }
 
   getBlockRate(): string {
@@ -227,5 +269,63 @@ export class BlockspanBHSComponent implements OnInit {
     }
 
     return toScientificNotation(getHexValue(hexValue));
+  }
+
+  selectGuessingBox(): void {}
+
+  getResult(): string {
+    const nbdr = this.getBlockRate();
+    if (nbdr === '?') return '';
+
+    return +nbdr > 100 ? 'faster' : 'slower';
+  }
+
+  handleSelectedGuess(selected: 'slow' | 'fast'): void {
+    // this.isSelected = true;
+    this.selectedGuess = selected;
+    this.oeBlocktimeApiService
+      .$strikeGuess(this.strike.block, this.strike.strikeMediantime, selected)
+      .subscribe(
+        (response) => {
+          this.disabled = true;
+          this.toastr.success('Successfully added guess', 'Success');
+        },
+        (error) => {
+          this.toastr.error(
+            'Failed to add guess. Error: ' + error.error,
+            'Failed!'
+          );
+        }
+      );
+  }
+
+  checkExistingGuess(): void {
+    this.isLoadingBlock = true;
+    this.oeBlocktimeApiService
+      .$strikeGuessPerson(this.strike.block, this.strike.strikeMediantime)
+      .subscribe(
+        (response) => {
+          this.isLoadingBlock = false;
+          this.disabled = true;
+          this.toastr.warning(
+            'You already have a guess: ' + response.guess,
+            'Warning'
+          );
+          this.selectedGuess = response.guess;
+        },
+        (error) => {
+          // DOING NOTHING
+          if (this.strike.observedResult) {
+            //disabling strike as strike outcome is known
+            this.disabled = true;
+            this.strikeKnown = true;
+            this.toastr.warning(
+              "Can't add guess as stike outcome is known.",
+              'Warning'
+            );
+          }
+          this.isLoadingBlock = false;
+        }
+      );
   }
 }

@@ -11,14 +11,15 @@
                     [toLabel]="getChainWork(this.toBlock.chainwork)" footerText="hashes" [spanLabel]="getSpan('hashes')"
                     background="red" [logo]="logos.STRIKES"></app-box>
                 <app-box class="timeblock" [fromLabel]="fromBlock.mediantime" [toLabel]="toBlock.mediantime"
-                    footerText="time (seconds)" background="#f1c232" [logo]="logos.TIMES"></app-box>
+                    [spanLabel]="getSpan('time')" footerText="time (seconds)" background="#f1c232"
+                    [logo]="logos.TIMES"></app-box>
                 <app-box class="timeblock-utc" [fromLabel]="convertToUTC(fromBlock.mediantime)"
                     [toLabel]="convertToUTC(toBlock.mediantime)"
                     [spanLabel]="calculateTimeDifference(fromBlock.mediantime, toBlock.mediantime)"
                     footerText="time (utc)" background="#f1c232" [logo]="logos.TIMES"></app-box>
                 <app-box class="satoshis" [fromLabel]="fromBlock.chainreward" [toLabel]="toBlock.chainreward"
                     footerText="satoshis" background="#b6d7a8" [logo]="logos.SATOSHIS"></app-box>
-                <app-box class="hashes" [fromLabel]="toBlock.hash" [toLabel]="fromBlock.hash" footerText="block hashes"
+                <app-box class="hashes" [fromLabel]="fromBlock.hash" [toLabel]="toBlock.hash" footerText="block hashes"
                     background="#ffff00" [displayBlock]="false" [displayLogo]="false"></app-box>
             </div>
             <div class="blockspan-bottom">

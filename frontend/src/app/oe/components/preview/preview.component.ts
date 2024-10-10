@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { OeBlocktimeApiService } from '../../services/oe-energy.service';
-import { BlockTimeStrikePublic } from '../../interfaces/oe-energy.interface';
+import {
+  Block,
+  BlockTimeStrikePublic,
+} from '../../interfaces/oe-energy.interface';
+import { OeStateService } from '../../services/state.service';
+import { of, switchMap, take } from 'rxjs';
 
 @Component({
   selector: 'app-preview',
@@ -12,11 +17,25 @@ import { BlockTimeStrikePublic } from '../../interfaces/oe-energy.interface';
 export class PreviewComponent implements OnInit {
   latestStrike: BlockTimeStrikePublic;
   isLoading = true;
+  latestBlock: Block;
+
   constructor(
     private router: Router,
-    private oeBlocktimeApiService: OeBlocktimeApiService
+    private oeBlocktimeApiService: OeBlocktimeApiService,
+    public stateService: OeStateService
   ) {
-    this.fetchLatestStrike();
+    this.stateService.latestReceivedBlock$
+      .pipe(take(1)) // don't follow any future update of this object
+      .pipe(
+        switchMap((block: Block) => {
+          this.latestBlock = block;
+          console.log(this.latestBlock);
+          return of(block);
+        })
+      )
+      .subscribe(() => {
+        this.fetchLatestStrike();
+      });
   }
 
   fetchLatestStrike(pageNumber: number = 1): void {
@@ -131,11 +150,17 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/strikes-range?sort=descend_guesses_count&page=1';
   }
 
-  blockspanDetails(): string {
-    return `/hashstrikes/blockspan-details?endblock=${this.latestStrike?.strike?.block}`;
+  blockspanDetails(): void {
+    window.location.href = `/hashstrikes/blockspan-details?endblock=${
+      this.latestBlock?.height + 14
+    }`;
   }
-  
+
   myGuesses(): string {
     return '/hashstrikes/my_guesses';
+  }
+
+  blockrateStrikeDetailsV2(): void {
+    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
   }
 }

@@ -49,6 +49,14 @@
         .timeblock-utc {
           margin-left: 0.25rem;
         }
+
+        .satoshis {
+          ::ng-deep {
+            .logo-block {
+              left: 85%;
+            }
+          }
+        }
       }
 
       .blockspan-bottom {

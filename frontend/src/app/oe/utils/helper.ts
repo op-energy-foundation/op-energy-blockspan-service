@@ -108,12 +108,13 @@ export const getEmptyBlockHeader = (height: number): BlockHeader => {
 };
 
 export const getHexValue = (hexString: string): number => {
+
   // Use parseInt to convert hex string to decimal
   const decimal = parseInt(hexString, 16);
 
   // Check if the conversion was successful, return NaN if invalid hex string
   if (isNaN(decimal)) {
-    throw new Error('Invalid hexadecimal string');
+    return 0;
   }
   return decimal;
 };
