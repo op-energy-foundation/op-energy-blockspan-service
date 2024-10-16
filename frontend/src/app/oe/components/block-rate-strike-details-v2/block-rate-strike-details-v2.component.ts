@@ -70,7 +70,7 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
       )
       .pipe(
         switchMap((params: ParamMap) => {
-          const fromBlockHeight =
+          let fromBlockHeight =
             +params.get('blockspanStart') || this.latestBlock.height;
           const strikeHeight = +params.get('strikeHeight') || 1200000;
           let strikeTime = +params.get('strikeTime');
@@ -79,15 +79,16 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
               this.latestBlock.mediantime +
               (strikeHeight - this.latestBlock.height) * 600;
           }
+
+          if (fromBlockHeight > strikeHeight) {
+            fromBlockHeight = strikeHeight - 13;
+          }
           // Creating temporary strike
           this.strike = {
             block: strikeHeight,
             strikeMediantime: strikeTime,
             creationTime: undefined,
           };
-
-          const startBlock = params.get('startblock');
-          const endBlock = params.get('endblock');
 
           this.isLoadingBlock = true;
 
@@ -129,6 +130,7 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
           }
 
           this.strike = {
+            ...strikesResult[0].strike,
             block: strikesResult[0].strike.block,
             creationTime: strikesResult[0].strike.creationTime,
             strikeMediantime: strikesResult[0].strike.strikeMediantime,
@@ -274,10 +276,16 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
   selectGuessingBox(): void {}
 
   getResult(): string {
-    const nbdr = this.getBlockRate();
-    if (nbdr === '?') return '';
+    if (!this.strike.observedBlockHeight) return;
 
-    return +nbdr > 100 ? 'faster' : 'slower';
+    const heightOverStrikeHeight = this.getJudgementHeight();
+    const timeOverStrikeTime = this.getJudgementTime();
+
+    if (heightOverStrikeHeight && !timeOverStrikeTime) return 'fast';
+
+    if (!heightOverStrikeHeight && timeOverStrikeTime) return 'slow';
+
+    return 'slower';
   }
 
   handleSelectedGuess(selected: 'slow' | 'fast'): void {
@@ -327,5 +335,21 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
           this.isLoadingBlock = false;
         }
       );
+  }
+
+  getJudgementHeight(): boolean {
+    if (!this.strike.observedBlockHeight) {
+      return;
+    }
+
+    return this.strike.observedBlockHeight > this.strike.block - 1;
+  }
+
+  getJudgementTime(): boolean {
+    if (!this.strike.observedBlockMediantime) {
+      return;
+    }
+
+    return this.strike.observedBlockMediantime > this.strike.strikeMediantime;
   }
 }

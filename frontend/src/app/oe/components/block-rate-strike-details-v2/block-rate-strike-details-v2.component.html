@@ -9,51 +9,28 @@
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
                 <div>
                     <div class="timeblocks">
-                        <div class="timeblocks-upper">
+                        <!-- <div class="timeblocks-upper">
                             <div class="timeblocks-upper-header">{{getResult()}}</div>
-                        </div>
+                        </div> -->
                         <div class="timeblocks-lower">
                             <app-box class="timeblock" [fromLabel]="fromBlock.mediantime" [toLabel]="toBlock.mediantime"
-                                [spanLabel]="getSpan('time')" footerText="time (seconds)" background="#f1c232"
+                                [spanLabel]="getSpan('time')" footerText="seconds" background="#f1c232"
                                 [logo]="logos.TIMES"></app-box>
                             <app-box class="timeblock-utc" [fromLabel]="convertToUTC(fromBlock.mediantime)"
                                 [toLabel]="convertToUTC(toBlock.mediantime)"
                                 [spanLabel]="calculateTimeDifference(fromBlock.mediantime, toBlock.mediantime)"
-                                footerText="time (utc)" background="#f1c232" [logo]="logos.TIMES"></app-box>
+                                footerText="utc" background="#f1c232" [logo]="logos.TIMES"></app-box>
                         </div>
-                    </div>
-                </div>
-                <div class="judgement-block-container">
-                    <!-- Top Section -->
-                    <div class="top-blocks">
-                        <!-- Yellow Block -->
-                        <div class="judgement-block yellow-block">
-                            {{toBlock.height}}
-                        </div>
-                        <!-- Orange Block -->
-                        <div class="judgement-block orange-block">
-                            {{getSpan('time')}}
-                        </div>
-                    </div>
-
-                    <!-- Middle Section: Hash Block -->
-                    <div class="judgement-block hash-block">
-                        {{toBlock.hash || '?'}}
-                    </div>
-
-                    <!-- Bottom Section: Judgement Block -->
-                    <div class="judgement-block footer-block">
-                        Judgement block
                     </div>
                 </div>
             </div>
             <div class="blockspan-bottom">
                 <div>
-                    <div class="blockspan-bottom-upper">
+                    <!-- <div class="blockspan-bottom-upper">
                         <div class="blockspan-bottom-upper-header">{{getResult()}}</div>
-                    </div>
+                    </div> -->
                     <div class="blockrate">
-                        <a class="to-block dummy"></a>
+                        <!-- <a class="to-block dummy"></a> -->
                         <div class="to-block">{{getBlockRate()}}</div>
                         <div class="from-block">
                             <span class="equation-part">(</span>
@@ -87,20 +64,55 @@
                     </div>
                 </div>
                 <div class="oe-message-container">
-                    <div class="oe-message-text" *ngIf="!strike.observedResult && selectedGuess === 'fast'">You
-                        guessed
-                        nbdr&nbsp;&gt;&nbsp;100<br>(bitcoin running hotter)</div>
-                    <div class="oe-message-text" *ngIf="!strike.observedResult && selectedGuess === 'slow'">You
-                        guessed
-                        nbdr&nbsp;&lt;&nbsp;100<br>(bitcoin
-                        running cooler)</div>
-                    <div class="oe-message-text"
-                        *ngIf="strike.observedResult && strike.observedResult === selectedGuess">
+                    <!-- *ngIf="strike.observedResult && strike.observedResult === selectedGuess" -->
+                    <div class="oe-message-text" *ngIf="getResult() === selectedGuess && selectedGuess === 'fast'">
                         <h1>🤠&nbsp;💰You<br>Won</h1>
                     </div>
-                    <div class="oe-message-text"
-                        *ngIf="strike.observedResult && strike.observedResult !== selectedGuess && selectedGuess && selectedGuess !== 'disabled'">
+                    <!-- *ngIf="strike.observedResult && strike.observedResult !== selectedGuess && selectedGuess && selectedGuess !== 'disabled'" -->
+                    <div class="oe-message-text" *ngIf="getResult() === selectedGuess && selectedGuess === 'slow'">
                         <h1>😭&nbsp;💩You<br>Lost</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="judgement-block-container">
+                <!-- Top Section -->
+                <div class="top-blocks">
+                    <!-- Yellow Block -->
+                    <div class="judgement-block yellow-block label">
+                        Judgement block height
+                    </div>
+                    <!-- Orange Block -->
+                    <div class="judgement-block orange-block label">
+                        Judgement block time
+                    </div>
+
+                    <!-- Middle Section: Hash Block -->
+                    <div class="judgement-block hash-block label">
+                        Judgement block hash
+                    </div>
+                </div>
+                <div class="top-blocks">
+                    <!-- Yellow Block -->
+                    <div class="judgement-block yellow-block">
+                        {{strike.observedBlockHeight || '?'}}
+                    </div>
+                    <!-- Orange Block -->
+                    <div class="judgement-block orange-block">
+                        {{strike.observedBlockMediantime || '?'}}
+                    </div>
+
+                    <!-- Middle Section: Hash Block -->
+                    <div class="judgement-block hash-block" [ngClass]="{'small-font': strike.observedBlockHash}">
+                        {{strike.observedBlockHash || '?'}}
+                    </div>
+                </div>
+
+                <div class="judgement-placeholder">
+                    <div class="label mt-2 text-center">
+                        judgement blockHeight >= StrikeHeight: {{getJudgementHeight()}}
+                    </div>
+                    <div class="label mt-2 text-center">
+                        judgement blockTime >= StrikeTime: {{getJudgementTime()}}
                     </div>
                 </div>
             </div>

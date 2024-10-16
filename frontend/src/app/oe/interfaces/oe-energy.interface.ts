@@ -153,6 +153,7 @@ export interface BlockTimeStrike {
   observedBlockMediantime? : number;
   observedBlockHash? : string;
   creationTime : number;
+  observedBlockHeight? : number;
 }
 
 export interface BlockTimeStrikeGuessPublic {
