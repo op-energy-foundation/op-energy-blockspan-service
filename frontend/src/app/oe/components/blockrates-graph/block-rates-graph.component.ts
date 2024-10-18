@@ -469,7 +469,7 @@ export class BlockRatesGraphComponent implements OnInit {
     // Handle click event for line or bar series
     const { startBlockHeight, endBlockHeight } = this.chartData[dataIndex];
     window.open(
-      `${document.location.protocol}//${document.location.host}/hashstrikes/energy_detail/${startBlockHeight}/${endBlockHeight}`,
+      `${document.location.protocol}//${document.location.host}/hashstrikes/blockrate-detail/${startBlockHeight}/${endBlockHeight}`,
       '_blank'
     );
   }

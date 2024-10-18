@@ -113,6 +113,6 @@ export class StrikeComponent implements OnInit, OnDestroy {
   }
 
   strikeDetailLink() {
-    return `/hashstrikes/strike_detail/${this.fromBlock.height}/${this.toBlock.height}/${this.strike.blockHeight}/${this.strike.strikeMediantime}/${this.strike.creationTime}`;
+    return `/hashstrikes/blockrate-strike-detail/${this.fromBlock.height}/${this.toBlock.height}/${this.strike.blockHeight}/${this.strike.strikeMediantime}/${this.strike.creationTime}`;
   }
 }

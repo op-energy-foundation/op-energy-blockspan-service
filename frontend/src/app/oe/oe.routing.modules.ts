@@ -41,23 +41,23 @@ const routes: Routes = [
         path: 'hashstrikes',
         children: [
           {
-            path: 'energy_detail/:from/:to',
+            path: 'blockrate-detail/:from/:to',
             component: EnergyDetailComponent,
           },
           {
-            path: 'energy_summary',
+            path: 'blockrate-summary',
             component: EnergySummaryComponent,
           },
           {
-            path: 'strike_detail',
+            path: 'blockrate-strike-detail',
             component: StrikeDetailComponent,
           },
           {
-            path: 'strike_summary',
+            path: 'blockrate-strike-summary',
             component: StrikeSummaryComponent,
           },
           {
-            path: 'strike_summary_with_guess',
+            path: 'blockrate-strike-summary-with-guess',
             component: StrikeSummaryWithGuessComponent,
           },
           {
@@ -69,7 +69,7 @@ const routes: Routes = [
             component: BlockspansHomeComponent,
           },
           {
-            path: 'strikes-range',
+            path: 'blockrate-strikes-range',
             component: StrikesRangeComponent,
           },
           {
@@ -77,7 +77,7 @@ const routes: Routes = [
             component: BlockspanBHSComponent,
           },
           {
-            path: 'my_guesses',
+            path: 'my-guesses',
             component: MyGuessesComponent
           },
           {

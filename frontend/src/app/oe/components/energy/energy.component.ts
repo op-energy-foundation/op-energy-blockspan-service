@@ -47,6 +47,6 @@ export class EnergyComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {}
 
   energyDetailLink(): string {
-    return `/hashstrikes/energy_detail/${this.fromBlock.height}/${this.toBlock.height}`;
+    return `/hashstrikes/blockrate-detail/${this.fromBlock.height}/${this.toBlock.height}`;
   }
 }

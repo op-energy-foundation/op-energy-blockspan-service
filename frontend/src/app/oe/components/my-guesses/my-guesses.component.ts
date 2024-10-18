@@ -68,6 +68,6 @@ export class MyGuessesComponent implements OnInit {
     }
 
     // Navigate to the target route with the query parameters
-    this.router.navigate(['/hashstrikes/strike_summary'], { queryParams });
+    this.router.navigate(['/hashstrikes/blockrate-strike-summary'], { queryParams });
   }
 }

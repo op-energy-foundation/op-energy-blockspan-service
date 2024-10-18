@@ -52,7 +52,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   }
 
   get strikeDetailLink(): string {
-    return `/hashstrikes/strike_detail?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
+    return `/hashstrikes/blockrate-strike-detail?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
   }
 
   constructor(
