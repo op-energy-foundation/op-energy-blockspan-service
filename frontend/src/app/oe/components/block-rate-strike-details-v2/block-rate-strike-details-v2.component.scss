@@ -206,6 +206,13 @@
           height: 15%;
         }
 
+        .logos {
+          display: flex;
+          flex-direction: row;
+          gap: 0.5rem;
+          margin-left: 30%;
+        }
+
         .logo {
           font-size: 4rem;
           display: flex;
@@ -215,8 +222,6 @@
           border: 2px solid black;
           height: 5rem;
           width: 5rem;
-          margin-left: 40%;
-          margin-right: 35%;
         }
       }
 

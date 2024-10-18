@@ -23,4 +23,5 @@ export enum Logos {
   STRIKES = '🔥',
   TIMES = '🕢',
   SATOSHIS = '💰',
+  CONTRACT = '🤝',
 }
