@@ -3,7 +3,7 @@
         <div class="spinner-border text-light"></div>
     </div>
     <div class="observed-blockspan-detail--top" *ngIf="!isLoadingBlock">
-        <div>
+        <div class="block-container">
             <div class="blockspan">
                 <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
