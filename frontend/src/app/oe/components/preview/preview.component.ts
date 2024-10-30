@@ -163,4 +163,8 @@ export class PreviewComponent implements OnInit {
   blockrateStrikeDetailsV2(): void {
     window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
   }
+
+  blockrateStrikeDetailsV2(): void {
+    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
+  }
 }
