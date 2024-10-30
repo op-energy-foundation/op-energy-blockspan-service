@@ -53,6 +53,7 @@ import { GuessingGameComponent } from './components/guessing-game/guessing-game.
 import { BoxComponent } from './components/box/box.component';
 import { BlockspanBHSComponent } from './components/blockspan-bhs/blockspan-bhs.component';
 import { MyGuessesComponent } from './components/my-guesses/my-guesses.component';
+import { BlockRateStrikeDetailsV2Component } from './components/block-rate-strike-details-v2/block-rate-strike-details-v2.component';
 
 @NgModule({
   declarations: [
@@ -88,6 +89,7 @@ import { MyGuessesComponent } from './components/my-guesses/my-guesses.component
     BlockspanBHSComponent,
     BoxComponent,
     MyGuessesComponent,
+    BlockRateStrikeDetailsV2Component,
   ],
   imports: [
     CommonModule,

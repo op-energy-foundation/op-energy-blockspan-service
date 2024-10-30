@@ -95,6 +95,8 @@ export class BlockspanBHSComponent implements OnInit {
   }
 
   convertToUTC(unixTimestamp: number): string {
+    if (unixTimestamp === 0) return '?';
+
     const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
 
     const year = date.getUTCFullYear();
@@ -109,6 +111,8 @@ export class BlockspanBHSComponent implements OnInit {
 
   // Method to calculate the time difference in HH:MM format
   calculateTimeDifference(fromTimestamp: number, toTimestamp: number): string {
+    if (fromTimestamp === 0 || toTimestamp === 0) return '?';
+
     const differenceInSeconds = toTimestamp - fromTimestamp;
 
     const hours = Math.floor(differenceInSeconds / 3600); // 3600 seconds in an hour
@@ -124,26 +128,39 @@ export class BlockspanBHSComponent implements OnInit {
   getSpan(type: string): string {
     if (!this.fromBlock || !this.toBlock) return '?';
 
-    if (type === 'blockspan') {
-      return (this.toBlock.height - this.fromBlock.height).toString();
-    }
+    const {
+      height: fromHeight,
+      mediantime: fromMediantime,
+      chainwork: fromChainwork,
+    } = this.fromBlock;
+    const {
+      height: toHeight,
+      mediantime: toMediantime,
+      chainwork: toChainwork,
+    } = this.toBlock;
 
-    if (type === 'time') {
-      return (this.toBlock.mediantime - this.fromBlock.mediantime).toString();
-    }
+    switch (type) {
+      case 'blockspan':
+        return (toHeight - fromHeight).toString();
 
-    if (type === 'hashes') {
-      return toScientificNotation(
-        getHexValue(this.toBlock.chainwork) -
-          getHexValue(this.fromBlock.chainwork)
-      );
-    }
+      case 'time':
+        return fromMediantime !== 0 && toMediantime !== 0
+          ? (toMediantime - fromMediantime).toString()
+          : '?';
 
-    if (type === 'satoshis') {
-      return '?';
-    }
+      case 'hashes':
+        return fromChainwork && toChainwork
+          ? toScientificNotation(
+              getHexValue(toChainwork) - getHexValue(fromChainwork)
+            )
+          : '?';
 
-    return '?';
+      case 'satoshis':
+        return '?';
+
+      default:
+        return '?';
+    }
   }
 
   getBlockRate(): string {
