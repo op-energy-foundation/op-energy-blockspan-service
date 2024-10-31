@@ -1,0 +1,11 @@
+.clickable-row {
+    cursor: pointer;
+    // color: blue; /* Standard link color */
+    
+}
+
+.clickable-row:hover {
+    color: rgb(230, 230, 236);
+    text-shadow: 0 0 5px rgba(0, 0, 255, 0.5); /* Glow effect */
+    text-decoration: underline;
+}

@@ -1,4 +1,5 @@
-.observed-blockspan-detail {
+.observed-strike-detail {
+  width: 90%;
   margin-top: 100px;
 
   &--top {
@@ -7,6 +8,14 @@
     align-items: center;
     justify-content: center;
     gap: 25px;
+
+    .strike-container {
+      margin-left: 10%;
+      width: 65%;
+      background: gray;
+      padding-left: 3%;
+      border: 1px black;
+    }
 
     .blockspan {
       display: flex;
@@ -308,6 +317,7 @@
     }
 
     .judgement-block-container {
+      width: 95%;
       align-self: flex-start;
       display: flex;
       flex-direction: column;
@@ -373,6 +383,73 @@
         display: flex;
         flex-direction: column;
         color: white;
+      }
+    }
+  }
+}
+
+
+.oe-strike-blockspan-container {
+
+
+  ::ng-deep {
+    .observed-blockspan-detail {
+      margin-top: 0px;
+
+      &--top {
+
+        margin-top: 2rem;
+        
+        ::ng-deep {
+
+          .blockspan-bottom-upper {
+            background-color: #e69138;
+          }
+
+          .observed-blockspan-detail {
+            margin-top: 1rem;
+          }
+
+          .blockspan-bottom {
+            margin-top: 8rem;
+          }
+
+          .blockrate {
+
+            background: #e69138;
+            padding-left: 0.5rem;
+            padding-top: 0rem;
+            box-sizing: border-box;
+            padding-right: 0.5rem;
+
+            
+            .to-block, .from-block, .footer {
+              background-color: yellow !important;
+            }
+
+            .dummy {
+              visibility: visible !important;
+              background-color: #e69138 !important;
+              border: none !important;
+            }
+          }
+        }
+      }
+    }
+
+    .observed-strike-detail {
+      margin-top: 20%;
+      padding-bottom: 2%;
+
+      &--top {
+        align-items: flex-start;
+
+        .strike-container {
+          box-sizing: border-box;
+          margin-left: 2.75%;
+          padding-left: 10%;
+          width: 90%;
+        }
       }
     }
   }

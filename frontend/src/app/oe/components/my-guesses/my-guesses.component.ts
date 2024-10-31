@@ -53,10 +53,17 @@ export class MyGuessesComponent implements OnInit {
   }
 
   public redirectToSummary(
+    event: Event,
     strikeHeight: number,
     strikeTime: number,
     observedResult: string | null
   ): void {
+
+    if (window.getSelection()?.toString()) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+      return;
+    }
     const queryParams: any = {
       strikeHeight: strikeHeight,
       strikeTime: strikeTime,

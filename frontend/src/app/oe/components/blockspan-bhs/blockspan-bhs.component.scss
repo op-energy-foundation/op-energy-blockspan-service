@@ -42,12 +42,56 @@
           gap: 20px;
         }
         
-        .blockspan-block , .hashblock {
+        .blockspan-block , .hashblock, {
           width: 30%;
           height: 500px;
         }
 
-        .timeblock, .timeblock-utc, .satoshis {
+        .blockspan-bottom-upper {
+          display: flex;
+          flex-direction: column;
+          width: 60%;
+          gap: 0px;
+          margin-right: 0.5rem;
+          margin-left: 0.5rem;
+          padding-left: 0.5rem;
+          padding-right: 0.5rem;
+          margin-bottom: 7rem;
+          
+          .blockspan-bottom-upper-header {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 1rem;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            color: black;
+            font-weight: 700;
+            top: 2.5rem;
+            position: relative;
+          }
+
+          .blockspan-bottom-upper-content {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            margin-bottom: -10rem;
+            margin-top: -4rem;
+          .timeblock, .timeblock-utc {
+            width: 100%;
+            height: 500px;
+
+            ::ng-deep {
+              .dummy {
+                // height: 0px;
+              }
+            }
+          }
+        }
+        }
+
+        .satoshis {
           width: 30%;
           height: 500px;
         }
@@ -68,9 +112,9 @@
           }
         }
 
-        .timeblock {
-          margin-left: 1rem;
-        }
+        // .timeblock {
+        //   margin-left: 1rem;
+        // }
 
         .timeblock-utc {
           margin-left: 0.25rem;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Block } from '../../interfaces/oe-energy.interface';
 import { BlockTypes, Logos } from '../../types/constant';
 import { ActivatedRoute, ParamMap } from '@angular/router';
@@ -31,6 +31,7 @@ export class BlockspanBHSComponent implements OnInit {
   fromBlock: Block;
   toBlock: Block;
   latestBlock: Block;
+  @Input() result: string;
 
   constructor(
     private route: ActivatedRoute,
@@ -132,11 +133,13 @@ export class BlockspanBHSComponent implements OnInit {
       height: fromHeight,
       mediantime: fromMediantime,
       chainwork: fromChainwork,
+      chainreward: fromChainReward,
     } = this.fromBlock;
     const {
       height: toHeight,
       mediantime: toMediantime,
       chainwork: toChainwork,
+      chainreward: toChainReward,
     } = this.toBlock;
 
     switch (type) {
@@ -156,7 +159,7 @@ export class BlockspanBHSComponent implements OnInit {
           : '?';
 
       case 'satoshis':
-        return '?';
+        return toChainReward && fromChainReward ? toScientificNotation(toChainReward  - fromChainReward) : '?';
 
       default:
         return '?';
@@ -217,7 +220,7 @@ export class BlockspanBHSComponent implements OnInit {
     }
 
     // Perform the calculation and ensure it's valid
-    return (hashes / satoshis).toFixed(2);
+    return toScientificNotation((hashes / satoshis));
   }
 
   getChainWork(hexValue: string): string {

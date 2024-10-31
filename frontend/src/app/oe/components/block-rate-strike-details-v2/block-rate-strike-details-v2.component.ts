@@ -36,7 +36,7 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
   logos = Logos;
   isLoadingBlock = true;
   subscription: Subscription;
-  strike: BlockTimeStrike;
+  strike: BlockTimeStrike = {} as BlockTimeStrike;
   fromBlock: Block;
   toBlock: Block;
   latestBlock: Block;
@@ -70,8 +70,7 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
       )
       .pipe(
         switchMap((params: ParamMap) => {
-          let fromBlockHeight =
-            +params.get('blockspanStart') || this.latestBlock.height;
+          let fromBlockHeight = +params.get('blockspanStart');
           const strikeHeight = +params.get('strikeHeight') || 1200000;
           let strikeTime = +params.get('strikeTime');
           if (!strikeTime) {
@@ -80,8 +79,8 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
               (strikeHeight - this.latestBlock.height) * 600;
           }
 
-          if (fromBlockHeight > strikeHeight) {
-            fromBlockHeight = strikeHeight - 13;
+          if (!fromBlockHeight) {
+            fromBlockHeight = strikeHeight - 14;
           }
           // Creating temporary strike
           this.strike = {
@@ -285,7 +284,21 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
 
     if (!heightOverStrikeHeight && timeOverStrikeTime) return 'slow';
 
-    return 'slower';
+    return 'slow';
+  }
+
+  getJudgementResult(): string {
+    const result = this.getResult();
+
+    if (result === 'fast') {
+      return 'faster';
+    }
+
+    if (result === 'slow') {
+      return 'slower';
+    }
+
+    return '?';
   }
 
   handleSelectedGuess(selected: 'slow' | 'fast'): void {

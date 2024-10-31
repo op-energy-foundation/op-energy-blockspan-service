@@ -29,7 +29,6 @@ export class PreviewComponent implements OnInit {
       .pipe(
         switchMap((block: Block) => {
           this.latestBlock = block;
-          console.log(this.latestBlock);
           return of(block);
         })
       )
@@ -161,10 +160,6 @@ export class PreviewComponent implements OnInit {
   }
 
   blockrateStrikeDetailsV2(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
-  }
-
-  blockrateStrikeDetailsV2(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
+    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&endblock=${this.latestStrike?.strike?.block}`;
   }
 }
