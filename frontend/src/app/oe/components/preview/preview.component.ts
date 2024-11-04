@@ -150,9 +150,9 @@ export class PreviewComponent implements OnInit {
   }
 
   blockspanDetails(): void {
-    window.location.href = `/hashstrikes/blockspan-details?endblock=${
-      this.latestBlock?.height + 14
-    }`;
+    window.location.href = `/hashstrikes/blockspan-details?startblock=${
+      this.latestBlock?.height
+    }&endblock=${this.latestBlock?.height + 2016}`;
   }
 
   myGuesses(): string {
@@ -160,6 +160,8 @@ export class PreviewComponent implements OnInit {
   }
 
   blockrateStrikeDetailsV2(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&endblock=${this.latestStrike?.strike?.block}`;
+    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}
+    &strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}
+    &endblock=${this.latestStrike?.strike?.block}`;
   }
 }

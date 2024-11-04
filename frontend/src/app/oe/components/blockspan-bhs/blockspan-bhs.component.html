@@ -7,8 +7,8 @@
             <div class="blockspan">
                 <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
-                <app-box class="hashblock" [fromLabel]="getChainWork(this.fromBlock.chainwork)"
-                    [toLabel]="getChainWork(this.toBlock.chainwork)" footerText="hashes" [spanLabel]="getSpan('hashes')"
+                <app-box class="hashblock" [ngClass]="{'hashblock-font': getChainWork(this.fromBlock.chainwork) !== '?'}" [fromLabel]="getChainWork(this.fromBlock.chainwork)"
+                    [toLabel]="getChainWork(this.toBlock.chainwork)" footerText="hashes" [spanLabel]="getSpan('hashes', false)"
                     background="red" [logo]="logos.STRIKES"></app-box>
                     <div class="blockspan-bottom-upper">
                         <div class="blockspan-bottom-upper-header">{{result}}</div>

@@ -42,9 +42,14 @@
           gap: 20px;
         }
         
-        .blockspan-block , .hashblock, {
+        .blockspan-block , .hashblock {
           width: 30%;
           height: 500px;
+        }
+
+        .hashblock-font {
+          width: 40%;
+          font-size: 18px;
         }
 
         .blockspan-bottom-upper {

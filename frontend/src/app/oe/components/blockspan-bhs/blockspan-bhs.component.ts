@@ -63,7 +63,7 @@ export class BlockspanBHSComponent implements OnInit {
             endBlock && startBlock
               ? parseInt(startBlock, 10)
               : endBlock
-              ? parseInt(endBlock, 10) - 14
+              ? parseInt(endBlock, 10) - 2016
               : parseInt(startBlock, 10) || this.latestBlock.height;
 
           const toBlockHeight: number =
@@ -126,7 +126,7 @@ export class BlockspanBHSComponent implements OnInit {
     )}`;
   }
 
-  getSpan(type: string): string {
+  getSpan(type: string, isScientific: boolean = true): string {
     if (!this.fromBlock || !this.toBlock) return '?';
 
     const {
@@ -153,13 +153,17 @@ export class BlockspanBHSComponent implements OnInit {
 
       case 'hashes':
         return fromChainwork && toChainwork
-          ? toScientificNotation(
-              getHexValue(toChainwork) - getHexValue(fromChainwork)
-            )
+          ? isScientific
+            ? toScientificNotation(
+                getHexValue(toChainwork) - getHexValue(fromChainwork)
+              )
+            : (getHexValue(toChainwork) - getHexValue(fromChainwork)).toString()
           : '?';
 
       case 'satoshis':
-        return toChainReward && fromChainReward ? toScientificNotation(toChainReward  - fromChainReward) : '?';
+        return toChainReward && fromChainReward
+          ? toScientificNotation(toChainReward - fromChainReward)
+          : '?';
 
       default:
         return '?';
@@ -229,6 +233,6 @@ export class BlockspanBHSComponent implements OnInit {
       return '?';
     }
 
-    return toScientificNotation(getHexValue(hexValue));
+    return getHexValue(hexValue).toString();
   }
 }
