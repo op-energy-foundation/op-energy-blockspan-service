@@ -80,7 +80,7 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
           }
 
           if (!fromBlockHeight) {
-            fromBlockHeight = strikeHeight - 14;
+            fromBlockHeight = Math.max(0, strikeHeight - 14);
           }
           // Creating temporary strike
           this.strike = {
