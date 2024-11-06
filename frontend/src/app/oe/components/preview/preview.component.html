@@ -1,52 +1,53 @@
 <div class="preview-component text-center">
   <div><a [routerLink]="blockspansLink()">Blockspans</a></div>
   <div>
-    <a (click)="blockspanDetails()">Blockspan Detail</a>
+    <a (click)="blockspanDetails()">Blockspan Detail v2</a>
   </div>
   <div>
-    <a (click)="blockrateStrikeDetailsV2()">Blockrate strike detail v2</a>
+    <a (click)="blockrateStrikeDetailsV2()">Blockrate Strike Detail v2</a>
   </div>
   <div><a [routerLink]="myGuesses()">My Guesses</a></div>
-  <div><a [href]="pastStrikeSummaryLink()">Strike Summary(Past)</a></div>
+  <div><a [href]="pastStrikeSummaryLink()">Blockrate Strike Summary(Past)</a></div>
   <div>
-    <a (click)="futureStrikeSummaryLink()">Strike Summary(Future)</a>
+    <a (click)="futureStrikeSummaryLink()">Blockrate Strike Summary(Future)</a>
   </div>
   <div>
-    <a (click)="strikeSummaryWithGuess()">Strike Summary With Guess</a>
+    <a (click)="strikeSummaryWithGuess()">Blockrate Strike Summary With Guess</a>
   </div>
-  <div><a [href]="pastStrikeDetailLink()">Strike Detail(Past)</a></div>
+  <div><a [href]="pastStrikeDetailLink()">Blockrate Strike Detail(Past)</a></div>
   <div>
-    <a (click)="futureStrikeDetailLink()">Strike Detail(Future)</a>
+    <a (click)="futureStrikeDetailLink()">Blockrate Strike Detail(Future)</a>
   </div>
+  <h2 class="pt-5 pb-3">LIST OF STRIKES</h2>
   <div>
-    <a [href]="pastStrikeListOldestToNewestLink()">All Past Strike List(oldest to newest)</a>
-  </div>
-  <div>
-    <a [href]="pastStrikeListNewestToOldestLink()">All Past Strike List(newest to oldest)</a>
+    <a [href]="pastStrikeListOldestToNewestLink()">All Past Blockrate Strike List(oldest to newest)</a>
   </div>
   <div>
-    <a [href]="guessableStrikeListNewestToOldestLink()">All Guessable Strike List(newest to oldest)</a>
+    <a [href]="pastStrikeListNewestToOldestLink()">All Past Blockrate Strike List(newest to oldest)</a>
   </div>
   <div>
-    <a [href]="strikeListSortByGuess()">All Strikes Range List(With guess highest to lowest)</a>
+    <a [href]="guessableStrikeListNewestToOldestLink()">All Guessable Blockrate Strike List(newest to oldest)</a>
   </div>
   <div>
-    <a [href]="strikesRangeWithStartblockEndblock()">Strikes Range(With startblock and endblock)</a>
+    <a [href]="strikeListSortByGuess()">All Blockrate Strikes Range List(With guess highest to lowest)</a>
   </div>
   <div>
-    <a [href]="strikesRangeWithStarttimeEndtime()">Strikes Range(With starttime and endtime)</a>
+    <a [href]="strikesRangeWithStartblockEndblock()">Blockrate Strikes Range(With startblock and endblock)</a>
   </div>
   <div>
-    <a [href]="strikesRangeWithStartblockEndtime()">Strikes Range(With startblock and endtime)</a>
+    <a [href]="strikesRangeWithStarttimeEndtime()">Blockrate Strikes Range(With starttime and endtime)</a>
   </div>
   <div>
-    <a [href]="strikesRangeWithstarttimeEndBlock()">Strikes Range(With starttime and endblock)</a>
+    <a [href]="strikesRangeWithStartblockEndtime()">Blockrate Strikes Range(With startblock and endtime)</a>
   </div>
   <div>
-    <a [href]="strikesRangeWithLastStrikes()">Strikes Range(With LastStrikes)</a>
+    <a [href]="strikesRangeWithstarttimeEndBlock()">Blockrate Strikes Range(With starttime and endblock)</a>
   </div>
   <div>
-    <a [href]="strikesRangeWithNextStrikes()">Strikes Range(With NextStrikes)</a>
+    <a [href]="strikesRangeWithLastStrikes()">Blockrate Strikes Range(With LastStrikes)</a>
+  </div>
+  <div>
+    <a [href]="strikesRangeWithNextStrikes()">Blockrate Strikes Range(With NextStrikes)</a>
   </div>
   <!-- <div>
     <a [routerLink]="pastStrikeListQWithGuess()">All Past Strike List With Guess(Sorted by Guess Descending)</a>
@@ -54,15 +55,15 @@
   <!-- <div>
     <a [routerLink]="futureStrikeSummaryLink()">Strike Summary(Future)</a>
   </div> -->
-  <div><a [href]="pastEnergySummaryLink()">Energy Summary(Past)</a></div>
+  <div><a [href]="pastEnergySummaryLink()">Blockrate Summary(Past)</a></div>
   <div>
-    <a (click)="futureEnergySummaryLink()">Energy Summary(Future)</a>
+    <a (click)="futureEnergySummaryLink()">Blockrate Summary(Future)</a>
   </div>
-  <div><a [routerLink]="pastEnergyDetailLink()">Energy Detail(Past)</a></div>
+  <div><a [routerLink]="pastEnergyDetailLink()">Blockrate Detail(Past)</a></div>
   <div>
-    <a (click)="futureEnergyDetailLink()">Energy Detail(Future)</a>
+    <a (click)="futureEnergyDetailLink()">Blockrate Detail(Future)</a>
   </div>
   <div>
-    <a [routerLink]="blockRateChartLink()">BlockRate and HashRate Charts</a>
+    <a [routerLink]="blockRateChartLink()">Blockrate and Hashrate Charts</a>
   </div>
 </div>

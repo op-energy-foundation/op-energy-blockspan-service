@@ -53,10 +53,17 @@ export class MyGuessesComponent implements OnInit {
   }
 
   public redirectToSummary(
+    event: Event,
     strikeHeight: number,
     strikeTime: number,
     observedResult: string | null
   ): void {
+
+    if (window.getSelection()?.toString()) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+      return;
+    }
     const queryParams: any = {
       strikeHeight: strikeHeight,
       strikeTime: strikeTime,
@@ -68,6 +75,6 @@ export class MyGuessesComponent implements OnInit {
     }
 
     // Navigate to the target route with the query parameters
-    this.router.navigate(['/hashstrikes/strike_summary'], { queryParams });
+    this.router.navigate(['/hashstrikes/blockrate-strike-summary'], { queryParams });
   }
 }

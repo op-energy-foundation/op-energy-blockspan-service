@@ -299,11 +299,11 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   energyDetailLink() {
-    return `/hashstrikes/energy_detail/${this.fromBlock.height}/${this.toBlock.height}`;
+    return `/hashstrikes/blockrate-detail/${this.fromBlock.height}/${this.toBlock.height}`;
   }
 
   strikeSummaryLink() {
-    return `/hashstrikes/strike_summary?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
+    return `/hashstrikes/blockrate-strike-summary?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
   }
 
   public fetchFutureGuessData(pageNumber: number, filter: any = {}): void {

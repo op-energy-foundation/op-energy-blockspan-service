@@ -197,7 +197,7 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
       const currentUrl = this.router.url;
       navigator(
         this.router,
-        currentUrl.replace('energy_detail', 'energy_summary')
+        currentUrl.replace('blockrate-detail', 'blockrate-summary')
       );
     }
   }
