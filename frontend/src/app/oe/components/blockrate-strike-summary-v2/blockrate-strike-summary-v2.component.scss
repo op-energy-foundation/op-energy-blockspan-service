@@ -1,0 +1,175 @@
+:host {  
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px; 
+}  
+
+.observed-blockspan-detail {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 100px;
+  
+    &--top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 25px;
+  
+      .block-container {
+        width: 100%;
+      }
+
+      .blockspan {
+        display: flex;
+        align-items: center;
+        position: relative;
+        width: 100%;
+        height: 340px;
+        font-size: 18px;
+        justify-content: center;
+  
+        @media (max-width: 420px) {
+          width: 50%;
+          padding: 0 30px;
+        }
+  
+        > div {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        
+        .blockspan-block , .hashblock {
+          width: 30%;
+          height: 500px;
+        }
+
+        .blockrate, .hashrate, .guessing-container {
+          width: 20%;
+          font-size: 18px;
+          display: flex;
+          flex-direction: column;
+          text-align: center;
+          height: 500px;
+          gap: 1px;
+          font-weight: 700;
+
+          .dummy {
+            top: 0;
+            height: 30%;
+            visibility: hidden;
+            margin-top: 0;
+          }
+
+          .to-block {
+            margin-top: -1px;
+            height: 150px;
+            background-color: white;
+            color: black;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            justify-content: center;
+            border: 1px solid black;
+            font-size: 4rem;
+          }
+
+          .footer {
+            background-color: white;
+            color: black;
+            border: 1px solid black;
+          }
+
+          .logo {
+            font-size: 3rem;
+            
+            .logo-container {
+              background-color: white;
+              border: 2px solid black;
+              padding: 4px 10px 4px 10px;
+            }
+          }
+
+          .oe-guessing-box {
+            // height: 500px;
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            // margin-top: 50%;
+
+            // add margin top to oe-guessing-box first occurance
+            &:first-child {
+              margin-top: 175px;
+            }
+
+            .oe-icon {
+              font-size: 2rem;
+            }
+
+            .btn {
+              color: black;
+              font-size: 1.5rem;
+              width: 14rem;
+              // Default button styles
+              border-radius: 5px;
+              transition: all 0.3s ease;
+    
+              // Styles for the disabled state
+              &:disabled {
+                background-color: #e0e0e0; // Light gray background for disabled
+                border-color: #d3d3d3; // Gray border
+                color: #a0a0a0; // Light gray text
+                cursor: not-allowed; // Show "not-allowed" cursor on hover
+    
+                // Optional hover effects for disabled stateoe-message-container
+                &:hover {
+                  background-color: #e0e0e0;
+                  border-color: #d3d3d3;
+                  color: #a0a0a0;
+                }
+              }
+    
+              // Active button styles
+              &.active {
+                background-color: #ffc107;
+                border-color: #ffc107; // Gold border for active state
+                color: #fff; // White text for active state
+                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); // Add slight shadow for emphasis
+    
+                // Add hover effect for active button
+                &:hover {
+                  background-color: darken(#ffc107, 5%); // Darken on hover
+                  border-color: darken(#ffc107, 5%);
+                }
+              }
+            }
+          }
+        }
+
+        .guessing-container {
+          padding-left: 3rem;
+
+          .oe-message-container {
+            .oe-message-text {
+              width: 14rem;
+              font-size: 20px;
+              font-weight: bold;
+              text-align: center;
+              padding: 20px 0 20px 0;
+              border-radius: 8px;
+              color: #f5f5f5;
+            }
+          }
+        }
+
+        .hashrate {
+          .to-block , .footer{
+            background-color: #cccccc;
+          }
+        }
+      }
+    }
+  }
