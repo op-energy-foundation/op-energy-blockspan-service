@@ -36,11 +36,11 @@
                             <span class="oe-icon">🐢</span> - slower
                         </button>
                     </div>
-                    <div class="oe-message-container">
-                        <div class="oe-message-text" *ngIf="getResult() === selectedGuess && selectedGuess === 'fast'">
+                    <div class="oe-message-container" *ngIf="selectedGuess && strike.observedResult">
+                        <div class="oe-message-text" *ngIf="getResult() === selectedGuess">
                             <h1>🤠&nbsp;💰You<br>Won</h1>
                         </div>
-                        <div class="oe-message-text" *ngIf="getResult() === selectedGuess && selectedGuess === 'slow'">
+                        <div class="oe-message-text" *ngIf="getResult() !== selectedGuess">
                             <h1>😭&nbsp;💩You<br>Lost</h1>
                         </div>
                     </div>
