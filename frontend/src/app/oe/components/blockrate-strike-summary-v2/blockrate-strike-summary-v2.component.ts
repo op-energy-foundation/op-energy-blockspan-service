@@ -6,7 +6,7 @@ import {
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { BlockTypes, Logos } from '../../types/constant';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import {
   OeBlocktimeApiService,
   OeEnergyApiService,
@@ -47,6 +47,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   color = 'red';
 
   constructor(
+    private router: Router,
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
     private stateService: OeStateService,
@@ -268,6 +269,24 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     }
 
     return this.strike.observedBlockMediantime > this.strike.strikeMediantime;
+  }
+
+  goToStrikeDetails(event: Event): string {
+    if (window.getSelection()?.toString()) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+      return;
+    }
+
+    const queryParams: any = {
+      strikeHeight: this.strike.block,
+      strikeTime: this.strike.strikeMediantime,
+      startblock: this.fromBlock.height,
+      endblock: this.toBlock.height,
+    };
+
+    // Navigate to the target route with the query parameters
+    this.router.navigate(['/hashstrikes/blockrate-strike-details-v2'], { queryParams });
   }
 
 }

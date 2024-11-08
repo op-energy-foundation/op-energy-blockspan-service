@@ -9,9 +9,9 @@
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
                 <div class="blockrate">
                     <a class="dummy"></a>
-                    <div class="to-block">{{getBlockRate()}}</div>
-                    <div class="footer">blockrate</div>
-                    <div class="logo"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
+                    <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getBlockRate()}}</div>
+                    <div class="footer oe-link" (click)="goToStrikeDetails($event)">blockrate</div>
+                    <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
                 </div>
                 <div class="hashrate">
                     <a class="dummy"></a>

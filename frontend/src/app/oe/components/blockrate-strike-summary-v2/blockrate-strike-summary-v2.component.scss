@@ -147,6 +147,15 @@
               }
             }
           }
+
+          .oe-link {
+            cursor: pointer;
+            // add link like behaviour css
+            &:hover {
+              color: blue;
+              text-decoration: underline;
+            }
+          }
         }
 
         .guessing-container {
