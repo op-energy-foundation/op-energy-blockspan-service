@@ -17,6 +17,7 @@ import { StrikesRangeComponent } from './components/strikes-range/strikes-range.
 import { BlockspanBHSComponent } from './components/blockspan-bhs/blockspan-bhs.component';
 import { MyGuessesComponent } from './components/my-guesses/my-guesses.component';
 import { BlockRateStrikeDetailsV2Component } from './components/block-rate-strike-details-v2/block-rate-strike-details-v2.component';
+import { BlockrateStrikeSummaryV2Component } from './components/blockrate-strike-summary-v2/blockrate-strike-summary-v2.component';
 
 const routes: Routes = [
   { path: 'login/:secret', component: LoginComponent },
@@ -83,6 +84,10 @@ const routes: Routes = [
           {
             path: 'blockrate-strike-details-v2',
             component: BlockRateStrikeDetailsV2Component
+          },
+          {
+            path: 'blockrate-strike-summary-v2',
+            component: BlockrateStrikeSummaryV2Component
           }
         ],
       },

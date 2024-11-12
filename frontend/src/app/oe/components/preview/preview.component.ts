@@ -14,6 +14,7 @@ import { of, switchMap, take } from 'rxjs';
   styleUrls: ['./preview.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
 export class PreviewComponent implements OnInit {
   latestStrike: BlockTimeStrikePublic;
   isLoading = true;
@@ -161,6 +162,12 @@ export class PreviewComponent implements OnInit {
 
   blockrateStrikeDetailsV2(): void {
     window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}
+    &strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}
+    &endblock=${this.latestStrike?.strike?.block}`;
+  }
+
+  blockrateStrikeSummaryV2(): void {
+    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}
     &strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}
     &endblock=${this.latestStrike?.strike?.block}`;
   }

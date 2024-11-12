@@ -1,0 +1,51 @@
+<div class="observed-blockspan-detail">
+    <div class="text-center loadingGraphs" *ngIf="isLoadingBlock">
+        <div class="spinner-border text-light"></div>
+    </div>
+    <div class="observed-blockspan-detail--top" *ngIf="!isLoadingBlock">
+        <div class="block-container">
+            <div class="blockspan">
+                <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
+                    footerText="blocks" [logo]="logos.BLOCKS"></app-box>
+                <div class="blockrate">
+                    <a class="dummy"></a>
+                    <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getBlockRate()}}</div>
+                    <div class="footer oe-link" (click)="goToStrikeDetails($event)">blockrate</div>
+                    <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
+                </div>
+                <div class="hashrate">
+                    <a class="dummy"></a>
+                    <div class="to-block">100</div>
+                    <div class="footer">predicted blockrate</div>
+                    <div class="logo multiple-logo"><span class="logo-container">{{ logos.BLOCKS }} {{ logos.CONTRACT }}</span></div>
+                </div>
+                <div class="guessing-container">
+                    <div class="oe-guessing-box pb-3">
+                        <button class="btn btn-lg btn-light btn-outline-warning" type="button"
+                            [class.active]="selectedGuess === 'fast'" [disabled]="disabled"
+                            (click)="handleSelectedGuess('fast')"
+                            [ngbTooltip]="strikeKnown ? 'Can\'t add guess as strike outcome is known' : null">
+                            <span class="oe-icon">🐰</span> - faster
+                        </button>
+                    </div>
+                    <div class="oe-guessing-box">
+                        <button class="btn btn-lg btn-light btn-outline-warning" type="button"
+                            [class.active]="selectedGuess === 'slow'" [disabled]="disabled"
+                            (click)="handleSelectedGuess('slow')"
+                            [ngbTooltip]="strikeKnown ? 'Can\'t add guess as strike outcome is known' : null">
+                            <span class="oe-icon">🐢</span> - slower
+                        </button>
+                    </div>
+                    <div class="oe-message-container" *ngIf="selectedGuess && strike.observedResult">
+                        <div class="oe-message-text" *ngIf="getResult() === selectedGuess">
+                            <h1>🤠&nbsp;💰You<br>Won</h1>
+                        </div>
+                        <div class="oe-message-text" *ngIf="getResult() !== selectedGuess">
+                            <h1>😭&nbsp;💩You<br>Lost</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
