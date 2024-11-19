@@ -161,14 +161,24 @@ export class PreviewComponent implements OnInit {
   }
 
   blockrateStrikeDetailsV2(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}
-    &strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}
-    &endblock=${this.latestStrike?.strike?.block}`;
+    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${
+    this.latestStrike?.strike?.block
+    }&strikeTime=${this.latestStrike?.strike?.strikeMediantime
+    }&startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
   }
 
   blockrateStrikeSummaryV2(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}
-    &strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}
-    &endblock=${this.latestStrike?.strike?.block}`;
+    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block
+    }&strikeTime=${this.latestStrike?.strike?.strikeMediantime
+    }&startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+  }
+
+  blockspanSummaryLink(type: 'past' | 'future' = 'future'): void {
+    if(type === 'past') {
+      window.location.href = `/hashstrikes/blockrate-summary-v2?startblock=849237&endblock=849251`
+      return;
+    }
+
+    window.location.href = `/hashstrikes/blockrate-summary-v2?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
   }
 }
