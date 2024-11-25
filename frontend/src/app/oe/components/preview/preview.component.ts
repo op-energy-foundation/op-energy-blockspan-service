@@ -86,26 +86,6 @@ export class PreviewComponent implements OnInit {
     window.location.href = `/hashstrikes/blockrate-strike-detail?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
   }
 
-  pastEnergySummaryLink(): string {
-    return '/hashstrikes/blockrate-summary?startblock=849237&endblock=849251';
-  }
-
-  futureEnergySummaryLink(): void {
-    window.location.href = `/hashstrikes/blockrate-summary?endblock=${this.latestStrike?.strike?.block}`;
-  }
-
-  pastEnergyDetailLink(): string {
-    return '/hashstrikes/blockrate-detail/89778/89791';
-  }
-
-  futureEnergyDetailLink(): void {
-    window.location.href = `/hashstrikes/blockrate-detail/89778/${this.latestStrike?.strike?.block}`;
-  }
-
-  blockRateChartLink(): string {
-    return '/graphs/blockratecharts/144';
-  }
-
   pastStrikeListOldestToNewestLink(): string {
     return '/hashstrikes/blockrate-strikes-range?sort=ascend&page=1';
   }

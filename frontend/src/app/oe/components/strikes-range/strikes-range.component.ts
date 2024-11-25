@@ -156,17 +156,18 @@ export class StrikesRangeComponent implements OnInit {
     const queryParams = {
       strikeHeight: item.block,
       strikeTime: item.strikeMediantime,
-      blockspanStart: item.block - 13,
+      startblock: item.block - 13,
+      endblock: item.block,
     };
 
     if (this.guessableScreen) {
-      this.router.navigate(['/hashstrikes/blockrate-strike-summary-with-guess'], {
+      this.router.navigate(['/hashstrikes/blockrate-strike-summary-v2'], {
         queryParams,
       });
       return;
     }
 
     // Use the Router service to navigate with query parameters
-    this.router.navigate(['/hashstrikes/blockrate-strike-detail'], { queryParams });
+    this.router.navigate(['/hashstrikes/blockrate-strike-details-v2'], { queryParams });
   }
 }

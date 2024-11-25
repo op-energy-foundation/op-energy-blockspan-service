@@ -233,6 +233,6 @@ export class BlockspanBHSComponent implements OnInit {
       return '?';
     }
 
-    return getHexValue(hexValue).toString();
+    return `${BigInt(`0x${hexValue}`)}`;
   }
 }

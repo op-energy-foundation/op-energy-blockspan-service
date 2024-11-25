@@ -48,8 +48,26 @@
         }
 
         .hashblock-font {
-          width: 40%;
-          font-size: 18px;
+          ::ng-deep {
+            .from-block, .to-block, .span-block {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              display: block;
+              text-align: center;
+              padding: 10% 20% 0 20%;
+              cursor: pointer;
+            }
+
+            .to-block {
+              padding: 5% 20% 0 20%;
+            }
+            
+            .span-block  {
+              max-width: 40%;
+              padding: 2% 2% 2% 2%;
+            }
+          }
         }
 
         .blockspan-bottom-upper {

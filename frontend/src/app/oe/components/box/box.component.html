@@ -1,11 +1,11 @@
 <div class="blockspan">
     <a class="to-block dummy"></a>
-    <div class="to-block" [ngStyle]="{'background-color': background}">
+    <div class="to-block" [ngStyle]="{'background-color': background}" [ngbTooltip]="isToolTipEnabled ? toLabel?.toString() || '?' : null">
         {{ toLabel || '?' }}
     </div>
-    <div *ngIf="displayBlock" class="span-block">{{ getSpan() }}</div>
+    <div *ngIf="displayBlock" class="span-block" [ngbTooltip]="isToolTipEnabled ? getSpan() : null">{{ getSpan() }}</div>
     <div *ngIf="displayLogo" class="logo-block">{{ logo }}</div>
-    <div class="from-block" [ngStyle]="{'background-color': background}">
+    <div class="from-block" [ngStyle]="{'background-color': background}" [ngbTooltip]="isToolTipEnabled ? fromLabel?.toString() || '?' : null">
         {{ fromLabel || '?' }}
     </div>
     <div class="footer" [ngStyle]="{'background-color': background}">{{footerText}}</div>

@@ -9,7 +9,7 @@
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
                 <app-box class="hashblock" [ngClass]="{'hashblock-font': getChainWork(this.fromBlock.chainwork) !== '?'}" [fromLabel]="getChainWork(this.fromBlock.chainwork)"
                     [toLabel]="getChainWork(this.toBlock.chainwork)" footerText="hashes" [spanLabel]="getSpan('hashes', false)"
-                    background="red" [logo]="logos.STRIKES"></app-box>
+                    background="red" [logo]="logos.STRIKES" [isToolTipEnabled]="true"></app-box>
                     <div class="blockspan-bottom-upper">
                         <div class="blockspan-bottom-upper-header">{{result}}</div>
                         <div class="blockspan-bottom-upper-content">
@@ -25,7 +25,7 @@
                 <app-box class="satoshis" [fromLabel]="fromBlock.chainreward" [toLabel]="toBlock.chainreward"
                     footerText="satoshis" background="#b6d7a8" [logo]="logos.SATOSHIS"></app-box>
                 <app-box class="hashes" [fromLabel]="fromBlock.hash" [toLabel]="toBlock.hash" footerText="block hashes"
-                    background="#ffff00" [displayBlock]="false" [displayLogo]="false"></app-box>
+                    background="#ffff00" [displayBlock]="false" [displayLogo]="false" [isToolTipEnabled]="true"></app-box>
             </div>
             <div class="blockspan-bottom">
                 <div class="blockrate">

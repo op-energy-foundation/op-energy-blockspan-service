@@ -14,6 +14,7 @@ export class BoxComponent implements OnInit {
   @Input() logo: string;
   @Input() displayBlock: boolean = true;
   @Input() displayLogo: boolean = true;
+  @Input() isToolTipEnabled: boolean = false;
 
   constructor() {}
 
