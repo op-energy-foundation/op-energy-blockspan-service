@@ -207,8 +207,13 @@ export class BlockrateSummaryV2Component implements OnInit {
       return;
     }
 
+    const queryParams: any = {
+      startblock: this.fromBlock.height,
+      endblock: this.toBlock.height,
+    };
+
     // Navigate to the target route with the query parameters
-    this.router.navigate(['/preview-page']);
+    this.router.navigate(['/hashstrikes/blockspan-details'], { queryParams });
   }
 
   fetchOutcomeNotKnownStrikes(pageNumber: number = 1): void {
