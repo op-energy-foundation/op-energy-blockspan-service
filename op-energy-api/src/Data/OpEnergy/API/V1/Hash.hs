@@ -27,6 +27,11 @@ import           Data.Word (Word8)
 import qualified Data.Text.Encoding as TE
 import           Control.Monad (replicateM)
 import           System.Random
+import qualified Data.List as List
+import qualified Data.Char as Char
+
+import           Test.QuickCheck(Arbitrary(..))
+import qualified Test.QuickCheck as QC
 
 import           Database.Persist
 import           Database.Persist.Sql
@@ -58,6 +63,15 @@ instance PersistField Hash where
   fromPersistValue _ = Left $ "InputVerification.hs fromPersistValue Hash , expected Text"
 instance PersistFieldSql Hash where
   sqlType _ = SqlString
+
+instance Arbitrary Hash where
+  arbitrary = do
+    bs <- (BS.toShort . BS.pack . List.map (fromIntegral . Char.ord) )
+      <$> (replicateM 64 $! QC.oneof $! digits ++ alphas)
+    return $! Hash bs
+    where
+    digits = [QC.choose ('0', '9')]
+    alphas = [QC.choose ('a', 'f')]
 
 
 defaultHash :: Hash

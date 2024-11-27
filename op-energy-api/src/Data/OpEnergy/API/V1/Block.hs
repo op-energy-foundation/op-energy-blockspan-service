@@ -16,6 +16,8 @@
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE OverloadedStrings          #-}
 module Data.OpEnergy.API.V1.Block where
 
 import           Data.Swagger
@@ -25,10 +27,19 @@ import           Data.Typeable              (Typeable)
 import           Data.Aeson
 import           Data.Int
 import           Data.Word
+import           Data.Text (Text)
 import qualified Data.Text                  as T
+import qualified Data.Text.Encoding         as T
+import           Control.Monad( replicateM)
+import           Control.Monad.Trans.Except( runExcept, ExceptT(..))
+import           Data.Bits((.|.), shiftL)
+import qualified Data.List as List
+import qualified Data.ByteString.Short as BS
 
 import           Data.Default
 import           Data.Proxy
+import           Test.QuickCheck (Arbitrary(..))
+import qualified Test.QuickCheck as QC
 
 import           Data.OpEnergy.Common
 import           Data.OpEnergy.API.V1.Natural
@@ -96,6 +107,28 @@ instance ToSchema BlockHeader where
     where
       def1 :: Default a => Proxy a-> a
       def1 _ = def
+instance Arbitrary BlockHeader where
+  arbitrary = (BlockHeader
+    <$> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    ) `QC.suchThat` (\v -> case everifyBlockHeader v of
+                             Right _ -> True
+                             _ -> False
+                    )
 
 type BlockHash = Hash
 
@@ -103,7 +136,7 @@ data BlockSpan = BlockSpan
   { startBlockHeight :: BlockHeight
   , endBlockHeight :: BlockHeight
   }
-  deriving (Show, Generic, Typeable)
+  deriving (Eq, Show, Generic, Typeable)
 
 defaultBlockSpan :: BlockSpan
 defaultBlockSpan = BlockSpan 772472 772473
@@ -114,15 +147,26 @@ instance ToSchema BlockSpan where
   declareNamedSchema proxy = genericDeclareNamedSchema defaultSchemaOptions proxy
     & mapped.schema.description ?~ "BlockSpan schema"
     & mapped.schema.example ?~ toJSON defaultBlockSpan
+instance Arbitrary BlockSpan where
+  arbitrary = BlockSpan
+    <$> arbitrary
+    <*> arbitrary
 
 type BlockHeight = Natural Int
 
 defaultBlockHeight :: BlockHeight
 defaultBlockHeight = verifyNaturalInt 1
 
+everifyBlockHeight :: Int -> Either Text BlockHeight
+everifyBlockHeight = everifyNatural
+
 
 newtype Bits = Bits Word32
   deriving (Eq, Show, Num, Generic)
+instance Arbitrary Bits where
+  arbitrary = do
+    bits <- replicateM 31 (QC.choose (0,1))
+    return $! Bits $! List.foldl' (\acc bit -> (acc .|. bit) `shiftL` 1) 0 bits
 
 instance ToJSON (Bits) where
   toJSON (Bits v) = toJSON (showHex v "")
@@ -137,3 +181,35 @@ instance PersistField (Bits) where
   fromPersistValue _ = Left $ "InputVerification.hs fromPersistValue Natural, expected Text"
 instance PersistFieldSql (Bits) where
   sqlType _ = SqlInt64
+
+everifyBlockHeader :: BlockHeader -> Either Text BlockHeader
+everifyBlockHeader bh = runExcept ( BlockHeader
+  <$> (ExceptT $! return $! everifyHash hashT)
+  <*> (ExceptT $! return $! maybe (Right Nothing)
+                                  (\(Hash hash)->
+                                    either
+                                      Left
+                                      (Right . Just)
+                                      (everifyHash (T.decodeUtf8 $ BS.fromShort hash))
+                                  )
+                                  (blockHeaderPreviousblockhash bh)
+      )
+  <*> (ExceptT $! return $! everifyNatural $! fromNatural $! blockHeaderHeight bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderVersion bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderTimestamp bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderBits bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderNonce bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderDifficulty bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderMerkle_root bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderTx_count bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderSize bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderWeight bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderChainwork bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderMediantime bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderReward bh)
+  <*> (ExceptT $! return $! Right $! blockHeaderChainreward bh)
+  )
+  where
+  Hash hash = blockHeaderHash bh
+  hashT = T.decodeUtf8 (BS.fromShort hash)
+
