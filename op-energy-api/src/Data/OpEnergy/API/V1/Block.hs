@@ -108,27 +108,34 @@ instance ToSchema BlockHeader where
       def1 :: Default a => Proxy a-> a
       def1 _ = def
 instance Arbitrary BlockHeader where
-  arbitrary = (BlockHeader
-    <$> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    <*> arbitrary
-    ) `QC.suchThat` (\v -> case everifyBlockHeader v of
-                             Right _ -> True
-                             _ -> False
-                    )
+  arbitrary = do
+    height <- arbitrary
+    let
+        mediantime = genesisMediantime + fromIntegral height * 600
+    mediantimeInt <- (QC.choose (mediantime - 400, mediantime + 400)::(QC.Gen Word32))
+    (BlockHeader
+      <$> arbitrary
+      <*> arbitrary
+      <*> return height
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> return mediantimeInt
+      <*> arbitrary
+      <*> arbitrary
+      ) `QC.suchThat` (\v -> case everifyBlockHeader v of
+                               Right _ -> True
+                               _ -> False
+                      )
+    where
+      genesisMediantime = 1732551056
 
 type BlockHash = Hash
 
