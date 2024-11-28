@@ -1,3 +1,4 @@
+import { BlockrateSummaryV2Component } from './components/blockrate-summary-v2/blockrate-summary-v2.component';
 import { StrikeSummaryWithGuessComponent } from './components/strike-summary-with-guess/strike-summary-with-guess.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { AboutComponent } from './components/about/about.component';
@@ -88,6 +89,10 @@ const routes: Routes = [
           {
             path: 'blockrate-strike-summary-v2',
             component: BlockrateStrikeSummaryV2Component
+          },
+          {
+            path: 'blockrate-summary-v2',
+            component: BlockrateSummaryV2Component
           }
         ],
       },

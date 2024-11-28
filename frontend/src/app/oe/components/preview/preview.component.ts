@@ -14,7 +14,6 @@ import { of, switchMap, take } from 'rxjs';
   styleUrls: ['./preview.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-
 export class PreviewComponent implements OnInit {
   latestStrike: BlockTimeStrikePublic;
   isLoading = true;
@@ -60,50 +59,6 @@ export class PreviewComponent implements OnInit {
 
   blockspansLink(): string {
     return '/hashstrikes/blockspans';
-  }
-
-  pastStrikeSummaryLink(): string {
-    return '/hashstrikes/blockrate-strike-summary?strikeHeight=844447&strikeTime=1716298890&blockspanStart=844433';
-  }
-
-  futureStrikeSummaryLink(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-summary?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
-  }
-
-  strikeSummaryWithGuess(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-summary-with-guess?strikeHeight=${
-      this.latestStrike?.strike?.block
-    }&strikeTime=${
-      this.latestStrike?.strike?.strikeMediantime
-    }&blockspanStart=${this.latestStrike?.strike?.block - 14}`;
-  }
-
-  pastStrikeDetailLink(): string {
-    return '/hashstrikes/blockrate-strike-detail?strikeHeight=844447&strikeTime=1716298890&blockspanStart=844433';
-  }
-
-  futureStrikeDetailLink(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-detail?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}`;
-  }
-
-  pastEnergySummaryLink(): string {
-    return '/hashstrikes/blockrate-summary?startblock=849237&endblock=849251';
-  }
-
-  futureEnergySummaryLink(): void {
-    window.location.href = `/hashstrikes/blockrate-summary?endblock=${this.latestStrike?.strike?.block}`;
-  }
-
-  pastEnergyDetailLink(): string {
-    return '/hashstrikes/blockrate-detail/89778/89791';
-  }
-
-  futureEnergyDetailLink(): void {
-    window.location.href = `/hashstrikes/blockrate-detail/89778/${this.latestStrike?.strike?.block}`;
-  }
-
-  blockRateChartLink(): string {
-    return '/graphs/blockratecharts/144';
   }
 
   pastStrikeListOldestToNewestLink(): string {
@@ -160,15 +115,28 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/my-guesses';
   }
 
-  blockrateStrikeDetailsV2(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}
-    &strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}
-    &endblock=${this.latestStrike?.strike?.block}`;
+  blockrateStrikeDetailsV2(type: 'past' | 'future' = 'future'): void {
+    if (type === 'past') {
+      window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433&endblock=844447`;
+      return;
+    }
+    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
   }
 
-  blockrateStrikeSummaryV2(): void {
-    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}
-    &strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}
-    &endblock=${this.latestStrike?.strike?.block}`;
+  blockrateStrikeSummaryV2(type: 'past' | 'future' = 'future'): void {
+    if (type === 'past') {
+      window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433&endblock=844447`;
+      return;
+    }
+    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+  }
+
+  blockspanSummaryLink(type: 'past' | 'future' = 'future'): void {
+    if (type === 'past') {
+      window.location.href = `/hashstrikes/blockrate-summary-v2?startblock=849237&endblock=849251`;
+      return;
+    }
+
+    window.location.href = `/hashstrikes/blockrate-summary-v2?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
   }
 }

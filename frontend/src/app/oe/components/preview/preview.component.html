@@ -4,23 +4,24 @@
     <a (click)="blockspanDetails()">Blockspan Detail v2</a>
   </div>
   <div>
-    <a (click)="blockrateStrikeDetailsV2()">Blockrate Strike Detail v2</a>
+    <a (click)="blockspanSummaryLink('past')">Blockrate Summary(Past) v2</a>
   </div>
   <div>
-    <a (click)="blockrateStrikeSummaryV2()">Blockrate Strike Summary v2</a>
+    <a (click)="blockspanSummaryLink()">Blockrate Summary(Future) v2</a>
+  </div>
+  <div>
+    <a (click)="blockrateStrikeDetailsV2('past')">Blockrate Strike Detail(Past) v2</a>
+  </div>
+  <div>
+    <a (click)="blockrateStrikeDetailsV2()">Blockrate Strike Detail(Future) v2</a>
+  </div>
+  <div>
+    <a (click)="blockrateStrikeSummaryV2('past')">Blockrate Strike Summary(Past) v2</a>
+  </div>
+  <div>
+    <a (click)="blockrateStrikeSummaryV2()">Blockrate Strike Summary(Future) v2</a>
   </div>
   <div><a [routerLink]="myGuesses()">My Guesses</a></div>
-  <div><a [href]="pastStrikeSummaryLink()">Blockrate Strike Summary(Past)</a></div>
-  <div>
-    <a (click)="futureStrikeSummaryLink()">Blockrate Strike Summary(Future)</a>
-  </div>
-  <div>
-    <a (click)="strikeSummaryWithGuess()">Blockrate Strike Summary With Guess</a>
-  </div>
-  <div><a [href]="pastStrikeDetailLink()">Blockrate Strike Detail(Past)</a></div>
-  <div>
-    <a (click)="futureStrikeDetailLink()">Blockrate Strike Detail(Future)</a>
-  </div>
   <h2 class="pt-5 pb-3">LIST OF STRIKES</h2>
   <div>
     <a [href]="pastStrikeListOldestToNewestLink()">All Past Blockrate Strike List(oldest to newest)</a>
@@ -58,15 +59,4 @@
   <!-- <div>
     <a [routerLink]="futureStrikeSummaryLink()">Strike Summary(Future)</a>
   </div> -->
-  <div><a [href]="pastEnergySummaryLink()">Blockrate Summary(Past)</a></div>
-  <div>
-    <a (click)="futureEnergySummaryLink()">Blockrate Summary(Future)</a>
-  </div>
-  <div><a [routerLink]="pastEnergyDetailLink()">Blockrate Detail(Past)</a></div>
-  <div>
-    <a (click)="futureEnergyDetailLink()">Blockrate Detail(Future)</a>
-  </div>
-  <div>
-    <a [routerLink]="blockRateChartLink()">Blockrate and Hashrate Charts</a>
-  </div>
 </div>

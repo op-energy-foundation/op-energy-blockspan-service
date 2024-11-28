@@ -1,0 +1,34 @@
+<div class="observed-blockspan-detail">
+    <div class="text-center loadingGraphs" *ngIf="isLoadingBlock">
+        <div class="spinner-border text-light"></div>
+    </div>
+    <div class="observed-blockspan-detail--top" *ngIf="!isLoadingBlock">
+        <div class="block-container">
+            <div class="blockspan">
+                <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
+                    footerText="blocks" [logo]="logos.BLOCKS"></app-box>
+                <div class="blockrate">
+                    <a class="dummy"></a>
+                    <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getBlockRate()}}</div>
+                    <div class="footer oe-link" (click)="goToStrikeDetails($event)">blockrate</div>
+                    <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
+                </div>
+                <div class="guessing-container">
+                    <div class="oe-message-container">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="block-container">
+            <div *ngFor="let strike of strikesData" class="blockspan guessing-block">
+                <div class="guessing-container">
+                    <app-guessing-game
+                        [fromBlock]="fromBlock"
+                        [toBlock]="toBlock"
+                        [strike]="strike.strike">
+                    </app-guessing-game>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
