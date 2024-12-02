@@ -11,12 +11,12 @@
                     <div>
                         <div class="timeblocks">
                             <div class="timeblocks-lower">
-                                <app-box class="timeblock" [fromLabel]="fromBlock.mediantime" [toLabel]="toBlock.mediantime"
+                                <app-box class="timeblock" [fromLabel]="fromBlock.mediantime" [toLabel]="strike.strikeMediantime"
                                     [spanLabel]="getSpan('time')" footerText="seconds" background="#f1c232"
                                     [logo]="logos.TIMES"></app-box>
                                 <app-box class="timeblock-utc" [fromLabel]="convertToUTC(fromBlock.mediantime)"
-                                    [toLabel]="convertToUTC(toBlock.mediantime)"
-                                    [spanLabel]="calculateTimeDifference(fromBlock.mediantime, toBlock.mediantime)"
+                                    [toLabel]="convertToUTC(strike.strikeMediantime)"
+                                    [spanLabel]="calculateTimeDifference(fromBlock.mediantime, strike.strikeMediantime)"
                                     footerText="utc" background="#f1c232" [logo]="logos.TIMES"></app-box>
                             </div>
                         </div>
