@@ -57,7 +57,7 @@ export class BlockspanBHSComponent implements OnInit {
       .pipe(
         switchMap((params: ParamMap) => {
           const startBlock = params.get('startblock');
-          const endBlock = params.get('endblock');
+          const endBlock = params.get('strikeHeight') || params.get('endblock');
 
           const fromBlockHeight: number =
             endBlock && startBlock
@@ -67,7 +67,7 @@ export class BlockspanBHSComponent implements OnInit {
               : parseInt(startBlock, 10) || this.latestBlock.height;
 
           const toBlockHeight: number =
-            parseInt(endBlock, 10) || (startBlock ? +startBlock + 13 : 1200000);
+            parseInt(endBlock, 10) || (startBlock ? +startBlock + 14 : 1200000);
 
           this.fromBlock = undefined;
           this.toBlock = undefined;
