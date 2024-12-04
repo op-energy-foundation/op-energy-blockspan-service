@@ -61,12 +61,22 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/blockspans';
   }
 
-  pastStrikeListOldestToNewestLink(): string {
-    return '/hashstrikes/blockrate-strikes-range?sort=ascend&page=1';
+  pastStrikeListOldestToNewestLink(type?: string): string {
+    const url = '/hashstrikes/blockrate-strikes-range?sort=ascend&page=1';
+
+    if (type) {
+      return `${url}&result=${type}`;
+    }
+    return url;
   }
 
-  pastStrikeListNewestToOldestLink(): string {
-    return '/hashstrikes/blockrate-strikes-range?page=1';
+  pastStrikeListNewestToOldestLink(type?: string): string {
+    const url = '/hashstrikes/blockrate-strikes-range?page=1';
+
+    if (type) {
+      return `${url}&result=${type}`;
+    }
+    return url;
   }
 
   guessableStrikeListNewestToOldestLink(): string {
@@ -117,18 +127,18 @@ export class PreviewComponent implements OnInit {
 
   blockrateStrikeDetailsV2(type: 'past' | 'future' = 'future'): void {
     if (type === 'past') {
-      window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433&endblock=844447`;
+      window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
       return;
     }
-    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
   }
 
   blockrateStrikeSummaryV2(type: 'past' | 'future' = 'future'): void {
     if (type === 'past') {
-      window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433&endblock=844447`;
+      window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
       return;
     }
-    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
   }
 
   blockspanSummaryLink(type: 'past' | 'future' = 'future'): void {

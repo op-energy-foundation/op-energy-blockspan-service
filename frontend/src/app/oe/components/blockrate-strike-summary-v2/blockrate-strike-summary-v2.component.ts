@@ -71,7 +71,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
       )
       .pipe(
         switchMap((params: ParamMap) => {
-          let fromBlockHeight = +params.get('blockspanStart');
+          let fromBlockHeight = +params.get('startblock');
           const strikeHeight = +params.get('strikeHeight') || 1200000;
           let strikeTime = +params.get('strikeTime');
           if (!strikeTime) {
@@ -158,6 +158,12 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
       return !this.fromBlock.mediantime || !this.toBlock.mediantime
         ? '?'
         : (this.toBlock.mediantime - this.fromBlock.mediantime).toString();
+    }
+
+    if (type === 'striketime') {
+      return !this.fromBlock.mediantime || !this.strike.strikeMediantime
+        ? '?'
+        : (this.strike.strikeMediantime - this.fromBlock.mediantime).toString();
     }
 
     if (type === 'hashes') {
@@ -271,6 +277,22 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     return this.strike.observedBlockMediantime > this.strike.strikeMediantime;
   }
 
+  goToBlockRateDetails(event: Event): string {
+    if (window.getSelection()?.toString()) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+      return;
+    }
+
+    const queryParams: any = {
+      startblock: this.fromBlock.height,
+      endblock: this.toBlock.height
+    };
+
+    // Navigate to the target route with the query parameters
+    this.router.navigate(['/hashstrikes/blockspan-details'], { queryParams });
+  }
+
   goToStrikeDetails(event: Event): string {
     if (window.getSelection()?.toString()) {
       // If there is selected text, prevent the click event from propagating
@@ -281,12 +303,30 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     const queryParams: any = {
       strikeHeight: this.strike.block,
       strikeTime: this.strike.strikeMediantime,
-      startblock: this.fromBlock.height,
-      endblock: this.toBlock.height,
+      startblock: this.fromBlock.height
     };
 
     // Navigate to the target route with the query parameters
     this.router.navigate(['/hashstrikes/blockrate-strike-details-v2'], { queryParams });
+  }
+
+  getStrikeRate(): string {
+    // Ensure fromBlock and toBlock are valid
+    if (!this.fromBlock || !this.strike) {
+      return '?';
+    }
+
+    // Retrieve values from getSpan for 'blockspan' and 'time'
+    const blockspan = +this.getSpan('blockspan');
+    const time = +this.getSpan('striketime');
+
+    // Check if the values are valid numbers and time is not zero to avoid NaN or Infinity
+    if (isNaN(blockspan) || isNaN(time) || time === 0) {
+      return '?'; // Return '?' if the calculation cannot be performed
+    }
+
+    // Perform the calculation and ensure it's valid
+    return ((600 * 100 * blockspan) / time).toFixed(2);
   }
 
 }

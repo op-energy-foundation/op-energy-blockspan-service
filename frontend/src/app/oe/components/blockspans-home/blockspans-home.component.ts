@@ -244,11 +244,12 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
   }
 
   goDetail(fromBlock, toBlock) {
-    this.router.navigate([
-      '/hashstrikes/blockspan/',
-      fromBlock.height,
-      toBlock.height,
-    ]);
+    this.router.navigate(['/hashstrikes/blockspan-details'], {
+      queryParams: {
+        startblock: fromBlock.height,
+        endblock: toBlock.height,
+      },
+    });
   }
 
   addStrike(strike) {
