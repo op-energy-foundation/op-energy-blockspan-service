@@ -29,6 +29,21 @@
   <div>
     <a [href]="pastStrikeListNewestToOldestLink()">All Past(newest to oldest)</a>
   </div>
+  
+  <div>
+    <a [href]="pastStrikeListOldestToNewestLink('slow')">All Past Slow(oldest to newest)</a>
+  </div>
+  <div>
+    <a [href]="pastStrikeListNewestToOldestLink('slow')">All Past Slow(newest to oldest)</a>
+  </div>
+
+  <div>
+    <a [href]="pastStrikeListOldestToNewestLink('fast')">All Past Fast(oldest to newest)</a>
+  </div>
+  <div>
+    <a [href]="pastStrikeListNewestToOldestLink('fast')">All Past Fast(newest to oldest)</a>
+  </div>
+
   <div>
     <a [href]="guessableStrikeListNewestToOldestLink()">All Guessable(newest to oldest)</a>
   </div>

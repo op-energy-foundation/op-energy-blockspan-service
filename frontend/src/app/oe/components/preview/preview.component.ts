@@ -61,12 +61,22 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/blockspans';
   }
 
-  pastStrikeListOldestToNewestLink(): string {
-    return '/hashstrikes/blockrate-strikes-range?sort=ascend&page=1';
+  pastStrikeListOldestToNewestLink(type?: string): string {
+    const url = '/hashstrikes/blockrate-strikes-range?sort=ascend&page=1';
+
+    if (type) {
+      return `${url}&result=${type}`;
+    }
+    return url;
   }
 
-  pastStrikeListNewestToOldestLink(): string {
-    return '/hashstrikes/blockrate-strikes-range?page=1';
+  pastStrikeListNewestToOldestLink(type?: string): string {
+    const url = '/hashstrikes/blockrate-strikes-range?page=1';
+
+    if (type) {
+      return `${url}&result=${type}`;
+    }
+    return url;
   }
 
   guessableStrikeListNewestToOldestLink(): string {

@@ -42,6 +42,7 @@ export class StrikesRangeComponent implements OnInit {
     sort: 'sort',
     page: 'page',
     outcome: 'class',
+    result: 'observedResult',
   };
   currentTip = null;
   linesPerPage = 15;
