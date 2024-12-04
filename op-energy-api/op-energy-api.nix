@@ -55,6 +55,6 @@ mkDerivation {
   enableSeparateBinOutput = false;
   testHaskellDepends = [ base hspec text ];
   doBenchmark = false;
-  doCheck = false;
+  doCheck = true;
   license = lib.licenses.bsd3;
 }

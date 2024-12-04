@@ -20,8 +20,10 @@ import qualified Data.Text.Read as TR
 import           Database.Persist
 import           Database.Persist.Sql
 import qualified Data.Serialize             as S
+import           Data.Text(Text)
 import qualified Data.Text                  as T
 import           Numeric
+import           Test.QuickCheck
 
 newtype (Ord a, Num a) => Natural a = Natural a
   deriving (Ord, Real, Enum, Integral, Show, Typeable, Eq)
@@ -32,6 +34,8 @@ instance (Ord a, Num a) => Num (Natural a) where
   abs v = v
   signum (Natural left) = verifyNatural $ signum left
   fromInteger v = verifyNatural (fromInteger v)
+instance (Arbitrary a, Ord a, Num a) => Arbitrary (Natural a) where
+  arbitrary = Natural <$> arbitrary `suchThat` (>=0)
 
 instance ToJSON (Natural Int) where
   toJSON (Natural v) = Number $ scientific (toInteger v) 0
@@ -98,11 +102,16 @@ verifyNaturalScientificInt s =
     Just v -> verifyNatural v
     _ -> error "verifyNaturalScientific: wrong value"
 
+everifyNatural:: (Ord n, Num n) => n -> Either Text (Natural n)
+everifyNatural v
+  | v >= 0    = Right (Natural v)
+  | otherwise = Left "verifyNatural: wrong value"
+
 verifyNatural:: (Ord n, Num n) => n -> (Natural n)
 verifyNatural v =
-  case () of
-    _ | v >= 0 -> Natural v
-    _ -> error "verifyNatural: wrong value"
+  case everifyNatural v of
+    Right some-> some
+    Left some -> error $! T.unpack some
 
 verifyNaturalInt:: Int -> (Natural Int)
 verifyNaturalInt v =
@@ -112,3 +121,4 @@ verifyNaturalInt v =
 
 fromNatural :: (Ord a, Num a ) => Natural a -> a
 fromNatural (Natural v) = v
+
