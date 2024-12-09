@@ -70,7 +70,7 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
       )
       .pipe(
         switchMap((params: ParamMap) => {
-          let fromBlockHeight = +params.get('blockspanStart');
+          let fromBlockHeight = +params.get('startblock');
           const strikeHeight = +params.get('strikeHeight') || 1200000;
           let strikeTime = +params.get('strikeTime');
           if (!strikeTime) {
@@ -187,9 +187,9 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
     }
 
     if (type === 'time') {
-      return !this.fromBlock.mediantime || !this.toBlock.mediantime
+      return !this.fromBlock.mediantime || !this.strike.strikeMediantime
         ? '?'
-        : (this.toBlock.mediantime - this.fromBlock.mediantime).toString();
+        : (this.strike.strikeMediantime - this.fromBlock.mediantime).toString();
     }
 
     if (type === 'hashes') {

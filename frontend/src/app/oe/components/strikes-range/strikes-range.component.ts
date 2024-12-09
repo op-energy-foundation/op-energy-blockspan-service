@@ -42,6 +42,7 @@ export class StrikesRangeComponent implements OnInit {
     sort: 'sort',
     page: 'page',
     outcome: 'class',
+    result: 'observedResult',
   };
   currentTip = null;
   linesPerPage = 15;
@@ -156,8 +157,7 @@ export class StrikesRangeComponent implements OnInit {
     const queryParams = {
       strikeHeight: item.block,
       strikeTime: item.strikeMediantime,
-      startblock: item.block - 13,
-      endblock: item.block,
+      startblock: item.block - 14,
     };
 
     if (this.guessableScreen) {
