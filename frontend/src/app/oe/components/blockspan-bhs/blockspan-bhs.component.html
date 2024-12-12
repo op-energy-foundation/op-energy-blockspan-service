@@ -6,26 +6,33 @@
         <div class="block-container">
             <div class="blockspan">
                 <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
-                    footerText="blocks" [logo]="logos.BLOCKS"></app-box>
+                    footerText="blocks" [displayLogo]="false" [footerLogo]="logos.BLOCKS"></app-box>
                 <app-box class="hashblock" [ngClass]="{'hashblock-font': getChainWork(this.fromBlock.chainwork) !== '?'}" [fromLabel]="getChainWork(this.fromBlock.chainwork)"
                     [toLabel]="getChainWork(this.toBlock.chainwork)" footerText="hashes" [spanLabel]="getSpan('hashes', false)"
-                    background="red" [logo]="logos.STRIKES" [isToolTipEnabled]="true"></app-box>
+                    background="red" [footerLogo]="logos.STRIKES" [isToolTipEnabled]="true" [displayLogo]="false"></app-box>
                     <div class="blockspan-bottom-upper">
                         <div class="blockspan-bottom-upper-header">{{result}}</div>
                         <div class="blockspan-bottom-upper-content">
                             <app-box class="timeblock" [fromLabel]="fromBlock.mediantime" [toLabel]="toBlock.mediantime"
                                 [spanLabel]="getSpan('time')" footerText="time (seconds)" background="#f1c232"
-                                [logo]="logos.TIMES"></app-box>
+                                [footerLogo]="logos.TIMES" [displayLogo]="false"></app-box>
                             <app-box class="timeblock-utc" [fromLabel]="convertToUTC(fromBlock.mediantime)"
                                 [toLabel]="convertToUTC(toBlock.mediantime)"
                                 [spanLabel]="calculateTimeDifference(fromBlock.mediantime, toBlock.mediantime)"
-                                footerText="time (utc)" background="#f1c232" [logo]="logos.TIMES"></app-box>
+                                footerText="time (utc)" background="#f1c232" [footerLogo]="logos.TIMES" [displayLogo]="false"></app-box>
                         </div>
                     </div>
-                <app-box class="satoshis" [fromLabel]="fromBlock.chainreward" [toLabel]="toBlock.chainreward"
-                    footerText="satoshis" background="#b6d7a8" [logo]="logos.SATOSHIS"></app-box>
+                <app-box class="satoshis" [fromLabel]="formatNumberToString(fromBlock.chainreward)" [toLabel]="formatNumberToString(toBlock.chainreward)"
+                    footerText="satoshis" background="#b6d7a8" [footerLogo]="logos.SATOSHIS" [displayLogo]="false"></app-box>
+            </div>
+            <div class="blockspan second-row">
+                <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
+                    footerText="blocks" [displayLogo]="false" [footerLogo]="logos.BLOCKS"></app-box>
                 <app-box class="hashes" [fromLabel]="fromBlock.hash" [toLabel]="toBlock.hash" footerText="block hashes"
                     background="#ffff00" [displayBlock]="false" [displayLogo]="false" [isToolTipEnabled]="true"></app-box>
+                <app-box class="hashes difficulty" [fromLabel]="getDifficulty(fromBlock.hash)" [toLabel]="getDifficulty(toBlock.hash)" footerText="block difficulty embodied in zeros
+                    of block hash: 16 ^ (numbers of zeros at left -8)" background="#cf2a27" [displayBlock]="false" [displayLogo]="false" [isToolTipEnabled]="true"></app-box>
+                <app-box class="hashes difficulty origina-difficulty" [fromLabel]="formatNumberToString(fromBlock?.difficulty)" [toLabel]="formatNumberToString(toBlock.difficulty)" footerText="actual difficulty" background="#cf2a27" [displayBlock]="false" [displayLogo]="false" [isToolTipEnabled]="true"></app-box>
             </div>
             <div class="blockspan-bottom">
                 <div class="blockrate">
@@ -33,7 +40,7 @@
                     <div class="to-block">{{getBlockRate()}}</div>
                     <div class="from-block">
                         <span class="equation-part">(</span>
-                        <span class="equation-block">600 * 100</span>
+                        <span class="equation-block">600&nbsp;*&nbsp;100</span>
                         <span class="equation-part">*</span>
                         <span class="highlight-block">{{getSpan('blockspan')}}</span>
                         <span class="equation-part">/</span>

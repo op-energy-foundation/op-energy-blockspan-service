@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, Renderer2 } from '@angular/core';
 import { Block } from '../../interfaces/oe-energy.interface';
 import { BlockTypes, Logos } from '../../types/constant';
 import { ActivatedRoute, ParamMap } from '@angular/router';
@@ -32,12 +32,14 @@ export class BlockspanBHSComponent implements OnInit {
   toBlock: Block;
   latestBlock: Block;
   @Input() result: string;
+  addedZeros = false;
 
   constructor(
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
     private stateService: OeStateService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private elementRef: ElementRef
   ) {}
 
   ngOnInit() {
@@ -93,6 +95,56 @@ export class BlockspanBHSComponent implements OnInit {
         this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
         this.isLoadingBlock = false;
       };
+  }
+
+  modifyText(text: string): string {
+    // Regular expression to match leading zeros
+    const regex = /(0+)(.*)$/;
+    const match = text.match(regex);
+    if (match) {
+      const leadingZeros = match[1];
+      const remainingText = match[2];
+
+      const groupedZeros = leadingZeros
+        .match(/.{1,4}/g) // Break into chunks of 4
+        ?.map((group) => (group.length < 4 ? group.padEnd(4, '\u00A0') : group)) // Pad final group with spaces
+        .join('\u00A0'); // Join groups with spaces between them
+
+      // Return HTML with leading zeros wrapped in a span
+      return `<span class="leading-zeros">${groupedZeros}</span><span class="remaining-text">${remainingText}</span>`;
+    }
+
+    // If no leading zeros, return the original text
+    return text;
+  }
+
+  private processText(selector: string): void {
+    const textElement = this.elementRef.nativeElement.querySelector(selector);
+    if (textElement) {
+      const originalText = textElement.textContent;
+      const processedHTML = this.modifyText(originalText);
+      // Create a temporary container to parse the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = processedHTML;
+
+      // Replace the text node with the new parsed HTML
+      while (textElement.firstChild) {
+        textElement.removeChild(textElement.firstChild); // Clear existing content
+      }
+
+      while (tempDiv.firstChild) {
+        textElement.appendChild(tempDiv.firstChild); // Append parsed HTML content
+      }
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    if (!this.isLoadingBlock && !this.addedZeros) {
+      // making zeroes bold
+      this.processText('.hashes .from-block');
+      this.processText('.hashes div.to-block');
+      this.addedZeros = true;
+    }
   }
 
   convertToUTC(unixTimestamp: number): string {
@@ -224,7 +276,7 @@ export class BlockspanBHSComponent implements OnInit {
     }
 
     // Perform the calculation and ensure it's valid
-    return toScientificNotation((hashes / satoshis));
+    return toScientificNotation(hashes / satoshis);
   }
 
   getChainWork(hexValue: string): string {
@@ -234,5 +286,26 @@ export class BlockspanBHSComponent implements OnInit {
     }
 
     return `${BigInt(`0x${hexValue}`)}`;
+  }
+
+  getDifficulty(type: string): string {
+    // Ensure fromBlock and toBlock are valid
+    if (!type) {
+      return '?';
+    }
+
+    // Retrieve values from getSpan for 'hashes' and 'satoshis'
+    const regex = /(0+)(.*)$/;
+    const match = type.match(regex);
+    const diffcult = match ? match[1].length : 8;
+    return `>= ${this.formatNumberToString(Math.pow(16, diffcult - 8))}`;
+  }
+
+  formatNumberToString(input: string | number): string {
+    if (input === '?') return '?';
+
+    const number = typeof input === 'string' ? parseFloat(input) : input;
+    const formattedNumber = Math.floor(number).toLocaleString('en-US');
+    return formattedNumber;
   }
 }

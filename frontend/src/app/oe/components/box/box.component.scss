@@ -83,6 +83,18 @@
     color: black;
     font-weight: 700;
   }
+  .footer-logo {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border: 2px solid black;
+    height: 2rem;
+    width: 2rem;
+    margin-left: 45%;
+    // margin-right: 35%;
+  }
 }
 
 .is-link {

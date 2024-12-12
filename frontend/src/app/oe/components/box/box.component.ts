@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { ClipboardService } from 'ngx-clipboard'
 
 @Component({
   selector: 'app-box',
@@ -12,11 +13,12 @@ export class BoxComponent implements OnInit {
   @Input() footerText = 'blocks';
   @Input() background: string = 'yellow';
   @Input() logo: string;
+  @Input() footerLogo: string;
   @Input() displayBlock: boolean = true;
   @Input() displayLogo: boolean = true;
   @Input() isToolTipEnabled: boolean = false;
 
-  constructor() {}
+  constructor(private _clipboardService: ClipboardService) {}
 
   ngOnInit(): void {}
 
@@ -31,5 +33,11 @@ export class BoxComponent implements OnInit {
     }
 
     return '?';
+  }
+
+  copyToClipboard(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const textToCopy = target.innerText.trim();
+    this._clipboardService.copy(textToCopy);
   }
 }
