@@ -8221,6 +8221,15 @@ let
         sha512 = "CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==";
       };
     };
+    "ngx-clipboard-15.1.0" = {
+      name = "ngx-clipboard";
+      packageName = "ngx-clipboard";
+      version = "15.1.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/ngx-clipboard/-/ngx-clipboard-15.1.0.tgz";
+        sha512 = "dUJl1cNtdkCqL953oAhP7wmUPFrqW2aDg5OPhwPU9R3cLEdQgU2NbsHEUz4zaPyEopTXu8SR37onVm1Ep8qOHg==";
+      };
+    };
     "ngx-cookie-service-13.2.1" = {
       name = "ngx-cookie-service";
       packageName = "ngx-cookie-service";
@@ -8246,6 +8255,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/ngx-toastr/-/ngx-toastr-14.3.0.tgz";
         sha512 = "d8j/sOr60w5U7rGlcKQ0Ff4u+m2NzhqU5ZdJXn7QW3aR3Zf/rY7/Fd14BmUindTOWVr2NeTYcQXCjLpir0ldpA==";
+      };
+    };
+    "ngx-window-token-7.0.0" = {
+      name = "ngx-window-token";
+      packageName = "ngx-window-token";
+      version = "7.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/ngx-window-token/-/ngx-window-token-7.0.0.tgz";
+        sha512 = "5+XfRVSY7Dciu8xyCNMkOlH2UfwR9W2P1Pirz7caaZgOZDjFbL8aEO2stjfJJm2FFf1D6dlVHNzhLWGk9HGkqA==";
       };
     };
     "nice-napi-1.0.2" = {
@@ -13666,9 +13684,11 @@ let
       sources."negotiator-0.6.3"
       sources."neo-async-2.6.2"
       sources."next-tick-1.0.0"
+      sources."ngx-clipboard-15.1.0"
       sources."ngx-cookie-service-13.2.1"
       sources."ngx-echarts-8.0.1"
       sources."ngx-toastr-14.3.0"
+      sources."ngx-window-token-7.0.0"
       (sources."nice-napi-1.0.2" // { dependencies = [ sources."node-gyp-build-4.6.0" ]; } )
       (sources."nise-5.1.4" // {
         dependencies = [
