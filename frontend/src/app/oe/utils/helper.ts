@@ -124,3 +124,19 @@ export const toScientificNotation = (
   decimalPlaces: number = 2
 ): string => decimal.toExponential(decimalPlaces);
 
+
+export const getNextDifficultyAdjustment = (
+  latestBlockHeight: number,
+  mediantime: number
+): { startBlock: number; endBlock: number; strikeTime: number } => {
+  const currentEpochIdx = Math.floor(latestBlockHeight / 2016);
+  const nextEpochStartBlock = currentEpochIdx * 2016;
+  const nextEpochEndBlock = nextEpochStartBlock + 2016;
+  const strikeTime = mediantime + 2016 * 600;
+
+  return {
+    startBlock: nextEpochStartBlock,
+    endBlock: nextEpochEndBlock,
+    strikeTime,
+  };
+};

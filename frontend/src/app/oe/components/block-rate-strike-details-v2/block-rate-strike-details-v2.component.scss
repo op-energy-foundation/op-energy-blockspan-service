@@ -406,8 +406,12 @@
             background-color: #e69138;
           }
 
-          .observed-blockspan-detail {
-            margin-top: 1rem;
+          .blockspan {
+            margin-top: 0rem !important;
+          }
+
+          .second-row {
+            margin-top: -5rem !important;
           }
 
           .blockspan-bottom {
@@ -449,6 +453,7 @@
           margin-left: 2.75%;
           padding-left: 10%;
           width: 90%;
+          margin-top: 5rem;
         }
       }
     }

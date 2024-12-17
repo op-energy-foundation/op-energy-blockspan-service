@@ -74,6 +74,17 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
           let fromBlockHeight = +params.get('startblock');
           const strikeHeight = +params.get('strikeHeight') || 1200000;
           let strikeTime = +params.get('strikeTime');
+
+          if (fromBlockHeight > this.latestBlock.height) {
+            this.toastr.error('Viewing requires known start block', 'Failed!');
+            return of(null);
+          }
+
+          if (fromBlockHeight >= strikeHeight) {
+            this.toastr.error('Start block must be less than strike height', 'Failed!');
+            return of(null);
+          }
+
           if (!strikeTime) {
             strikeTime =
               this.latestBlock.mediantime +

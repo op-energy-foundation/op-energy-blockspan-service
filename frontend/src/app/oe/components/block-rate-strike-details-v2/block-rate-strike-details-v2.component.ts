@@ -73,6 +73,16 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
           let fromBlockHeight = +params.get('startblock');
           const strikeHeight = +params.get('strikeHeight') || 1200000;
           let strikeTime = +params.get('strikeTime');
+
+
+          if (fromBlockHeight > this.latestBlock.height) {
+            return of(null);
+          }
+
+          if (fromBlockHeight >= strikeHeight) {
+            return of(null);
+          }
+
           if (!strikeTime) {
             strikeTime =
               this.latestBlock.mediantime +

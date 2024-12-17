@@ -76,6 +76,20 @@ export class BlockrateSummaryV2Component implements OnInit {
           const startBlock = params.get('startblock') as string;
           const endBlock = params.get('endblock') as string;
 
+
+          if (parseInt(startBlock, 10) > this.latestBlock.height) {
+            this.toastr.error('Viewing requires known start block', 'Failed!');
+            return of(null);
+          }
+
+          if (parseInt(startBlock, 10) >= parseInt(endBlock, 10)) {
+            this.toastr.error(
+              'Start block must be less than end block',
+              'Failed!'
+            );
+            return of(null);
+          }
+
           const fromBlockHeight: number =
             endBlock && startBlock
               ? parseInt(startBlock, 10)
