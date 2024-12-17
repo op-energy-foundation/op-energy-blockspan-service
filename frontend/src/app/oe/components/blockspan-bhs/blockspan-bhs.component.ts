@@ -61,6 +61,19 @@ export class BlockspanBHSComponent implements OnInit {
           const startBlock = params.get('startblock');
           const endBlock = params.get('strikeHeight') || params.get('endblock');
 
+          if (parseInt(startBlock, 10) > this.latestBlock.height) {
+            this.toastr.error('Viewing requires known start block', 'Failed!');
+            return of(null);
+          }
+
+          if (parseInt(startBlock, 10) >= parseInt(endBlock, 10)) {
+            this.toastr.error(
+              'Start block must be less than strike height or end block',
+              'Failed!'
+            );
+            return of(null);
+          }
+
           const fromBlockHeight: number =
             endBlock && startBlock
               ? parseInt(startBlock, 10)
@@ -302,7 +315,7 @@ export class BlockspanBHSComponent implements OnInit {
   }
 
   formatNumberToString(input: string | number): string {
-    if (input === '?') return '?';
+    if (!input || input === '?') return '?';
 
     const number = typeof input === 'string' ? parseFloat(input) : input;
     const formattedNumber = Math.floor(number).toLocaleString('en-US');
