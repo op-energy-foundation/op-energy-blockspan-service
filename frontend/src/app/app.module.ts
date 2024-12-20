@@ -9,6 +9,7 @@ import { OeEnergyModule } from './oe/oe.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { WebsocketService } from './oe/services/websocket.service';
+import { ClipboardModule } from 'ngx-clipboard';
 
 @NgModule({
   declarations: [AppComponent],
@@ -18,6 +19,7 @@ import { WebsocketService } from './oe/services/websocket.service';
     BrowserAnimationsModule,
     OeEnergyModule,
     AppRoutingModule,
+    ClipboardModule,
   ],
   providers: [
     CookieService,

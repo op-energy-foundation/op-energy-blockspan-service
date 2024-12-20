@@ -3,7 +3,6 @@ import {
   Block,
   BlockTimeStrike,
   BlockTimeStrikePublic,
-  PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { BlockTypes, Logos } from '../../types/constant';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
@@ -28,12 +27,11 @@ import {
 } from '../../utils/helper';
 
 @Component({
-  selector: 'app-blockrate-summary-v2',
-  templateUrl: './blockrate-summary-v2.component.html',
-  styleUrls: ['./blockrate-summary-v2.component.scss']
+  selector: 'app-hashrate',
+  templateUrl: './hashrate.component.html',
+  styleUrls: ['./hashrate.component.scss'],
 })
-export class BlockrateSummaryV2Component implements OnInit {
-
+export class HashrateComponent implements OnInit {
   logos = Logos;
   isLoadingBlock = true;
   subscription: Subscription;
@@ -76,7 +74,6 @@ export class BlockrateSummaryV2Component implements OnInit {
           const startBlock = params.get('startblock') as string;
           const endBlock = params.get('endblock') as string;
 
-
           if (parseInt(startBlock, 10) > this.latestBlock.height) {
             this.toastr.error('Viewing requires known start block', 'Failed!');
             return of(null);
@@ -98,7 +95,8 @@ export class BlockrateSummaryV2Component implements OnInit {
               : parseInt(startBlock, 10) || this.latestBlock.height;
 
           const toBlockHeight: number =
-            parseInt(endBlock, 10) || (startBlock ? +startBlock + 2016 : 1200000);
+            parseInt(endBlock, 10) ||
+            (startBlock ? +startBlock + 2016 : 1200000);
 
           // this.fromBlock = undefined;
           // this.toBlock = undefined;
@@ -111,30 +109,27 @@ export class BlockrateSummaryV2Component implements OnInit {
               .pipe(catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))),
             this.oeEnergyApiService
               .$getBlockByHeight(toBlockHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(toBlockHeight))))
+              .pipe(catchError(() => of(getEmptyBlockHeader(toBlockHeight)))),
           ]);
         })
       )
-      .subscribe(
-        ([fromBlock, toBlock,]: [
-          Block,
-          Block
-        ]) => {
-          this.fromBlock = fromBlock;
-          if (typeof toBlock === BlockTypes.NUMBER) {
-            this.toBlock = {
-              ...this.fromBlock,
-              height: +toBlock,
-            };
-          } else {
-            this.toBlock = toBlock;
-          }
-          this.isLoadingBlock = false;
-          this.fetchOutcomeNotKnownStrikes();
+      .subscribe(([fromBlock, toBlock]: [Block, Block]) => {
+        this.fromBlock = fromBlock;
+        if (typeof toBlock === BlockTypes.NUMBER) {
+          this.toBlock = {
+            ...this.fromBlock,
+            height: +toBlock,
+          };
+        } else {
+          this.toBlock = toBlock;
         }
-      )),
+        this.isLoadingBlock = false;
+      })),
       (error) => {
-        this.toastr.error(`Blockspan Failed To Fetch: ${error.error}`, 'Failed!');
+        this.toastr.error(
+          `Blockspan Failed To Fetch: ${error.error}`,
+          'Failed!'
+        );
         this.isLoadingBlock = false;
       };
   }
@@ -166,55 +161,27 @@ export class BlockrateSummaryV2Component implements OnInit {
     return '?';
   }
 
-  getBlockRate(): string {
+  getHashRate(): string {
     // Ensure fromBlock and toBlock are valid
     if (!this.fromBlock || !this.toBlock) {
       return '?';
     }
 
-    // Retrieve values from getSpan for 'blockspan' and 'time'
-    const blockspan = +this.getSpan('blockspan');
+    // Retrieve values from getSpan for 'hashes' and 'time'
+    const hashes = +this.getSpan('hashes');
     const time = +this.getSpan('time');
 
     // Check if the values are valid numbers and time is not zero to avoid NaN or Infinity
-    if (isNaN(blockspan) || isNaN(time) || time === 0) {
+    if (isNaN(hashes) || isNaN(time) || time === 0) {
       return '?'; // Return '?' if the calculation cannot be performed
     }
 
     // Perform the calculation and ensure it's valid
-    return ((600 * 100 * blockspan) / time).toFixed(2);
+    return toScientificNotation(hashes / time);
   }
 
-  getResult(): string {
-    if (!this.strike.observedBlockHeight) return;
-
-    const heightOverStrikeHeight = this.getJudgementHeight();
-    const timeOverStrikeTime = this.getJudgementTime();
-
-    if (heightOverStrikeHeight && !timeOverStrikeTime) return 'fast';
-
-    if (!heightOverStrikeHeight && timeOverStrikeTime) return 'slow';
-
-    return 'slow';
-  }
-
-  getJudgementHeight(): boolean {
-    if (!this.strike.observedBlockHeight) {
-      return;
-    }
-
-    return this.strike.observedBlockHeight > this.strike.block - 1;
-  }
-
-  getJudgementTime(): boolean {
-    if (!this.strike.observedBlockMediantime) {
-      return;
-    }
-
-    return this.strike.observedBlockMediantime > this.strike.strikeMediantime;
-  }
-
-  goToStrikeDetails(event: Event): string {
+  goToStrikeDetails(event: Event): void {
+    // If there is selected text, prevent the click event from propagating
     if (window.getSelection()?.toString()) {
       // If there is selected text, prevent the click event from propagating
       event.stopPropagation();
@@ -228,41 +195,5 @@ export class BlockrateSummaryV2Component implements OnInit {
 
     // Navigate to the target route with the query parameters
     this.router.navigate(['/hashstrikes/blockspan-details'], { queryParams });
-  }
-
-  fetchOutcomeNotKnownStrikes(pageNumber: number = 1): void {
-    this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
-      .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
-        strikeBlockHeightEQ: this.toBlock.height,
-        linesPerPage: 15,
-      })
-      .subscribe({
-        next: (data) => this.handleData(data),
-        error: (error) => this.handleError(error),
-      });
-  }
-
-  private handleError(error: any): void {
-    this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
-    this.isLoadingBlock = false;
-  }
-
-  private handleData(data: PaginationResponse<BlockTimeStrikePublic>): void {
-    if (!data.results || !Array.isArray(data.results)) {
-      this.strikesData = [];
-      this.isLoadingBlock = false;
-      return;
-    }
-    if (data.results.length === 0) {
-      this.toastr.warning(
-        `Strikes not found please check provided filters`,
-        'Warning!'
-      );
-      this.isLoadingBlock = false;
-      return;
-    }
-    this.strikesData = data.results;
-    this.isLoadingBlock = false;
   }
 }
