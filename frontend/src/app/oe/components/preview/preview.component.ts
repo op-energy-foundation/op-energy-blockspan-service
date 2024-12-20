@@ -5,7 +5,10 @@ import {
   OnInit,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { OeBlocktimeApiService } from '../../services/oe-energy.service';
+import {
+  OeBlocktimeApiService,
+  OeEnergyApiService,
+} from '../../services/oe-energy.service';
 import {
   Block,
   BlockTimeStrikePublic,
@@ -24,10 +27,12 @@ export class PreviewComponent implements OnInit {
   latestStrike: BlockTimeStrikePublic;
   isLoading: boolean = true;
   latestBlock: Block;
+  epochBlock: Block;
 
   constructor(
     private router: Router,
     private oeBlocktimeApiService: OeBlocktimeApiService,
+    private oeEnergyApiService: OeEnergyApiService,
     public stateService: OeStateService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -51,6 +56,21 @@ export class PreviewComponent implements OnInit {
       });
   }
 
+  fetchEpochBlock(): void {
+    const currentEpochIdx = Math.floor(this.latestBlock.height / 2016);
+    const currentEpochStart = currentEpochIdx * 2016;
+    this.oeEnergyApiService.$getBlockByHeight(currentEpochStart).subscribe({
+      next: (data) => {
+        this.epochBlock = data;
+        this.cdr.markForCheck();
+      },
+      error: (_error) => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   ngOnInit() {
     this.stateService.latestReceivedBlock$
       .pipe(take(1)) // don't follow any future update of this object
@@ -62,6 +82,7 @@ export class PreviewComponent implements OnInit {
       )
       .subscribe(() => {
         this.fetchLatestStrike();
+        this.fetchEpochBlock();
       });
   }
 
@@ -142,8 +163,7 @@ export class PreviewComponent implements OnInit {
 
     if (type === 'next-difficulty') {
       const { startBlock, endBlock, strikeTime } = getNextDifficultyAdjustment(
-        this.latestBlock.height,
-        this.latestBlock.mediantime
+        this.epochBlock
       );
       return `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${endBlock}&strikeTime=${strikeTime}&startblock=${startBlock}`;
     }
