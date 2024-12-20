@@ -180,8 +180,20 @@ export class HashrateComponent implements OnInit {
     return toScientificNotation(hashes / time);
   }
 
-  goToStrikeDetails(event: Event): string {
-    // TODO:
-    return '';
+  goToStrikeDetails(event: Event): void {
+    // If there is selected text, prevent the click event from propagating
+    if (window.getSelection()?.toString()) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+      return;
+    }
+
+    const queryParams: any = {
+      startblock: this.fromBlock.height,
+      endblock: this.toBlock.height,
+    };
+
+    // Navigate to the target route with the query parameters
+    this.router.navigate(['/hashstrikes/blockspan-details'], { queryParams });
   }
 }
