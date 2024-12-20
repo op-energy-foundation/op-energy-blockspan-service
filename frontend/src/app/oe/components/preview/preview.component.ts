@@ -1,12 +1,21 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { OeBlocktimeApiService } from '../../services/oe-energy.service';
+import {
+  OeBlocktimeApiService,
+  OeEnergyApiService,
+} from '../../services/oe-energy.service';
 import {
   Block,
   BlockTimeStrikePublic,
 } from '../../interfaces/oe-energy.interface';
 import { OeStateService } from '../../services/state.service';
 import { of, switchMap, take } from 'rxjs';
+import { getNextDifficultyAdjustment } from '../../utils/helper';
 
 @Component({
   selector: 'app-preview',
@@ -16,14 +25,53 @@ import { of, switchMap, take } from 'rxjs';
 })
 export class PreviewComponent implements OnInit {
   latestStrike: BlockTimeStrikePublic;
-  isLoading = true;
+  isLoading: boolean = true;
   latestBlock: Block;
+  epochBlock: Block;
 
   constructor(
     private router: Router,
     private oeBlocktimeApiService: OeBlocktimeApiService,
-    public stateService: OeStateService
-  ) {
+    private oeEnergyApiService: OeEnergyApiService,
+    public stateService: OeStateService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  fetchLatestStrike(pageNumber: number = 1): void {
+    this.oeBlocktimeApiService
+      .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
+        class: 'guessable',
+        linesPerPage: 1,
+      })
+      .subscribe({
+        next: (data) => {
+          this.latestStrike = data.results[0];
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (_error) => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  fetchEpochBlock(): void {
+    const currentEpochIdx = Math.floor(this.latestBlock.height / 2016);
+    const currentEpochStart = currentEpochIdx * 2016;
+    this.oeEnergyApiService.$getBlockByHeight(currentEpochStart).subscribe({
+      next: (data) => {
+        this.epochBlock = data;
+        this.cdr.markForCheck();
+      },
+      error: (_error) => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  ngOnInit() {
     this.stateService.latestReceivedBlock$
       .pipe(take(1)) // don't follow any future update of this object
       .pipe(
@@ -34,28 +82,9 @@ export class PreviewComponent implements OnInit {
       )
       .subscribe(() => {
         this.fetchLatestStrike();
+        this.fetchEpochBlock();
       });
   }
-
-  fetchLatestStrike(pageNumber: number = 1): void {
-    this.isLoading = true;
-    this.oeBlocktimeApiService
-      .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
-        class: 'guessable',
-        linesPerPage: 1,
-      })
-      .subscribe({
-        next: (data) => {
-          this.latestStrike = data.results[0];
-          this.isLoading = false;
-        },
-        error: (_error) => {
-          this.isLoading = false;
-        },
-      });
-  }
-
-  ngOnInit() {}
 
   blockspansLink(): string {
     return '/hashstrikes/blockspans';
@@ -115,8 +144,8 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/blockrate-strikes-range?sort=descend_guesses_count&page=1';
   }
 
-  blockspanDetails(): void {
-    window.location.href = `/hashstrikes/blockspan-details?startblock=${
+  blockspanDetails(): string {
+    return `/hashstrikes/blockspan-details?startblock=${
       this.latestBlock?.height
     }&endblock=${this.latestBlock?.height + 2016}`;
   }
@@ -125,28 +154,35 @@ export class PreviewComponent implements OnInit {
     return '/hashstrikes/my-guesses';
   }
 
-  blockrateStrikeDetailsV2(type: 'past' | 'future' = 'future'): void {
+  blockrateStrikeDetailsV2(
+    type: 'past' | 'future' | 'next-difficulty' = 'future'
+  ): string {
     if (type === 'past') {
-      window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
-      return;
+      return `/hashstrikes/blockrate-strike-details-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
     }
-    window.location.href = `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
+
+    if (type === 'next-difficulty') {
+      const { startBlock, endBlock, strikeTime } = getNextDifficultyAdjustment(
+        this.epochBlock
+      );
+      return `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${endBlock}&strikeTime=${strikeTime}&startblock=${startBlock}`;
+    }
+
+    return `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
   }
 
-  blockrateStrikeSummaryV2(type: 'past' | 'future' = 'future'): void {
+  blockrateStrikeSummaryV2(type: 'past' | 'future' = 'future'): string {
     if (type === 'past') {
-      window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
-      return;
+      return `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
     }
-    window.location.href = `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
+    return `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
   }
 
-  blockspanSummaryLink(type: 'past' | 'future' = 'future'): void {
+  blockspanSummaryLink(type: 'past' | 'future' = 'future'): string {
     if (type === 'past') {
-      window.location.href = `/hashstrikes/blockrate-summary-v2?startblock=849237&endblock=849251`;
-      return;
+      return `/hashstrikes/blockrate-summary-v2?startblock=849237&endblock=849251`;
     }
 
-    window.location.href = `/hashstrikes/blockrate-summary-v2?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+    return `/hashstrikes/blockrate-summary-v2?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
   }
 }
