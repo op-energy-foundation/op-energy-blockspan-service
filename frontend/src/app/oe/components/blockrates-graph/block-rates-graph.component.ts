@@ -380,7 +380,7 @@ export class BlockRatesGraphComponent implements OnInit {
         },
         borderColor: '#000',
         formatter: (data): string => {
-          let tooltip = `<b style="color: white; margin-left: 2px;">
+          let tooltip = `<b id="hashrateToolTipId" style="color: white; margin-left: 2px;">
             ${chartData[data[0].dataIndex].label}</b><br>`;
 
           tooltip += `${data[0].marker} ${
@@ -469,7 +469,16 @@ export class BlockRatesGraphComponent implements OnInit {
     // Handle click event for line or bar series
     const { startBlockHeight, endBlockHeight } = this.chartData[dataIndex];
     window.open(
-      `${document.location.protocol}//${document.location.host}/hashstrikes/blockrate-detail/${startBlockHeight}/${endBlockHeight}`,
+      `${document.location.protocol}//${document.location.host}/hashstrikes/blockspan-details?startblock=${startBlockHeight}&endblock=${endBlockHeight}`,
+      '_blank'
+    );
+  }
+
+  redirectToHashrate(dataIndex): void {
+    // Handle click event for line or bar series
+    const { startBlockHeight, endBlockHeight } = this.chartData[dataIndex];
+    window.open(
+      `${document.location.protocol}//${document.location.host}/hashstrikes/hashrate?startblock=${startBlockHeight}&endblock=${endBlockHeight}`,
       '_blank'
     );
   }
@@ -542,6 +551,46 @@ export class BlockRatesGraphComponent implements OnInit {
 
   onChartHashrateInit(ec) {
     this.hashrateChartInstance = ec;
+
+    const hashrateChartContainer = document.getElementById(
+      'hash-rates-chart'
+    ) as HTMLElement; // Replace with your actual chart container element's ID
+    hashrateChartContainer.addEventListener('click', (_event) => {
+      if (this.tooltipVisible) {
+        this.redirectToHashrate(this.toolTipValue);
+      }
+    });
+
+    // Wait for the element with ID "toolTipId" to become available
+    // We are using below logic to display hand icon so anywhere user can click
+    const waitForElement = setInterval(() => {
+      const targetElement = document.getElementById('hashrateToolTipId');
+      if (targetElement) {
+        // Start observing the parent element's style changes
+        const parentElement = targetElement.parentNode;
+        // Create a new MutationObserver instance
+        const observer = new MutationObserver((mutationsList, observer) => {
+          this.handleVisibilityChange(mutationsList, observer);
+        });
+
+        // Configuration for the observer
+        const config = {
+          attributes: true, // Watch for attribute changes
+          attributeFilter: ['style'], // Watch for changes in the "style" attribute
+        };
+
+        // Start observing the target element with the specified configuration
+        observer.observe(parentElement, config);
+        // Clear the interval since the element is now available
+        clearInterval(waitForElement);
+      }
+    }, 100);
+
+    hashrateChartContainer.addEventListener('mousemove', () => {
+      if (this.tooltipVisible) {
+        this.chartInstance.getZr().setCursorStyle('pointer');
+      }
+    });
   }
 
   isMobile() {

@@ -1,0 +1,19 @@
+<div class="hashrate-details">
+    <div class="text-center loadingGraphs" *ngIf="isLoadingBlock">
+        <div class="spinner-border text-light"></div>
+    </div>
+    <div class="hashrate-details--top" *ngIf="!isLoadingBlock">
+        <div class="hashrate-container">
+            <div class="blockspan">
+                <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
+                    footerText="blocks" [logo]="logos.BLOCKS"></app-box>
+                <div class="hashrate">
+                    <a class="dummy"></a>
+                    <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getHashRate()}}</div>
+                    <div class="footer oe-link" (click)="goToStrikeDetails($event)">hashrate</div>
+                    <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.STRIKES }}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
