@@ -58,7 +58,7 @@
           </button>
         </div>
       </div>
-      <div class="chart" echarts [initOpts]="chartInitOptions" [options]="hashrateChartOptions"
+      <div id="hash-rates-chart" class="chart" echarts [initOpts]="chartInitOptions" [options]="hashrateChartOptions"
         (chartInit)="onChartHashrateInit($event)">
       </div>
     </div>
