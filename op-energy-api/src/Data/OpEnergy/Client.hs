@@ -45,10 +45,22 @@ mkClientEnv mgr burl = env { makeClientRequest = newMakeClientRequest}
     newMakeClientRequest burl req = ((makeClientRequest env) burl req) { Client.queryString = BS.empty}
 -}
 
+-- | this function will try to perform API calls to blockspan service
+-- within one client environment
+-- returns:
+--   - Left ClientError - in case of failure
+--   - Right result - in case of success
+withClientEither :: BaseUrl-> (ClientM a)-> IO (Either ClientError a)
+withClientEither url foo = do
+  env <- mkClientEnv <$> newManager tlsManagerSettings <*> pure url
+  runClientM foo env
+
+-- | this function will try to perform API calls to blockspan service within
+-- one client environment.
+-- In case of failure will throw an exception with 'error'
 withClient :: BaseUrl-> (ClientM a)-> IO a
 withClient url foo = do
-  env <- mkClientEnv <$> newManager tlsManagerSettings <*> pure url
-  eresult <- flip runClientM env $ foo
+  eresult <- withClientEither url foo
   case eresult of
     Left some -> error $ "withClient: error: " <> show some
     Right some -> return some
