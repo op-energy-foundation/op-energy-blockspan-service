@@ -1,5 +1,5 @@
 import { Router } from '@angular/router';
-import { BlockHeader } from '../interfaces/oe-energy.interface';
+import { Block, BlockHeader } from '../interfaces/oe-energy.interface';
 
 export function navigator(router: Router, link: string): void {
   // Check if the link contains query parameters
@@ -124,3 +124,16 @@ export const toScientificNotation = (
   decimalPlaces: number = 2
 ): string => decimal.toExponential(decimalPlaces);
 
+export const getNextDifficultyAdjustment = (
+  epochBlock: Block
+): { startBlock: number; endBlock: number; strikeTime: number } => {
+  const currentEpochStartBlock = epochBlock;
+  const currentEpochEndHeight = currentEpochStartBlock.height + 2016;
+  const expectedStrikeTime = currentEpochStartBlock.mediantime + 2016 * 600;
+
+  return {
+    startBlock: currentEpochStartBlock.height,
+    endBlock: currentEpochEndHeight,
+    strikeTime: expectedStrikeTime,
+  };
+};
