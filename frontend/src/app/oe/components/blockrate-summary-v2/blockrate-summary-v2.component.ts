@@ -80,6 +80,11 @@ export class BlockrateSummaryV2Component
     );
   }
 
+  ngOnDestroy(): void {
+    // Call the cleanup method from the base class
+    this.cleanup();
+  }
+
   getResult(): string {
     if (!this.strike.observedBlockHeight) return;
 
