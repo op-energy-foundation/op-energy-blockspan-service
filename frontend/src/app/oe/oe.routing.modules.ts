@@ -48,22 +48,6 @@ const routes: Routes = [
             component: EnergyDetailComponent,
           },
           {
-            path: 'blockrate-summary',
-            component: EnergySummaryComponent,
-          },
-          {
-            path: 'blockrate-strike-detail',
-            component: StrikeDetailComponent,
-          },
-          {
-            path: 'blockrate-strike-summary',
-            component: StrikeSummaryComponent,
-          },
-          {
-            path: 'blockrate-strike-summary-with-guess',
-            component: StrikeSummaryWithGuessComponent,
-          },
-          {
             path: 'blockspans',
             component: BlockspansHomeComponent,
           },
