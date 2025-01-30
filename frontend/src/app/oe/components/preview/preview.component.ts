@@ -158,31 +158,31 @@ export class PreviewComponent implements OnInit {
     type: 'past' | 'future' | 'next-difficulty' = 'future'
   ): string {
     if (type === 'past') {
-      return `/hashstrikes/blockrate-strike-details-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
+      return `/hashstrikes/blockrate-strike-details?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
     }
 
     if (type === 'next-difficulty') {
       const { startBlock, endBlock, strikeTime } = getNextDifficultyAdjustment(
         this.epochBlock
       );
-      return `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${endBlock}&strikeTime=${strikeTime}&startblock=${startBlock}`;
+      return `/hashstrikes/blockrate-strike-details?strikeHeight=${endBlock}&strikeTime=${strikeTime}&startblock=${startBlock}`;
     }
 
-    return `/hashstrikes/blockrate-strike-details-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
+    return `/hashstrikes/blockrate-strike-details?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
   }
 
   blockrateStrikeSummaryV2(type: 'past' | 'future' = 'future'): string {
     if (type === 'past') {
-      return `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
+      return `/hashstrikes/blockrate-strike-summary?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
     }
-    return `/hashstrikes/blockrate-strike-summary-v2?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
+    return `/hashstrikes/blockrate-strike-summary?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
   }
 
   blockspanSummaryLink(type: 'past' | 'future' = 'future'): string {
     if (type === 'past') {
-      return `/hashstrikes/blockrate-summary-v2?startblock=849237&endblock=849251`;
+      return `/hashstrikes/blockrate-summary?startblock=849237&endblock=849251`;
     }
 
-    return `/hashstrikes/blockrate-summary-v2?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+    return `/hashstrikes/blockrate-summary?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
   }
 }
