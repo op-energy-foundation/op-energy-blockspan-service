@@ -68,15 +68,15 @@ const routes: Routes = [
             component: MyGuessesComponent
           },
           {
-            path: 'blockrate-strike-details-v2',
+            path: 'blockrate-strike-details',
             component: BlockRateStrikeDetailsV2Component
           },
           {
-            path: 'blockrate-strike-summary-v2',
+            path: 'blockrate-strike-summary',
             component: BlockrateStrikeSummaryV2Component
           },
           {
-            path: 'blockrate-summary-v2',
+            path: 'blockrate-summary',
             component: BlockrateSummaryV2Component
           },
           {

@@ -161,13 +161,13 @@ export class StrikesRangeComponent implements OnInit {
     };
 
     if (this.guessableScreen) {
-      this.router.navigate(['/hashstrikes/blockrate-strike-summary-v2'], {
+      this.router.navigate(['/hashstrikes/blockrate-strike-summary'], {
         queryParams,
       });
       return;
     }
 
     // Use the Router service to navigate with query parameters
-    this.router.navigate(['/hashstrikes/blockrate-strike-details-v2'], { queryParams });
+    this.router.navigate(['/hashstrikes/blockrate-strike-details'], { queryParams });
   }
 }

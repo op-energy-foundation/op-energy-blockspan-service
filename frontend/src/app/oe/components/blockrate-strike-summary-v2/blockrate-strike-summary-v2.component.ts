@@ -318,7 +318,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     };
 
     // Navigate to the target route with the query parameters
-    this.router.navigate(['/hashstrikes/blockrate-strike-details-v2'], { queryParams });
+    this.router.navigate(['/hashstrikes/blockrate-strike-details'], { queryParams });
   }
 
   getStrikeRate(): string {
