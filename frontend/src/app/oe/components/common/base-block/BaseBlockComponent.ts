@@ -104,9 +104,14 @@ export abstract class BaseBlockComponent {
   }
 
   // Shared method to calculate fromBlockHeight and toBlockHeight
-  calculateBlockRange(params: { startBlock: number; endBlock: number }): {
+  calculateBlockRange(params: {
+    startBlock: number;
+    endBlock: number;
+    strikeTime?: number;
+  }): {
     fromBlockHeight: number;
     toBlockHeight: number;
+    strikeTime: number;
   } {
     if (!this.latestBlock) {
       throw new Error('Latest block is not initialized');
@@ -134,7 +139,15 @@ export abstract class BaseBlockComponent {
     const toBlockHeight =
       endBlock || (startBlock ? startBlock + 2016 : 1200000);
 
-    return { fromBlockHeight, toBlockHeight };
+    let strikeTime = params.strikeTime;
+
+    if (!strikeTime) {
+      strikeTime =
+        this.latestBlock.mediantime +
+        (endBlock - this.latestBlock.height) * 600;
+    }
+
+    return { fromBlockHeight, toBlockHeight, strikeTime };
   }
 
   // Shared error handler
@@ -209,5 +222,52 @@ export abstract class BaseBlockComponent {
 
     // Navigate to the target route with the query parameters
     this.router.navigate(['/hashstrikes/blockspan-details'], { queryParams });
+  }
+
+  getHashRate(): string {
+    // Ensure fromBlock and toBlock are valid
+    if (!this.fromBlock || !this.toBlock) {
+      return '?';
+    }
+
+    // Retrieve values from getSpan for 'hashes' and 'time'
+    const hashes = +this.getSpan('hashes');
+    const time = +this.getSpan('time');
+
+    // Check if the values are valid numbers and time is not zero to avoid NaN or Infinity
+    if (isNaN(hashes) || isNaN(time) || time === 0) {
+      return '?'; // Return '?' if the calculation cannot be performed
+    }
+
+    // Perform the calculation and ensure it's valid
+    return toScientificNotation(hashes / time);
+  }
+
+  getSathash(): string {
+    // Ensure fromBlock and toBlock are valid
+    if (!this.fromBlock || !this.toBlock) {
+      return '?';
+    }
+
+    // Retrieve values from getSpan for 'hashes' and 'satoshis'
+    const hashes = +this.getSpan('hashes');
+    const satoshis = +this.getSpan('satoshis');
+
+    // Check if the values are valid numbers and satoshis is not zero to avoid NaN or Infinity
+    if (isNaN(hashes) || isNaN(satoshis) || satoshis === 0) {
+      return '?'; // Return '?' if the calculation cannot be performed
+    }
+
+    // Perform the calculation and ensure it's valid
+    return (hashes / satoshis).toFixed(2);
+  }
+
+  getChainWork(hexValue: string): string {
+    // Ensure hexValue are valid
+    if (!hexValue) {
+      return '?';
+    }
+
+    return toScientificNotation(getHexValue(hexValue));
   }
 }
