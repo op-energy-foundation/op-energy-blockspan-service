@@ -2,6 +2,15 @@
 
 This repo contains blockspan service and frontend of the Op-Energy.
 
+Historically, `op-energy` consists from 2 repos: `op-energy-blockspan-service`
+(initial one) and `op-energy` (which was private until some point of time). Be
+aware that current document covers only `op-energy-blockspan-service`.
+`op-energy`'s documentation, in it's turn, covers both both (at least in terms
+of installation and building).
+
+See https://github.com/op-energy-foundation/op-energy/ for the reference in case
+if your goal is to build/setup a complete op-energy setup.
+
 # Installation
 
 We use nix package manager for deployment. Our primary target is NixOS, but you can use nix to build OpEnergy on any OS supporting Nix and then setup OS-specific system services yourself.
