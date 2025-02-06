@@ -1,45 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  Block,
   BlockTimeStrike,
   BlockTimeStrikePublic,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
-import { BlockTypes, Logos } from '../../types/constant';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { Logos } from '../../types/constant';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   OeBlocktimeApiService,
   OeEnergyApiService,
 } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
-import {
-  catchError,
-  combineLatest,
-  of,
-  Subscription,
-  switchMap,
-  take,
-} from 'rxjs';
-import {
-  getEmptyBlockHeader,
-  getHexValue,
-  toScientificNotation,
-} from '../../utils/helper';
+import { BaseBlockComponent } from '../common/base-block/BaseBlockComponent';
 
 @Component({
   selector: 'app-block-rate-strike-details-v2',
   templateUrl: './block-rate-strike-details-v2.component.html',
   styleUrls: ['./block-rate-strike-details-v2.component.scss'],
 })
-export class BlockRateStrikeDetailsV2Component implements OnInit {
+export class BlockRateStrikeDetailsV2Component
+  extends BaseBlockComponent
+  implements OnInit
+{
   logos = Logos;
   isLoadingBlock = true;
-  subscription: Subscription;
   strike: BlockTimeStrike = {} as BlockTimeStrike;
-  fromBlock: Block;
-  toBlock: Block;
-  latestBlock: Block;
   disabled: boolean = false;
   isSelected: boolean = false;
   selectedGuess: string;
@@ -47,113 +33,70 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
   color = 'red';
 
   constructor(
+    router: Router,
     private route: ActivatedRoute,
-    private oeEnergyApiService: OeEnergyApiService,
-    private stateService: OeStateService,
-    private oeBlocktimeApiService: OeBlocktimeApiService,
-    private toastr: ToastrService
-  ) {}
+    oeEnergyApiService: OeEnergyApiService,
+    stateService: OeStateService,
+    oeBlocktimeApiService: OeBlocktimeApiService,
+    toastr: ToastrService
+  ) {
+    super(
+      router,
+      oeEnergyApiService,
+      oeBlocktimeApiService,
+      stateService,
+      toastr
+    );
+  }
 
-  ngOnInit() {
-    (this.subscription = this.route.queryParamMap
-      .pipe(
-        switchMap((params: ParamMap) =>
-          this.stateService.latestReceivedBlock$
-            .pipe(take(1)) // don't follow any future update of this object
-            .pipe(
-              switchMap((block: Block) => {
-                this.latestBlock = block;
-                return of(params);
-              })
-            )
-        )
-      )
-      .pipe(
-        switchMap((params: ParamMap) => {
-          let fromBlockHeight = +params.get('startblock');
-          const strikeHeight = +params.get('strikeHeight') || 1200000;
-          let strikeTime = +params.get('strikeTime');
+  async ngOnInit() {
+    await this.initializeLatestBlock();
+    const params = this.processQueryParams(this.route);
 
+    const {
+      fromBlockHeight,
+      toBlockHeight: strikeHeight,
+      strikeTime,
+    } = this.calculateBlockRange({
+      startBlock: +params.startblock,
+      endBlock: +params.strikeHeight,
+      strikeTime: +params.strikeTime,
+    });
 
-          if (fromBlockHeight > this.latestBlock.height) {
-            return of(null);
-          }
+    this.subscription = this.initializeBlocks(
+      fromBlockHeight,
+      strikeHeight,
+      strikeTime
+    ).subscribe(
+      ([fromBlock, toBlock, strikesDetails]: [
+        any,
+        any,
+        PaginationResponse<BlockTimeStrikePublic>
+      ]) => {
+        this.fromBlock = fromBlock;
+        this.toBlock = toBlock;
 
-          if (fromBlockHeight >= strikeHeight) {
-            return of(null);
-          }
-
-          if (!strikeTime) {
-            strikeTime =
-              this.latestBlock.mediantime +
-              (strikeHeight - this.latestBlock.height) * 600;
-          }
-
-          if (!fromBlockHeight) {
-            fromBlockHeight = Math.max(0, strikeHeight - 14);
-          }
-          // Creating temporary strike
-          this.strike = {
-            block: strikeHeight,
-            strikeMediantime: strikeTime,
-            creationTime: undefined,
-          };
-
-          this.isLoadingBlock = true;
-
-          return combineLatest([
-            this.oeEnergyApiService
-              .$getBlockByHeight(fromBlockHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))),
-            this.oeEnergyApiService
-              .$getBlockByHeight(strikeHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(strikeHeight)))),
-            this.oeBlocktimeApiService
-              .$strikesWithFilter({
-                strikeMediantimeEQ: strikeTime,
-                blockHeightEQ: strikeHeight,
-              })
-              .pipe(catchError(() => of(strikeHeight))),
-          ]);
-        })
-      )
-      .subscribe(
-        ([fromBlock, toBlock, strikesDetails]: [
-          Block,
-          Block,
-          PaginationResponse<BlockTimeStrikePublic>
-        ]) => {
-          this.fromBlock = fromBlock;
-          if (typeof toBlock === BlockTypes.NUMBER) {
-            this.toBlock = {
-              ...this.fromBlock,
-              height: +toBlock,
-            };
-          } else {
-            this.toBlock = toBlock;
-          }
-          const strikesResult = strikesDetails.results;
-          if (!strikesResult.length) {
-            this.toastr.error('Strikes Not Found!', 'Failed!');
-            return;
-          }
-
-          this.strike = {
-            ...strikesResult[0].strike,
-            block: strikesResult[0].strike.block,
-            creationTime: strikesResult[0].strike.creationTime,
-            strikeMediantime: strikesResult[0].strike.strikeMediantime,
-            observedResult: strikesResult[0].strike.observedResult,
-          };
-
-          this.isLoadingBlock = false;
-          this.checkExistingGuess();
+        if (!strikesDetails.results.length) {
+          this.toastr.error('Strikes Not Found!', 'Failed!');
+          return;
         }
-      )),
-      (error) => {
-        this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
+
+        this.strike = {
+          ...strikesDetails.results[0].strike,
+          block: strikesDetails.results[0].strike.block,
+          creationTime: strikesDetails.results[0].strike.creationTime,
+          strikeMediantime: strikesDetails.results[0].strike.strikeMediantime,
+          observedResult: strikesDetails.results[0].strike.observedResult,
+        };
+
         this.isLoadingBlock = false;
-      };
+        this.checkExistingGuess();
+      },
+      (error) => {
+        this.handleError(`Strikes Failed To Fetch: ${error.error}`);
+        this.isLoadingBlock = false;
+      }
+    );
   }
 
   convertToUTC(unixTimestamp: number): string {
@@ -188,101 +131,6 @@ export class BlockRateStrikeDetailsV2Component implements OnInit {
       '0'
     )}`;
   }
-
-  getSpan(type: string): string {
-    if (!this.fromBlock || !this.toBlock) return '?';
-
-    if (type === 'blockspan') {
-      return (this.toBlock.height - this.fromBlock.height).toString();
-    }
-
-    if (type === 'time') {
-      return !this.fromBlock.mediantime || !this.strike.strikeMediantime
-        ? '?'
-        : (this.strike.strikeMediantime - this.fromBlock.mediantime).toString();
-    }
-
-    if (type === 'hashes') {
-      return toScientificNotation(
-        getHexValue(this.toBlock.chainwork) -
-          getHexValue(this.fromBlock.chainwork)
-      );
-    }
-
-    if (type === 'satoshis') {
-      return '?';
-    }
-
-    return '?';
-  }
-
-  getBlockRate(): string {
-    // Ensure fromBlock and toBlock are valid
-    if (!this.fromBlock || !this.toBlock) {
-      return '?';
-    }
-
-    // Retrieve values from getSpan for 'blockspan' and 'time'
-    const blockspan = +this.getSpan('blockspan');
-    const time = +this.getSpan('time');
-
-    // Check if the values are valid numbers and time is not zero to avoid NaN or Infinity
-    if (isNaN(blockspan) || isNaN(time) || time === 0) {
-      return '?'; // Return '?' if the calculation cannot be performed
-    }
-
-    // Perform the calculation and ensure it's valid
-    return ((600 * 100 * blockspan) / time).toFixed(2);
-  }
-
-  getHashRate(): string {
-    // Ensure fromBlock and toBlock are valid
-    if (!this.fromBlock || !this.toBlock) {
-      return '?';
-    }
-
-    // Retrieve values from getSpan for 'hashes' and 'time'
-    const hashes = +this.getSpan('hashes');
-    const time = +this.getSpan('time');
-
-    // Check if the values are valid numbers and time is not zero to avoid NaN or Infinity
-    if (isNaN(hashes) || isNaN(time) || time === 0) {
-      return '?'; // Return '?' if the calculation cannot be performed
-    }
-
-    // Perform the calculation and ensure it's valid
-    return toScientificNotation(hashes / time);
-  }
-
-  getSathash(): string {
-    // Ensure fromBlock and toBlock are valid
-    if (!this.fromBlock || !this.toBlock) {
-      return '?';
-    }
-
-    // Retrieve values from getSpan for 'hashes' and 'satoshis'
-    const hashes = +this.getSpan('hashes');
-    const satoshis = +this.getSpan('satoshis');
-
-    // Check if the values are valid numbers and satoshis is not zero to avoid NaN or Infinity
-    if (isNaN(hashes) || isNaN(satoshis) || satoshis === 0) {
-      return '?'; // Return '?' if the calculation cannot be performed
-    }
-
-    // Perform the calculation and ensure it's valid
-    return (hashes / satoshis).toFixed(2);
-  }
-
-  getChainWork(hexValue: string): string {
-    // Ensure hexValue are valid
-    if (!hexValue) {
-      return '?';
-    }
-
-    return toScientificNotation(getHexValue(hexValue));
-  }
-
-  selectGuessingBox(): void {}
 
   getResult(): string {
     if (!this.strike.observedBlockHeight) return;
