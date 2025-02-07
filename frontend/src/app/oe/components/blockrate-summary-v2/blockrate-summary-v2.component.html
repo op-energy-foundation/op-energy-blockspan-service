@@ -8,7 +8,11 @@
                 <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
                 <div class="blockrate">
-                    <a class="dummy"></a>
+                    <div class="dummy strike-box" [ngStyle]="{ 'background-color': 'red'}">
+                        <ng-container>
+                          <app-firesvg></app-firesvg>
+                        </ng-container>
+                    </div>
                     <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getBlockRate()}}</div>
                     <div class="footer oe-link" (click)="goToStrikeDetails($event)">blockrate</div>
                     <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
@@ -27,6 +31,10 @@
                         [toBlock]="toBlock"
                         [strike]="strike.strike">
                     </app-guessing-game>
+                    <div class="logo">
+                        <span class="logo-container">{{ logos.CONTRACT }}</span>
+                        <span class="logo-container">{{ logos.BLOCKS }}</span>
+                    </div>
                 </div>
             </div>
         </div>

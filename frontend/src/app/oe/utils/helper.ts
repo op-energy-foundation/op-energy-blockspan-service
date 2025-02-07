@@ -137,3 +137,50 @@ export const getNextDifficultyAdjustment = (
     strikeTime: expectedStrikeTime,
   };
 };
+
+// Method to calculate the time difference in HH:MM format
+export const calculateTimeDifference = (
+  fromTimestamp: number,
+  toTimestamp: number
+): string => {
+  if (fromTimestamp === 0 || toTimestamp === 0) return '?';
+
+  const differenceInSeconds = toTimestamp - fromTimestamp;
+
+  const hours = Math.floor(differenceInSeconds / 3600); // 3600 seconds in an hour
+  const minutes = Math.floor((differenceInSeconds % 3600) / 60); // Get remaining minutes
+
+  // Return formatted time difference in HH:MM
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(
+    2,
+    '0'
+  )}`;
+};
+
+export const convertToUTC = (unixTimestamp: number): string => {
+  if (unixTimestamp === 0) {
+    return '?';
+  }
+
+  const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
+
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are 0-based, so add 1
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+export const calculateTimeDifferenceMs= (
+  fromTimestamp: number,
+  toTimestamp: number
+): number | string => {
+  if (fromTimestamp === 0 || toTimestamp === 0) return '?';
+
+  const differenceInSeconds = toTimestamp - fromTimestamp;
+
+  return differenceInSeconds;
+};

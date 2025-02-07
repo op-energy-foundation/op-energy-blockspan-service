@@ -16,6 +16,7 @@ import {
 import { OeStateService } from '../../../services/state.service';
 import {
   Block,
+  BlockTimeStrike,
   BlockTimeStrikePublic,
   PaginationResponse,
 } from '../../../interfaces/oe-energy.interface';
@@ -23,6 +24,8 @@ import {
   getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
+  calculateTimeDifference,
+  convertToUTC
 } from '../../../utils/helper';
 
 export abstract class BaseBlockComponent {
@@ -31,6 +34,9 @@ export abstract class BaseBlockComponent {
   latestBlock: Block;
   isLoadingBlock = true;
   subscription: Subscription;
+  calculateTimeDifference = calculateTimeDifference;
+  convertToUTC = convertToUTC;
+  strike: BlockTimeStrike = {} as BlockTimeStrike;
 
   constructor(
     protected router: Router,
@@ -175,6 +181,12 @@ export abstract class BaseBlockComponent {
         : (this.toBlock.mediantime - this.fromBlock.mediantime).toString();
     }
 
+    if (type === 'striketime') {
+      return !this.fromBlock.mediantime || !this.strike.strikeMediantime
+        ? '?'
+        : (this.strike.strikeMediantime - this.fromBlock.mediantime).toString();
+    }
+
     if (type === 'hashes') {
       return toScientificNotation(
         getHexValue(this.toBlock.chainwork) -
@@ -189,7 +201,7 @@ export abstract class BaseBlockComponent {
     return '?';
   }
 
-  getBlockRate(): string {
+  getBlockRate(type: string = 'time'): string {
     // Ensure fromBlock and toBlock are valid
     if (!this.fromBlock || !this.toBlock) {
       return '?';
@@ -197,7 +209,7 @@ export abstract class BaseBlockComponent {
 
     // Retrieve values from getSpan for 'blockspan' and 'time'
     const blockspan = +this.getSpan('blockspan');
-    const time = +this.getSpan('time');
+    const time = +this.getSpan(type);
 
     // Check if the values are valid numbers and time is not zero to avoid NaN or Infinity
     if (isNaN(blockspan) || isNaN(time) || time === 0) {
