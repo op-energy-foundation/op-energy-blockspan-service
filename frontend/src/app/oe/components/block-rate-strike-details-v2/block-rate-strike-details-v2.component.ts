@@ -25,7 +25,6 @@ export class BlockRateStrikeDetailsV2Component
 {
   logos = Logos;
   isLoadingBlock = true;
-  strike: BlockTimeStrike = {} as BlockTimeStrike;
   disabled: boolean = false;
   isSelected: boolean = false;
   selectedGuess: string;
@@ -89,6 +88,9 @@ export class BlockRateStrikeDetailsV2Component
           observedResult: strikesDetails.results[0].strike.observedResult,
         };
 
+        // debugger;
+
+        console.log(this.getSpan('time'));
         this.isLoadingBlock = false;
         this.checkExistingGuess();
       },
@@ -97,39 +99,6 @@ export class BlockRateStrikeDetailsV2Component
         this.isLoadingBlock = false;
       }
     );
-  }
-
-  convertToUTC(unixTimestamp: number): string {
-    if (unixTimestamp === 0) {
-      return '?';
-    }
-
-    const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
-
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are 0-based, so add 1
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  }
-
-  // Method to calculate the time difference in HH:MM format
-  calculateTimeDifference(fromTimestamp: number, toTimestamp: number): string {
-    if (fromTimestamp === 0 || toTimestamp === 0) return '?';
-
-    const differenceInSeconds = toTimestamp - fromTimestamp;
-
-    const hours = Math.floor(differenceInSeconds / 3600); // 3600 seconds in an hour
-    const minutes = Math.floor((differenceInSeconds % 3600) / 60); // Get remaining minutes
-
-    // Return formatted time difference in HH:MM
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(
-      2,
-      '0'
-    )}`;
   }
 
   getResult(): string {
