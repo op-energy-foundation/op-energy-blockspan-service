@@ -173,14 +173,3 @@ export const convertToUTC = (unixTimestamp: number): string => {
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
-
-export const calculateTimeDifferenceMs= (
-  fromTimestamp: number,
-  toTimestamp: number
-): number | string => {
-  if (fromTimestamp === 0 || toTimestamp === 0) return '?';
-
-  const difference = toTimestamp - fromTimestamp;
-
-  return difference;
-};
