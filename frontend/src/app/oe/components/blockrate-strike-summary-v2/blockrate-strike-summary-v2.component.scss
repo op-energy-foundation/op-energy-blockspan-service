@@ -9,7 +9,6 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    margin-top: 100px;
   
     &--top {
       display: flex;
@@ -171,6 +170,41 @@
             background-color: #cccccc;
           }
         }
+      }
+
+      .dummy-row {
+        height: 250px;
+        align-items: flex-end;
+        top: 14%;
+        display: flex;
+        color: black;
+        margin-top: -5rem;
+            
+        .logo-container {
+          font-size: 3rem;
+        }
+
+        .blockrate {
+          justify-content: center;
+          background: white;
+          height: 150px;
+          width: 15%;
+          transition: height 0.3s ease-in-out;
+        }
+
+        .hashrate {
+          justify-content: center;
+          background: #cccccc;
+          height: 150px;
+          width: 15%;
+          margin: 0px 0rem 0px 3.5rem;
+          transition: height 0.3s ease-in-out;
+        }
+
+        .height-1 {
+          height: 225px;
+        }
+
       }
     }
   }

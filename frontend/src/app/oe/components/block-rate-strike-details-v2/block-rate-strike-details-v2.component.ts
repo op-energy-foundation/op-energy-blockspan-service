@@ -198,10 +198,6 @@ export class BlockRateStrikeDetailsV2Component
             //disabling strike as strike outcome is known
             this.disabled = true;
             this.strikeKnown = true;
-            this.toastr.warning(
-              "Can't add guess as stike outcome is known.",
-              'Warning'
-            );
           }
           this.isLoadingBlock = false;
         }
