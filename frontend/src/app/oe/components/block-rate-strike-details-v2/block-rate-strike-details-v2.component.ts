@@ -88,9 +88,6 @@ export class BlockRateStrikeDetailsV2Component
           observedResult: strikesDetails.results[0].strike.observedResult,
         };
 
-        // debugger;
-
-        console.log(this.getSpan('time'));
         this.isLoadingBlock = false;
         this.checkExistingGuess();
       },

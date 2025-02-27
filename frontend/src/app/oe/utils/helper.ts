@@ -180,7 +180,7 @@ export const calculateTimeDifferenceMs= (
 ): number | string => {
   if (fromTimestamp === 0 || toTimestamp === 0) return '?';
 
-  const differenceInSeconds = toTimestamp - fromTimestamp;
+  const difference = toTimestamp - fromTimestamp;
 
-  return differenceInSeconds;
+  return difference;
 };
