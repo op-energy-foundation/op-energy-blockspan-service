@@ -8,9 +8,9 @@
                 <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
                 <div class="blockrate">
-                    <div class="dummy strike-box" [ngStyle]="{ 'background-color': 'red'}">
+                    <div class="dummy strike-box" [ngStyle]="{ 'background-color': 'red'}" [ngClass]="{ 'height-1': isBlockRunningFaster() }">
                         <ng-container>
-                          <app-firesvg></app-firesvg>
+                            {{ logos.BLOCKS }}
                         </ng-container>
                     </div>
                     <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getBlockRate()}}</div>

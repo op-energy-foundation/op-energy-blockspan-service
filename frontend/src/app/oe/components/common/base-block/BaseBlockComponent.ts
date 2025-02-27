@@ -282,4 +282,10 @@ export abstract class BaseBlockComponent {
 
     return toScientificNotation(getHexValue(hexValue));
   }
+
+  isBlockRunningFaster(): boolean {
+    const result = this.getBlockRate();
+
+    return result !== '?' && Number(result) > 100;
+  }
 }
