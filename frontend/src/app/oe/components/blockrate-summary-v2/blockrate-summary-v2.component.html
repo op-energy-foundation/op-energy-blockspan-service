@@ -8,7 +8,7 @@
                 <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
                 <div class="blockrate">
-                    <div class="dummy strike-box" [ngStyle]="{ 'background-color': 'red'}" [ngClass]="{ 'height-1': isBlockRunningFaster() }">
+                    <div class="dummy strike-box" [ngClass]="{ 'height-1': isBlockRunningFaster() }">
                         <ng-container>
                             {{ logos.BLOCKS }}
                         </ng-container>

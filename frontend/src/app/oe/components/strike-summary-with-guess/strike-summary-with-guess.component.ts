@@ -235,10 +235,6 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
           if (this.strike.observedResult) {
             //disabling strike as strike outcome is known
             this.selectedGuess = 'disabled';
-            this.toastr.warning(
-              "Can't add guess as stike outcome is known.",
-              'Warning'
-            );
           }
           this.isLoadingBlock = false;
         }

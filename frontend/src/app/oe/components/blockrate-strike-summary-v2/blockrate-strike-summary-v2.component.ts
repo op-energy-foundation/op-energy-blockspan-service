@@ -30,7 +30,7 @@ import {
 @Component({
   selector: 'app-blockrate-strike-summary-v2',
   templateUrl: './blockrate-strike-summary-v2.component.html',
-  styleUrls: ['./blockrate-strike-summary-v2.component.scss']
+  styleUrls: ['./blockrate-strike-summary-v2.component.scss'],
 })
 export class BlockrateStrikeSummaryV2Component implements OnInit {
   logos = Logos;
@@ -81,7 +81,10 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
           }
 
           if (fromBlockHeight >= strikeHeight) {
-            this.toastr.error('Start block must be less than strike height', 'Failed!');
+            this.toastr.error(
+              'Start block must be less than strike height',
+              'Failed!'
+            );
             return of(null);
           }
 
@@ -262,10 +265,6 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
             //disabling strike as strike outcome is known
             this.disabled = true;
             this.strikeKnown = true;
-            this.toastr.warning(
-              "Can't add guess as stike outcome is known.",
-              'Warning'
-            );
           }
           this.isLoadingBlock = false;
         }
@@ -297,7 +296,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
 
     const queryParams: any = {
       startblock: this.fromBlock.height,
-      endblock: this.toBlock.height
+      endblock: this.toBlock.height,
     };
 
     // Navigate to the target route with the query parameters
@@ -314,11 +313,13 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     const queryParams: any = {
       strikeHeight: this.strike.block,
       strikeTime: this.strike.strikeMediantime,
-      startblock: this.fromBlock.height
+      startblock: this.fromBlock.height,
     };
 
     // Navigate to the target route with the query parameters
-    this.router.navigate(['/hashstrikes/blockrate-strike-details'], { queryParams });
+    this.router.navigate(['/hashstrikes/blockrate-strike-details'], {
+      queryParams,
+    });
   }
 
   getStrikeRate(): string {
@@ -340,4 +341,22 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     return ((600 * 100 * blockspan) / time).toFixed(2);
   }
 
+  getAnimal(type: string = ''): string {
+    const result = this.getResult(); // Fetch the result
+    const selectedGuess = this.selectedGuess; // Fetch the selected guess
+
+    if (!result && !selectedGuess) {
+      return '?';
+    }
+
+    const value = result ? result : selectedGuess;
+    const logo = value === 'slow' ? '🐢' : '🐰';
+
+    if(type !== 'hashrate') {
+      return logo;
+    }
+
+    return  value === 'slow' ? '🐰' : '🐢';
+    
+  }
 }
