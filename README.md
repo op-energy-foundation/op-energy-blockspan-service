@@ -2,6 +2,15 @@
 
 This repo contains blockspan service and frontend of the Op-Energy.
 
+Historically, `op-energy` consists from 2 repos: `op-energy-blockspan-service`
+(initial one) and `op-energy` (which was private until some point of time). Be
+aware that current document covers only `op-energy-blockspan-service`.
+`op-energy`'s documentation, in it's turn, covers both both (at least in terms
+of installation and building).
+
+See https://github.com/op-energy-foundation/op-energy/ for the reference in case
+if your goal is to build/setup a complete op-energy setup.
+
 # Installation
 
 We use nix package manager for deployment. Our primary target is NixOS, but you can use nix to build OpEnergy on any OS supporting Nix and then setup OS-specific system services yourself.
@@ -72,6 +81,7 @@ in
     opEnergyBackendModule
   ];
   # bitcoind mainnet instance
+  # if you are going to use aready existing node, then don't include this part of config
   services.bitcoind.mainnet = {
     enable = true;
     dataDir = "/var/lib/bitcoind-mainnet";
@@ -108,9 +118,9 @@ in
           "DB_PASSWORD": "${op-energy-db-psk-mainnet}",
           "SECRET_SALT": "${op-energy-db-salt-mainnet}",
           "API_HTTP_PORT": 8999,
-          "BTC_URL": "http://127.0.0.1:8332",
-          "BTC_USER": "op-energy",
-          "BTC_PASSWORD": "${bitcoind-mainnet-rpc-psk}",
+          "BTC_URL": "http://127.0.0.1:8332", # in case of using another node, define it's address and credentials
+          "BTC_USER": "op-energy", # and here
+          "BTC_PASSWORD": "${bitcoind-mainnet-rpc-psk}", # and here as well
           "BTC_POLL_RATE_SECS": 10,
           "PROMETHEUS_PORT": 7999,
           "SCHEDULER_POLL_RATE_SECS": 10
