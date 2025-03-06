@@ -25,3 +25,5 @@ export enum Logos {
   SATOSHIS = '💰',
   CONTRACT = '🤝',
 }
+
+export const GENESIS_K = Math.pow(2, 32) / 600;
