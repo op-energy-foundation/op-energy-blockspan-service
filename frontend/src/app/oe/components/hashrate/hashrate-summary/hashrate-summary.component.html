@@ -13,9 +13,9 @@
                             {{ logos.STRIKES }}
                         </ng-container>
                     </div>
-                    <div class="to-block oe-link">{{getHashRate()}}</div>
-                    <div class="footer oe-link">hashrate</div>
-                    <div class="logo oe-link"><span class="logo-container">{{ logos.STRIKES }}</span></div>
+                    <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getHashRate()}}</div>
+                    <div class="footer oe-link" (click)="goToStrikeDetails($event)">hashrate</div>
+                    <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.STRIKES }}</span></div>
                 </div>
                 <div class="guessing-container">
                     <div class="oe-message-container">
