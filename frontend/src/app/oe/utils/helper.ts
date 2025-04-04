@@ -45,6 +45,54 @@ export const downloadChart = (href: string, name: string): void => {
   document.body.removeChild(a);
 };
 
+export const downloadChartAsText = (data: string, name: string): void => {
+  const blob = new Blob([data], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  downloadChart(url, name);
+  URL.revokeObjectURL(url);
+};
+
+export const convertToCSV = (jsonData: any): string => {
+  if (!jsonData || typeof jsonData !== 'object') {
+    return 'Invalid JSON data';
+  }
+
+  const keys = new Set<string>();
+  const rows: any[] = [];
+
+  const flattenObject = (obj: any, prefix = '') => {
+    const row: any = {};
+    Object.keys(obj).forEach((key) => {
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        Object.assign(row, flattenObject(obj[key], fullKey));
+      } else {
+        row[fullKey] = obj[key];
+        keys.add(fullKey);
+      }
+    });
+    return row;
+  };
+
+  if (Array.isArray(jsonData)) {
+    jsonData.forEach((item) => {
+      rows.push(flattenObject(item));
+    });
+  } else {
+    rows.push(flattenObject(jsonData));
+  }
+
+  const header = Array.from(keys).join(',');
+  const csvRows = rows.map((row) =>
+    Array.from(keys)
+      .map((key) => row[key] ?? '')
+      .join(',')
+  );
+
+  return [header, ...csvRows].join('\n');
+};
+
+
 export const convertHashrate = (
   hashrate: number,
   decimalPoints = 3
