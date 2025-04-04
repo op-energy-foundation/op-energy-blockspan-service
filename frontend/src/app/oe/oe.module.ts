@@ -56,7 +56,8 @@ import { MyGuessesComponent } from './components/my-guesses/my-guesses.component
 import { BlockRateStrikeDetailsV2Component } from './components/block-rate-strike-details-v2/block-rate-strike-details-v2.component';
 import { BlockrateStrikeSummaryV2Component } from './components/blockrate-strike-summary-v2/blockrate-strike-summary-v2.component';
 import { BlockrateSummaryV2Component } from './components/blockrate-summary-v2/blockrate-summary-v2.component';
-import { HashrateComponent } from './components/hashrate/hashrate.component';
+import { HashrateComponent } from './components/hashrate/hashrate-details/hashrate.component';
+import { HashrateSummaryComponent } from './components/hashrate/hashrate-summary/hashrate-summary.component';
 
 @NgModule({
   declarations: [
@@ -96,6 +97,7 @@ import { HashrateComponent } from './components/hashrate/hashrate.component';
     BlockrateStrikeSummaryV2Component,
     BlockrateSummaryV2Component,
     HashrateComponent,
+    HashrateSummaryComponent,
   ],
   imports: [
     CommonModule,

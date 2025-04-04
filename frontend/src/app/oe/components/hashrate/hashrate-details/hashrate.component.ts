@@ -3,14 +3,14 @@ import {
   Block,
   BlockTimeStrike,
   BlockTimeStrikePublic,
-} from '../../interfaces/oe-energy.interface';
-import { BlockTypes, Logos } from '../../types/constant';
+} from '../../../interfaces/oe-energy.interface';
+import { BlockTypes, Logos } from '../../../types/constant';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import {
   OeBlocktimeApiService,
   OeEnergyApiService,
-} from '../../services/oe-energy.service';
-import { OeStateService } from '../../services/state.service';
+} from '../../../services/oe-energy.service';
+import { OeStateService } from '../../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import {
   catchError,
@@ -24,7 +24,7 @@ import {
   getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
-} from '../../utils/helper';
+} from '../../../utils/helper';
 
 @Component({
   selector: 'app-hashrate',
@@ -97,9 +97,6 @@ export class HashrateComponent implements OnInit {
           const toBlockHeight: number =
             parseInt(endBlock, 10) ||
             (startBlock ? +startBlock + 2016 : 1200000);
-
-          // this.fromBlock = undefined;
-          // this.toBlock = undefined;
 
           this.isLoadingBlock = true;
 

@@ -185,4 +185,11 @@ export class PreviewComponent implements OnInit {
 
     return `/hashstrikes/blockrate-summary?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
   }
+
+  hashrateSummaryLink(type: 'past' | 'future' = 'future'): string {
+    if (type === 'past') {
+      return `/hashstrikes/hashrate-summary?startblock=849237&endblock=849251`;
+    }
+    return `/hashstrikes/hashrate-summary?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+  }
 }
