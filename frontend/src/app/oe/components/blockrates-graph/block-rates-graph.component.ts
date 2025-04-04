@@ -1,4 +1,4 @@
-import { convertHashrate } from './../../utils/helper';
+import { convertHashrate, convertToCSV, downloadChartAsText } from './../../utils/helper';
 import { Component, OnInit } from '@angular/core';
 import { EChartsOption, graphic } from 'echarts';
 import { Observable, Subscription, switchMap } from 'rxjs';
@@ -597,42 +597,66 @@ export class BlockRatesGraphComponent implements OnInit {
     return window.innerWidth <= 767.98;
   }
 
-  onSaveChart() {
+  onSaveChart(type: string = 'svg') {
     // @ts-ignore
     const prevBottom = this.chartOptions.grid.bottom;
     const now = new Date();
+    const timestamp = Math.round(now.getTime() / 1000);
+
     // @ts-ignore
     this.chartOptions.grid.bottom = 40;
     this.chartOptions.backgroundColor = '#11131f';
     this.chartInstance.setOption(this.chartOptions);
-    downloadChart(
-      this.chartInstance.getDataURL({
+
+    if (type === 'svg') {
+      const svgData = this.chartInstance.getDataURL({
         pixelRatio: 2,
         excludeComponents: ['dataZoom'],
-      }),
-      `block-rates-${this.blockSpan}-${Math.round(now.getTime() / 1000)}.svg`
-    );
+      });
+      downloadChart(svgData, `block-rates-${this.blockSpan}-${timestamp}.svg`);
+    } else if (type === 'json') {
+      const jsonData = JSON.stringify(this.chartData, null, 2);
+      downloadChartAsText(jsonData, `block-rates-${this.blockSpan}-${timestamp}.json`);
+    } else if (type === 'csv') {
+      const csvData = convertToCSV(this.chartData);
+      downloadChartAsText(csvData, `block-rates-${this.blockSpan}-${timestamp}.csv`);
+    }
+
+
     // @ts-ignore
     this.chartOptions.grid.bottom = prevBottom;
     this.chartOptions.backgroundColor = 'none';
     this.chartInstance.setOption(this.chartOptions);
   }
 
-  onSaveHashRateChart() {
+  onSaveHashRateChart(type: string = 'svg') {
     // @ts-ignore
     const prevBottom = this.hashrateChartOptions.grid.bottom;
     const now = new Date();
+    const timestamp = Math.round(now.getTime() / 1000);
+    
     // @ts-ignore
     this.hashrateChartOptions.grid.bottom = 40;
     this.hashrateChartOptions.backgroundColor = '#11131f';
     this.chartInstance.setOption(this.hashrateChartOptions);
-    downloadChart(
-      this.chartInstance.getDataURL({
-        pixelRatio: 2,
-        excludeComponents: ['dataZoom'],
-      }),
-      `block-rates-${this.blockSpan}-${Math.round(now.getTime() / 1000)}.svg`
-    );
+
+    if (type === 'svg') {
+      downloadChart(
+        this.chartInstance.getDataURL({
+          pixelRatio: 2,
+          excludeComponents: ['dataZoom'],
+        }),
+        `block-rates-${this.blockSpan}-${timestamp}.svg`
+      );
+    } else if (type === 'json') {
+      const jsonData = JSON.stringify(this.chartData, null, 2);
+      downloadChartAsText(jsonData, `block-rates-${this.blockSpan}-${timestamp}.json`);
+    } else if (type === 'csv') {
+      const csvData = convertToCSV(this.chartData);
+      downloadChartAsText(csvData, `block-rates-${this.blockSpan}-${timestamp}.csv`);
+    }
+
+
     // @ts-ignore
     this.hashrateChartOptions.grid.bottom = prevBottom;
     this.hashrateChartOptions.backgroundColor = 'none';

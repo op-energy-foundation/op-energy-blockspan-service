@@ -1,10 +1,16 @@
 <div class="full-container">
   <div class="card-header mb-0 mb-md-4">
     <div class="col-12 row align-items-baseline">
-      <div class="col-5">
+      <div class="col-6">
         <span>Blockrates: {{blockSpan}}-blocks Blockspans</span>
         <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveChart()">
-          <fa-icon [icon]="['fas', 'download']" [fixedWidth]="true"></fa-icon>
+          svg&nbsp;&nbsp;|
+        </button>
+        <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveChart('json')">
+          json&nbsp;&nbsp;|
+        </button>
+        <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveChart('csv')">
+          csv
         </button>
       </div>
       <div class="col-4 row ml-auto mr-auto">
@@ -51,10 +57,16 @@
         (chartInit)="onChartInit($event)">
       </div>
       <div class="col-12 row align-items-baseline mt-5">
-        <div class="col-5">
+        <div class="col-6">
           <span>Hashrates: {{blockSpan}}-blocks Blockspans</span>
           <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveHashRateChart()">
-            <fa-icon [icon]="['fas', 'download']" [fixedWidth]="true"></fa-icon>
+            svg &nbsp;&nbsp;|
+          </button>
+          <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveHashRateChart('json')">
+            json &nbsp;&nbsp;|
+          </button>
+          <button class="btn p-0 pl-2" style="margin: 0 0 4px 0px" (click)="onSaveHashRateChart('csv')">
+            csv
           </button>
         </div>
       </div>
