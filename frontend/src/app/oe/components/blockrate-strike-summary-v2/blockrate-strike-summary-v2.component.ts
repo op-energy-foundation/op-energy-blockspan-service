@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import {
   Block,
   BlockTimeStrike,
@@ -36,9 +36,9 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   logos = Logos;
   isLoadingBlock = true;
   subscription: Subscription;
-  strike: BlockTimeStrike = {} as BlockTimeStrike;
-  fromBlock: Block;
-  toBlock: Block;
+  @Input() strike: BlockTimeStrike = {} as BlockTimeStrike;
+  @Input() fromBlock: Block;
+  @Input() toBlock: Block;
   latestBlock: Block;
   disabled: boolean = false;
   isSelected: boolean = false;
@@ -56,6 +56,13 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   ) {}
 
   ngOnInit() {
+
+    if (this.strike && this.fromBlock && this.toBlock) {
+      this.isLoadingBlock = false;
+      this.checkExistingGuess();
+      return;
+    }
+    
     (this.subscription = this.route.queryParamMap
       .pipe(
         switchMap((params: ParamMap) =>
