@@ -17,30 +17,40 @@
                     <div class="footer oe-link" (click)="goToStrikeDetails($event)">blockrate</div>
                     <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
                 </div>
-                <div class="guessing-container">
+                <div class="guessing-container" *ngIf="format === 'widget'">
                     <div class="oe-message-container">
                     </div>
                 </div>
             </div>
         </div>
         <div class="block-container">
-            <div *ngFor="let strike of strikesData" class="blockspan guessing-block">
-                <div class="guessing-container">
-                    <app-blockrate-strike-summary-v2
-                        [fromBlock]="fromBlock"
-                        [toBlock]="toBlock"
-                        [strike]="strike.strike">
-                    </app-blockrate-strike-summary-v2>
-                    <!-- Planning to reuse below commented code in another component -->
-                    <!-- <app-guessing-game
-                        [fromBlock]="fromBlock"
-                        [toBlock]="toBlock"
-                        [strike]="strike.strike">
-                    </app-guessing-game> -->
-                    <!-- <div class="logo">
-                        <span class="logo-container">{{ logos.CONTRACT }}</span>
-                        <span class="logo-container">{{ logos.BLOCKS }}</span>
-                    </div> -->
+            <ng-container *ngIf="format === 'widget'" >
+                <div *ngFor="let strike of strikesData" class="blockspan guessing-block">
+                    <div class="guessing-container">
+                        <app-blockrate-strike-summary-v2
+                            [fromBlock]="fromBlock"
+                            [toBlock]="toBlock"
+                            [strike]="strike.strike">
+                        </app-blockrate-strike-summary-v2>
+                        <!-- Planning to reuse below commented code in another component -->
+                        <!-- <app-guessing-game
+                            [fromBlock]="fromBlock"
+                            [toBlock]="toBlock"
+                            [strike]="strike.strike">
+                        </app-guessing-game> -->
+                        <!-- <div class="logo">
+                            <span class="logo-container">{{ logos.CONTRACT }}</span>
+                            <span class="logo-container">{{ logos.BLOCKS }}</span>
+                        </div> -->
+                    </div>
+                </div>
+            </ng-container>
+            <div class="strike-list" *ngIf="!format || format === 'line'">
+                <div class="strike-table m-5 text-center">
+                    <div class="content">
+                        <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)">
+                        </app-data-table>
+                    </div>
                 </div>
             </div>
         </div>
