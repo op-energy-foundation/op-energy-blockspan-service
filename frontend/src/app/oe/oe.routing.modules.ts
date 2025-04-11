@@ -57,7 +57,7 @@ const routes: Routes = [
             component: BlockspansHomeComponent,
           },
           {
-            path: 'blockrate-strikes-range',
+            path: 'blockrate-strikes-by-blockrate-summary',
             component: StrikesRangeComponent,
           },
           {
@@ -78,6 +78,10 @@ const routes: Routes = [
           },
           {
             path: 'blockrate-summary',
+            component: BlockrateSummaryV2Component
+          },
+          {
+            path: 'blockrate-summary-endblockmatches',
             component: BlockrateSummaryV2Component
           },
           {

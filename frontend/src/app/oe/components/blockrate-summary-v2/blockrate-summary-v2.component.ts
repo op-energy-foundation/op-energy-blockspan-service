@@ -3,8 +3,10 @@ import {
   BlockTimeStrike,
   BlockTimeStrikePublic,
   PaginationResponse,
+  StrikeDetails,
+  TableColumn,
 } from '../../interfaces/oe-energy.interface';
-import { Logos } from '../../types/constant';
+import { FormatType, Logos } from '../../types/constant';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   OeBlocktimeApiService,
@@ -13,6 +15,7 @@ import {
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import { BaseBlockComponent } from '../common/base-block/BaseBlockComponent';
+import { TABLE_HEADERS } from '../strikes-range/strikes-range.interface';
 
 @Component({
   selector: 'app-blockrate-summary-v2',
@@ -30,7 +33,10 @@ export class BlockrateSummaryV2Component
   selectedGuess: string;
   strikeKnown = false;
   color = 'red';
-  strikesData = [] as BlockTimeStrikePublic[];
+  strikesData: BlockTimeStrikePublic[] = [];
+  tableData: BlockTimeStrike[] = [];
+  headers: TableColumn[] = TABLE_HEADERS;
+  
 
   constructor(
     router: Router,
@@ -55,6 +61,8 @@ export class BlockrateSummaryV2Component
 
     // Process query parameters
     const params = this.processQueryParams(this.route);
+
+    this.format = params.format;
 
     // Extract values from processed query parameters
     const { fromBlockHeight, toBlockHeight } = this.calculateBlockRange({
@@ -142,7 +150,28 @@ export class BlockrateSummaryV2Component
       this.isLoadingBlock = false;
       return;
     }
-    this.strikesData = data.results;
+    if (this.format === FormatType.LINE) {
+      this.tableData = data.results.map((result) => {
+        return {
+          ...result.strike,
+          guessesCount: result.guessesCount,
+        };
+      });
+    } else {
+      this.strikesData = data.results;
+    }
     this.isLoadingBlock = false;
+  }
+
+  onChildRowClick(item: StrikeDetails): void {
+    // Construct the query parameters
+    const queryParams = {
+      strikeHeight: item.block,
+      strikeTime: item.strikeMediantime,
+      startblock: item.block - 24,
+    };
+
+    // Use the Router service to navigate with query parameters
+    this.router.navigate(['/hashstrikes/blockrate-strike-details'], { queryParams });
   }
 }

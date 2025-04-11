@@ -27,6 +27,7 @@ import {
   calculateTimeDifference,
   convertToUTC
 } from '../../../utils/helper';
+import { FormatType } from '../../../types/constant';
 
 export abstract class BaseBlockComponent {
   fromBlock: Block;
@@ -37,6 +38,7 @@ export abstract class BaseBlockComponent {
   calculateTimeDifference = calculateTimeDifference;
   convertToUTC = convertToUTC;
   strike: BlockTimeStrike = {} as BlockTimeStrike;
+  format: FormatType = FormatType.LINE;
 
   constructor(
     protected router: Router,
@@ -92,6 +94,7 @@ export abstract class BaseBlockComponent {
       endblock: this.latestBlock?.height || undefined,
       strikeHeight: 1200000,
       strikeTime: undefined,
+      format: FormatType.LINE
     };
     const params: { [key: string]: any } = { ...defaultParams };
     route.queryParamMap.pipe(take(1)).subscribe((paramMap: ParamMap) => {
