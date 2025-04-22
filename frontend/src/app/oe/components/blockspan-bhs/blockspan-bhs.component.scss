@@ -132,10 +132,13 @@
               font-size: 0.6rem;
 
               .leading-zeros {
-                color: red;
                 white-space: pre;
                 overflow: hidden;
                 width: 9.5rem;
+
+                .red {
+                  color: red;
+                }
               }
 
               .remaining-text {
