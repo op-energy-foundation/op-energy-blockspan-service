@@ -85,7 +85,11 @@ export const convertToCSV = (jsonData: any): string => {
   const header = Array.from(keys).join(',');
   const csvRows = rows.map((row) =>
     Array.from(keys)
-      .map((key) => row[key] ?? '')
+      .map((key) => {
+        const value = row[key] ?? '';
+        const safeValue = String(value).replace(/"/g, '""'); // Escape internal quotes
+        return `"${safeValue}"`; // Wrap in double quotes
+      })
       .join(',')
   );
 
