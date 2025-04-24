@@ -196,7 +196,7 @@ export class BlockRatesGraphComponent implements OnInit {
     let title: object;
     const chartData = data.map((item) => ({
       nbdr: item.nbdr,
-      hashrate: parseInt('0x' + item.hashrate) / 100,
+      hashrate: BigInt('0x' + item.hashrate).toString(),
       originalhashrate: item.hashrate,
       startBlockHeight: item.startBlock.height,
       endBlockHeight: item.endBlock.height,
@@ -214,10 +214,10 @@ export class BlockRatesGraphComponent implements OnInit {
     const maxValue = Math.max(...chartData.map((item) => item.nbdr));
 
     const minHashrateValue = Math.floor(
-      Math.min(...chartData.map((item) => item.hashrate)) * 0.9
+      Math.min(...chartData.map((item) => Number(BigInt(item.hashrate)))) * 0.9
     );
     const maxHashrateValue = Math.ceil(
-      Math.max(...chartData.map((item) => item.hashrate)) * 1.1
+      Math.max(...chartData.map((item) => Number(BigInt(item.hashrate)))) * 1.1
     );
 
     const yAxisMin = Math.floor(minValue * 0.9);
