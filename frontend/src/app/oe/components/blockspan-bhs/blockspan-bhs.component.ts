@@ -110,6 +110,19 @@ export class BlockspanBHSComponent implements OnInit {
       };
   }
 
+  openExternalSite(event: MouseEvent, hash: string | undefined): void {
+    if (
+      !hash ||
+      hash === '?' ||
+      (window.getSelection()?.toString() ?? '').length > 0
+    ) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+    } else {
+      window.open('https://blockstream.info/block/' + hash, '_blank');
+    }
+  }
+
   modifyText(text: string): string {
     // Regular expression to match leading zeros
     const regex = /(0+)(.*)$/;

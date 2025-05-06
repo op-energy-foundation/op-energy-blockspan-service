@@ -184,6 +184,22 @@
         .hashes {
           width: 45%;
         }
+
+
+        .hashes-links {
+          ::ng-deep {
+            #fromBlockBox, #toBlockBox {
+              cursor: pointer;
+              text-decoration: none;
+              transition: color 0.2s, text-decoration 0.2s;
+            }
+            
+            #fromBlockBox:hover, #toBlockBox:hover {
+              text-decoration: underline;
+              color: #007bff; /* Optional: Add a link-like color */
+            }
+          }
+        }
         
         .difficulty {
           width: 20%;
