@@ -332,7 +332,7 @@ export class BlockspanBHSComponent implements OnInit {
     const regex = /(0+)(.*)$/;
     const match = type.match(regex);
     const diffcult = Math.max(match ? match[1].length - 8 : 0, 8);
-    return `>= ${this.formatNumberToString(Math.pow(16, diffcult + 1))}`;
+    return `<= ${this.formatNumberToString(Math.pow(16, diffcult + 1))}`;
   }
 
   formatNumberToString(input: string | number): string {
