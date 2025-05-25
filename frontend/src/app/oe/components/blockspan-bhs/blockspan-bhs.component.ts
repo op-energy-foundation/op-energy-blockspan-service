@@ -110,6 +110,19 @@ export class BlockspanBHSComponent implements OnInit {
       };
   }
 
+  openExternalSite(event: MouseEvent, hash: string | undefined): void {
+    if (
+      !hash ||
+      hash === '?' ||
+      (window.getSelection()?.toString() ?? '').length > 0
+    ) {
+      // If there is selected text, prevent the click event from propagating
+      event.stopPropagation();
+    } else {
+      window.open('https://blockstream.info/block/' + hash, '_blank');
+    }
+  }
+
   modifyText(text: string): string {
     // Regular expression to match leading zeros
     const regex = /(0+)(.*)$/;
@@ -319,7 +332,7 @@ export class BlockspanBHSComponent implements OnInit {
     const regex = /(0+)(.*)$/;
     const match = type.match(regex);
     const diffcult = Math.max(match ? match[1].length - 8 : 0, 8);
-    return `>= ${this.formatNumberToString(Math.pow(16, diffcult + 1))}`;
+    return `<= ${this.formatNumberToString(Math.pow(16, diffcult + 1))}`;
   }
 
   formatNumberToString(input: string | number): string {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ClipboardService } from 'ngx-clipboard'
 
 @Component({
@@ -17,6 +17,8 @@ export class BoxComponent implements OnInit {
   @Input() displayBlock: boolean = true;
   @Input() displayLogo: boolean = true;
   @Input() isToolTipEnabled: boolean = false;
+  @Output() fromLabelClicked = new EventEmitter<MouseEvent>();
+  @Output() toLabelClicked = new EventEmitter<MouseEvent>();
 
   constructor(private _clipboardService: ClipboardService) {}
 
@@ -39,5 +41,13 @@ export class BoxComponent implements OnInit {
     const target = event.target as HTMLElement;
     const textToCopy = target.innerText.trim();
     this._clipboardService.copy(textToCopy);
+
+    if (target?.id === 'fromBlockBox' || target?.parentElement?.id === 'fromBlockBox') {
+      this.fromLabelClicked.emit(event);
+    }
+  
+    if (target?.id === 'toBlockBox' || target?.parentElement?.id === 'toBlockBox') {
+      this.toLabelClicked.emit(event);
+    }
   }
 }
