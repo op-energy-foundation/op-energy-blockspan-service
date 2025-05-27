@@ -30,5 +30,5 @@ export const GENESIS_K = Math.pow(2, 32) / 600;
 
 export enum FormatType {
   WIDGET = 'widget',
-  LINE = 'line',
+  TABLE = 'table',
 }

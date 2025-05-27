@@ -150,7 +150,7 @@ export class BlockrateSummaryV2Component
       this.isLoadingBlock = false;
       return;
     }
-    if (this.format === FormatType.LINE) {
+    if (this.format === FormatType.TABLE) {
       this.tableData = data.results.map((result) => {
         return {
           ...result.strike,
