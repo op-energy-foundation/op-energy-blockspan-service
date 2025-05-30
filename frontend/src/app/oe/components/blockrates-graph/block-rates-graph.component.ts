@@ -57,6 +57,9 @@ export class BlockRatesGraphComponent implements OnInit {
     endBlockHeight: number;
     label: string;
     nbdr: number;
+    hashrate: string;
+    startPostfixTime: number;
+    endPostfixTime: number;
   }[];
   tooltipVisible = false;
   toolTipValue = -1;
@@ -200,6 +203,8 @@ export class BlockRatesGraphComponent implements OnInit {
       originalhashrate: item.hashrate,
       startBlockHeight: item.startBlock.height,
       endBlockHeight: item.endBlock.height,
+      startPostfixTime: item.startBlock.timestamp,
+      endPostfixTime: item.endBlock.timestamp,
       label: `${item.startBlock.height}-${item.endBlock.height} (${new Date(
         item.endBlock.timestamp * 1000
       ).toLocaleDateString('en-US', {
@@ -608,6 +613,15 @@ export class BlockRatesGraphComponent implements OnInit {
     this.chartOptions.backgroundColor = '#11131f';
     this.chartInstance.setOption(this.chartOptions);
 
+    const downloadData = this.chartData.map(item => ({
+      startBlockHeight: item.startBlockHeight,
+      endBlockHeight: item.endBlockHeight,
+      hashrate: item.hashrate,
+      label: item.label,
+      nbdr: item.nbdr,
+      startPostfixTime: item.startPostfixTime,
+      endPostfixTime: item.endPostfixTime
+    }));
     if (type === 'svg') {
       const svgData = this.chartInstance.getDataURL({
         pixelRatio: 2,
@@ -615,10 +629,10 @@ export class BlockRatesGraphComponent implements OnInit {
       });
       downloadChart(svgData, `block-rates-${this.blockSpan}-${timestamp}.svg`);
     } else if (type === 'json') {
-      const jsonData = JSON.stringify(this.chartData, null, 2);
+      const jsonData = JSON.stringify(downloadData, null, 2);
       downloadChartAsText(jsonData, `block-rates-${this.blockSpan}-${timestamp}.json`);
     } else if (type === 'csv') {
-      const csvData = convertToCSV(this.chartData);
+      const csvData = convertToCSV(downloadData);
       downloadChartAsText(csvData, `block-rates-${this.blockSpan}-${timestamp}.csv`);
     }
 
@@ -640,6 +654,16 @@ export class BlockRatesGraphComponent implements OnInit {
     this.hashrateChartOptions.backgroundColor = '#11131f';
     this.chartInstance.setOption(this.hashrateChartOptions);
 
+    const downloadData = this.chartData.map(item => ({
+      startBlockHeight: item.startBlockHeight,
+      endBlockHeight: item.endBlockHeight,
+      hashrate: item.hashrate,
+      label: item.label,
+      nbdr: item.nbdr,
+      startPostfixTime: item.startPostfixTime,
+      endPostfixTime: item.endPostfixTime
+    }));
+
     if (type === 'svg') {
       downloadChart(
         this.chartInstance.getDataURL({
@@ -649,10 +673,10 @@ export class BlockRatesGraphComponent implements OnInit {
         `block-rates-${this.blockSpan}-${timestamp}.svg`
       );
     } else if (type === 'json') {
-      const jsonData = JSON.stringify(this.chartData, null, 2);
+      const jsonData = JSON.stringify(downloadData, null, 2);
       downloadChartAsText(jsonData, `block-rates-${this.blockSpan}-${timestamp}.json`);
     } else if (type === 'csv') {
-      const csvData = convertToCSV(this.chartData);
+      const csvData = convertToCSV(downloadData);
       downloadChartAsText(csvData, `block-rates-${this.blockSpan}-${timestamp}.csv`);
     }
 
