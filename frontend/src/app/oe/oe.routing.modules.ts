@@ -24,7 +24,7 @@ import { HashrateSummaryComponent } from './components/hashrate/hashrate-summary
 
 const routes: Routes = [
   { path: 'login/:secret', component: LoginComponent },
-  { path: '', redirectTo: '/preview-page', pathMatch: 'full' },
+  { path: '', redirectTo: '/about', pathMatch: 'full' },
   {
     path: '',
     component: OeMasterPageComponent,
