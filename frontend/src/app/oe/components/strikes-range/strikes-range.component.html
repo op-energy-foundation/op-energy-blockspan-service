@@ -1,9 +1,20 @@
 <div class="past-strike-list">
     <div class="strike-table m-5 text-center">
         <p class="text-right">Showing Maximum 15 results. If you want to see the next page, change the page URL parameter to the next page.</p>
-        <div class="content">
+        <div class="content" *ngIf="!format || format === 'table'">
             <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)" [isLoading]="isLoading">
             </app-data-table>
+        </div>
+        <div *ngIf="format === 'widget'">
+            <div *ngFor="let strike of tableData" class="blockspan guessing-block mb-5">
+                <div class="guessing-container">
+                    <app-blockrate-strike-summary-v2
+                        [fromBlockHeight]="strike.block - 24"
+                        [toBlockHeight]="strike.block"
+                        [strikeTime]="strike.strikeMediantime">
+                    </app-blockrate-strike-summary-v2>
+                </div>
+            </div>
         </div>
     </div>
 </div>

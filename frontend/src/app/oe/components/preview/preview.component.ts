@@ -91,7 +91,7 @@ export class PreviewComponent implements OnInit {
   }
 
   pastStrikeListOldestToNewestLink(type?: string): string {
-    const url = '/hashstrikes/blockrate-strikes-by-blockrate-summary?sort=ascend&page=1';
+    const url = '/hashstrikes/blockrate-strikes-by-blockrate-summary?sort=ascend&page=1&format=table';
 
     if (type) {
       return `${url}&result=${type}`;
@@ -100,7 +100,7 @@ export class PreviewComponent implements OnInit {
   }
 
   pastStrikeListNewestToOldestLink(type?: string): string {
-    const url = '/hashstrikes/blockrate-strikes-by-blockrate-summary?page=1';
+    const url = '/hashstrikes/blockrate-strikes-by-blockrate-summary?page=1&format=table';
 
     if (type) {
       return `${url}&result=${type}`;
@@ -109,7 +109,7 @@ export class PreviewComponent implements OnInit {
   }
 
   guessableStrikeListNewestToOldestLink(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?outcome=guessable&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?outcome=guessable&page=1&format=table';
   }
 
   pastStrikeListQWithGuess(): string {
@@ -117,31 +117,31 @@ export class PreviewComponent implements OnInit {
   }
 
   strikesRangeWithStartblockEndblock(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startblock=849237&endblock=849251&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startblock=849237&endblock=849251&page=1&format=table';
   }
 
   strikesRangeWithStarttimeEndtime(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startTime=1719194635&endTime=1719201779&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startTime=1719194635&endTime=1719201779&page=1&format=table';
   }
 
   strikesRangeWithStartblockEndtime(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startblock=849237&endTime=1719201779&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startblock=849237&endTime=1719201779&page=1&format=table';
   }
 
   strikesRangeWithstarttimeEndBlock(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startTime=1719194635&endblock=849251&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?startTime=1719194635&endblock=849251&page=1&format=table';
   }
 
   strikesRangeWithLastStrikes(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?lastStrikes&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?lastStrikes&page=1&format=table';
   }
 
   strikesRangeWithNextStrikes(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?nextStrikes&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?nextStrikes&page=1&format=table';
   }
 
   strikeListSortByGuess(): string {
-    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?sort=descend_guesses_count&page=1';
+    return '/hashstrikes/blockrate-strikes-by-blockrate-summary?sort=descend_guesses_count&page=1&format=table';
   }
 
   blockspanDetails(): string {

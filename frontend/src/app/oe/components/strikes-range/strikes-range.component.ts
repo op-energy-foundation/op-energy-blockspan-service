@@ -1,3 +1,4 @@
+import { getEmptyBlockHeader } from './../../utils/helper';
 import { TABLE_HEADERS } from './strikes-range.interface';
 import { Component, OnInit } from '@angular/core';
 import { OeBlocktimeApiService } from '../../services/oe-energy.service';
@@ -14,6 +15,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, take } from 'rxjs';
 import { OeStateService } from '../../services/state.service';
+import { FormatType } from '../../types/constant';
 
 @Component({
   selector: 'app-strikes-range',
@@ -46,6 +48,8 @@ export class StrikesRangeComponent implements OnInit {
   };
   currentTip = null;
   linesPerPage = 15;
+  format = FormatType.TABLE;
+  private previousTableDataLength: number = 0;
 
   constructor(
     private oeBlocktimeApiService: OeBlocktimeApiService,
@@ -66,6 +70,16 @@ export class StrikesRangeComponent implements OnInit {
           this.fetchOutcomeKnownStrikes(this.currentPage);
         });
       });
+  }
+
+  ngDoCheck(): void {
+    // Check if the length of tableData has changed
+    if (this.tableData.length !== this.previousTableDataLength) {
+      this.previousTableDataLength = this.tableData.length;
+      setTimeout(() => {
+        this.scrollToBottom(); 
+      }, 800);
+    }
   }
 
   ngOnDestroy(): void {
@@ -102,6 +116,16 @@ export class StrikesRangeComponent implements OnInit {
     if (params['sort'] === 'descend_guesses_count') {
       delete this.filter.class;
     }
+    if(params['format'] === FormatType.WIDGET) {
+      this.format = FormatType.WIDGET;
+    }
+  }
+
+  private scrollToBottom(): void {
+    window.scrollTo({
+      behavior: 'smooth',
+      top: document.body.scrollHeight,
+    });
   }
 
   fetchOutcomeKnownStrikes(pageNumber: number): void {
@@ -137,14 +161,26 @@ export class StrikesRangeComponent implements OnInit {
       this.isLoading = false;
       return;
     }
-    this.tableData = data.results.map((result) => {
-      return {
+    this.isLoading = false;
+    if(this.format === FormatType.WIDGET) {
+      const results = data.results.map((result) => ({
         ...result.strike,
         guessesCount: result.guessesCount,
-      };
-    });
+      }));
+      results.forEach((strike, index) => {
+        setTimeout(() => {
+          this.tableData.push(strike);
+        }, index * 1500); // 1500ms delay for each item
+      });
+    } else {
+      this.tableData = data.results.map((result) => {
+        return {
+          ...result.strike,
+          guessesCount: result.guessesCount,
+        };
+      });
+    }
     // this.totalPages = Math.floor(data.count / data.results.length);
-    this.isLoading = false;
   }
 
   private handleError(error: any): void {
