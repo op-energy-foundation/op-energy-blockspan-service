@@ -13,9 +13,19 @@
                             {{ logos.BLOCKS }}
                         </ng-container>
                     </div>
-                    <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getBlockRate()}}</div>
-                    <div class="footer oe-link" (click)="goToStrikeDetails($event)">blockrate</div>
-                    <div class="logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
+                    <a class="to-block oe-link" 
+                        [routerLink]="['/hashstrikes/blockspan-details']"
+                        [attr.href]="'/hashstrikes/blockspan-details'"
+                        [queryParams]="{
+                            startblock: fromBlock.height,
+                            endblock: toBlock.height
+                        }">
+                        {{getBlockRate()}}
+                    </a>
+                    <div class="footer">blockrate</div>
+                    <div class="logo">
+                        <span class="logo-container">{{ logos.BLOCKS }}</span>
+                    </div>
                 </div>
                 <div class="guessing-container" *ngIf="format === 'widget'">
                     <div class="oe-message-container">

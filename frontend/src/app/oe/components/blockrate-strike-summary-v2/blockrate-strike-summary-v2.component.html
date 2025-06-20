@@ -19,15 +19,36 @@
                     footerText="blocks" [logo]="logos.BLOCKS"></app-box>
                 <div class="blockrate">
                     <a class="dummy"></a>
-                    <div class="to-block oe-link" (click)="goToBlockRateDetails($event)">{{getBlockRate()}}</div>
-                    <div class="footer oe-link" (click)="goToBlockRateDetails($event)">blockrate</div>
-                    <div class="logo oe-link" (click)="goToBlockRateDetails($event)"><span class="logo-container">{{ logos.BLOCKS }}</span></div>
+                    <a class="to-block oe-link" 
+                        [routerLink]="['/hashstrikes/blockspan-details']"
+                        [attr.href]="'/hashstrikes/blockspan-details'"
+                        [queryParams]="{
+                            startblock: fromBlock.height,
+                            endblock: toBlock.height
+                        }">
+                        {{getBlockRate()}}
+                    </a>
+                    <div class="footer">blockrate</div>
+                    <div class="logo">
+                        <span class="logo-container">{{ logos.BLOCKS }}</span>
+                    </div>
                 </div>
                 <div class="hashrate">
                     <a class="dummy"></a>
-                    <div class="to-block oe-link" (click)="goToStrikeDetails($event)">{{getStrikeRate()}}</div>
-                    <div class="footer oe-link" (click)="goToStrikeDetails($event)">predicted blockrate</div>
-                    <div class="logo multiple-logo oe-link" (click)="goToStrikeDetails($event)"><span class="logo-container">{{ logos.BLOCKS }} {{ logos.CONTRACT }}</span></div>
+                    <a class="to-block oe-link" 
+                        [routerLink]="['/hashstrikes/blockrate-strike-details']"
+                        [attr.href]="'/hashstrikes/blockrate-strike-details'"
+                        [queryParams]="{
+                            strikeHeight: strike.block,
+                            strikeTime: strike.strikeMediantime,
+                            startblock: fromBlock.height
+                        }">
+                        {{getStrikeRate()}}
+                    </a>
+                    <div class="footer">predicted blockrate</div>
+                    <div class="logo multiple-logo">
+                        <span class="logo-container">{{ logos.BLOCKS }} {{ logos.CONTRACT }}</span>
+                    </div>
                 </div>
                 <div class="guessing-container">
                     <div class="oe-guessing-box pb-3">
