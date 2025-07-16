@@ -29,6 +29,7 @@ type SwaggerAPI = "api" :> "v1" :> "swagger.json" :> Get '[JSON] Swagger
 
 -- | API for WebSocket connection. It have to be separate as Websocket does not support servant-client so it should be apart from BackendAPI
 type WebSocketAPI = "api" :> "v1" :> "ws" :> WebSocket
+  :<|> "api" :> "v1" :> "blockspans" :> "ws" :> WebSocket
 
 -- | This type describes both websocket and backend APIs
 type WebSocketBackendAPI = WebSocketAPI :<|> BackendAPI
