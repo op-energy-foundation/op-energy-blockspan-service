@@ -28,10 +28,11 @@ import           Data.OpEnergy.API.V1.Block
 
 -- | API specifications of a backend service for Swagger
 type V1API
-  = "statistics"
+  = "blockspans"
+    :> "statistics"
     :> Capture "blockheight" BlockHeight
-    :> Capture "span" (Positive Int)
-    :> Description "Calculates NBDR statistics for a given block height and span. NBDR here is ratio (span * 600 * 100) / (endBlockMedianTime - startBlockMediantime)."
+    :> Capture "spansize" (Positive Int)
+    :> Description "Derpecated? Calculates NBDR statistics for a given block height and span. NBDR here is ratio (span * 600 * 100) / (endBlockMedianTime - startBlockMediantime)."
     :> Get '[JSON] Statistics
 
   :<|> "oe"
