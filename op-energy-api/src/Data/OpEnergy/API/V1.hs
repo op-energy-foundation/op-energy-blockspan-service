@@ -62,7 +62,7 @@ type V1API
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "spansize" (Positive Int)
     :> QueryParam "numberOfSpan" (Positive Int)
-    :> Description "Returns list of start and end blocks' headers and their nbdr for each appropriate block span. NBDR here is ratio (spansize * 600 * 100) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
+    :> Description "DEPRECATED. use blockbyblockspan instead. Returns list of start and end blocks' headers and their nbdr for each appropriate block span. NBDR here is ratio (spansize * 600 * 100) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
     :> Get '[JSON] [BlockSpanHeadersNbdr]
 
   :<|> "oe"
