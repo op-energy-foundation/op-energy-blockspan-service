@@ -41,9 +41,9 @@ type API
 -- | Swagger spec for Todo API.
 apiSwagger :: Swagger
 apiSwagger = toSwagger websocketBackendAPI
-  & info.title   .~ "OpEnergy API"
+  & info.title   .~ "OpEnergy Blockspans API"
   & info.version .~ "1.0"
-  & info.description ?~ "OpEnergy"
+  & info.description ?~ "OpEnergy blockspans service API"
   & info.license ?~ ("MIT" & url ?~ URL "http://mit.com")
 
 
