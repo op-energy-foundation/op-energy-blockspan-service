@@ -29,6 +29,7 @@ type SwaggerAPI = "api" :> "v1" :> "swagger.json" :> Get '[JSON] Swagger
 
 -- | API for WebSocket connection. It have to be separate as Websocket does not support servant-client so it should be apart from BackendAPI
 type WebSocketAPI = "api" :> "v1" :> "ws" :> WebSocket
+  :<|> "api" :> "v1" :> "blockspans" :> "ws" :> WebSocket
 
 -- | This type describes both websocket and backend APIs
 type WebSocketBackendAPI = WebSocketAPI :<|> BackendAPI
@@ -41,9 +42,9 @@ type API
 -- | Swagger spec for Todo API.
 apiSwagger :: Swagger
 apiSwagger = toSwagger websocketBackendAPI
-  & info.title   .~ "OpEnergy API"
+  & info.title   .~ "OpEnergy Blockspans API"
   & info.version .~ "1.0"
-  & info.description ?~ "OpEnergy"
+  & info.description ?~ "OpEnergy blockspans service API"
   & info.license ?~ ("MIT" & url ?~ URL "http://mit.com")
 
 
