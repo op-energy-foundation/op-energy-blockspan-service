@@ -5,7 +5,7 @@ import {
   BlockTimeStrikePublic,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
-import { BlockTypes, Logos } from '../../types/constant';
+import { APP_CONFIGURATION, BlockTypes, Logos } from '../../types/constant';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import {
   OeBlocktimeApiService,
@@ -102,7 +102,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
           }
 
           if (!fromBlockHeight) {
-            fromBlockHeight = Math.max(0, strikeHeight - 14);
+            fromBlockHeight = Math.max(0, strikeHeight - APP_CONFIGURATION.SPAN_SIZE);
           }
           // Creating temporary strike
           this.strike = {

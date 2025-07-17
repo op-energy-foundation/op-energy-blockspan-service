@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { switchMap, catchError, take } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
-import { BlockTypes } from '../../types/constant';
+import { APP_CONFIGURATION, BlockTypes } from '../../types/constant';
 import {
   Block,
   BlockTimeStrikePublic,
@@ -75,7 +75,7 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
             endBlock && startBlock
               ? parseInt(startBlock, 10)
               : endBlock
-              ? parseInt(endBlock, 10) - 14
+              ? parseInt(endBlock, 10) - APP_CONFIGURATION.SPAN_SIZE
               : parseInt(startBlock, 10) || this.latestBlock.height;
 
           const toBlockHeight: number =

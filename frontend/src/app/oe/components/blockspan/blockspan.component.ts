@@ -9,7 +9,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Block } from '../../interfaces/oe-energy.interface';
 import { navigator } from '../../utils/helper';
 
-export const MAX_COUNT = 14;
 @Component({
   selector: 'app-blockspan',
   templateUrl: './blockspan.component.html',

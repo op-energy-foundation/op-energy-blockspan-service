@@ -6,6 +6,7 @@ import {
   OeBlocktimeApiService,
 } from '../../services/oe-energy.service';
 import { BlockTimeStrikeGuessPublic } from '../../interfaces/oe-energy.interface';
+import { APP_CONFIGURATION } from '../../types/constant';
 
 @Component({
   selector: 'app-my-guesses',
@@ -71,7 +72,7 @@ export class MyGuessesComponent implements OnInit {
 
     // Only add blockspanStart if the result is known (observedResult is not null or empty)
     if (observedResult) {
-      queryParams.blockspanStart = strikeHeight - 14; // 14 blocks before the current strike height
+      queryParams.blockspanStart = strikeHeight - APP_CONFIGURATION.SPAN_SIZE; // span blocks before the current strike height
     }
 
     // Navigate to the target route with the query parameters
