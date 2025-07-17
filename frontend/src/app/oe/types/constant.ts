@@ -32,3 +32,7 @@ export enum FormatType {
   WIDGET = 'widget',
   LINE = 'line',
 }
+
+export const APP_CONFIGURATION = {
+  SPAN_SIZE: 14,
+};

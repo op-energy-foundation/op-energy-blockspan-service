@@ -1,0 +1,35 @@
+<div class="judgement-block-container">
+  <div class="top-blocks">
+    <div class="judgement-block yellow-block label">
+      Judgement block height
+    </div>
+    <div class="judgement-block orange-block label">
+      Judgement block time
+    </div>
+    <div class="judgement-block hash-block label">
+      Judgement block hash
+    </div>
+  </div>
+  <div class="top-blocks">
+    <div class="judgement-block yellow-block">
+      {{strike?.observedBlockHeight || '?'}}
+    </div>
+    <div class="judgement-block orange-block">
+      {{strike?.observedBlockMediantime || '?'}}
+    </div>
+    <div class="judgement-block hash-block" [ngClass]="{'small-font': strike?.observedBlockHash}">
+      {{strike?.observedBlockHash || '?'}}
+    </div>
+  </div>
+  <div class="judgement-placeholder">
+    <div class="label mt-2 text-center">
+      judgement blockHeight >= StrikeHeight: {{getJudgementHeight()}}
+    </div>
+    <div class="label mt-2 text-center">
+      judgement blockTime >= StrikeTime: {{getJudgementTime()}}
+    </div>
+     <div class="label mt-2 mb-2 text-center">
+      judgement: {{getResult()}}
+    </div>
+  </div>
+</div>

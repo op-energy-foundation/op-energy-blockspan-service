@@ -58,6 +58,7 @@ import { BlockrateStrikeSummaryV2Component } from './components/blockrate-strike
 import { BlockrateSummaryV2Component } from './components/blockrate-summary-v2/blockrate-summary-v2.component';
 import { HashrateComponent } from './components/hashrate/hashrate-details/hashrate.component';
 import { HashrateSummaryComponent } from './components/hashrate/hashrate-summary/hashrate-summary.component';
+import { JudgementBlockComponent } from './components/judgement-block/judgement-block.component';
 
 @NgModule({
   declarations: [
@@ -98,6 +99,7 @@ import { HashrateSummaryComponent } from './components/hashrate/hashrate-summary
     BlockrateSummaryV2Component,
     HashrateComponent,
     HashrateSummaryComponent,
+    JudgementBlockComponent,
   ],
   imports: [
     CommonModule,

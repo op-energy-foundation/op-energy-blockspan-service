@@ -22,6 +22,7 @@ import { Block } from '../../interfaces/oe-energy.interface';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { environment } from '../../../../environments/environment';
 import { getBlockSpanByHeight } from '../../utils/helper';
+import { APP_CONFIGURATION } from '../../types/constant';
 
 interface PastBlock extends Block {
   mediantimeDiff: number;
@@ -96,7 +97,7 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
                 .pipe(
                   switchMap((block: Block) =>
                     of({
-                      from: block.height - 14,
+                      from: block.height - APP_CONFIGURATION.SPAN_SIZE,
                       to: block.height,
                     })
                   )

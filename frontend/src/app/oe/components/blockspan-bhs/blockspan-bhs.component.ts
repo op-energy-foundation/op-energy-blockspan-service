@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, OnInit, Renderer2 } from '@angular/core';
 import { Block } from '../../interfaces/oe-energy.interface';
-import { BlockTypes, Logos } from '../../types/constant';
+import { APP_CONFIGURATION, BlockTypes, Logos } from '../../types/constant';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
@@ -82,7 +82,7 @@ export class BlockspanBHSComponent implements OnInit {
               : parseInt(startBlock, 10) || this.latestBlock.height;
 
           const toBlockHeight: number =
-            parseInt(endBlock, 10) || (startBlock ? +startBlock + 14 : 1200000);
+            parseInt(endBlock, 10) || (startBlock ? +startBlock + APP_CONFIGURATION.SPAN_SIZE : 1200000);
 
           this.fromBlock = undefined;
           this.toBlock = undefined;
