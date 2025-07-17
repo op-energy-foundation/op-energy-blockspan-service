@@ -38,7 +38,10 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   subscription: Subscription;
   @Input() strike: BlockTimeStrike = {} as BlockTimeStrike;
   @Input() fromBlock: Block;
+  @Input() fromBlockHeight: number;
   @Input() toBlock: Block;
+  @Input() toBlockHeight: number;
+  @Input() strikeTime: number;
   latestBlock: Block;
   disabled: boolean = false;
   isSelected: boolean = false;
@@ -78,9 +81,9 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
       )
       .pipe(
         switchMap((params: ParamMap) => {
-          let fromBlockHeight = +params.get('startblock');
-          const strikeHeight = +params.get('strikeHeight') || 1200000;
-          let strikeTime = +params.get('strikeTime');
+          let fromBlockHeight = this.fromBlockHeight || +params.get('startblock');
+          const strikeHeight = this.toBlockHeight || +params.get('strikeHeight') || 1200000;
+          let strikeTime = this.strikeTime || +params.get('strikeTime');
 
           if (fromBlockHeight > this.latestBlock.height) {
             this.toastr.error('Viewing requires known start block', 'Failed!');

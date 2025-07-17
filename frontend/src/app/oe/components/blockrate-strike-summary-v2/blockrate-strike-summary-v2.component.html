@@ -12,7 +12,7 @@
                 <div class="hashrate" [ngClass]="{ 'height-1': getAnimal('hashrate') === '🐰' }">
                     <span class="logo-container">{{ logos.BLOCKS }}</span>
                 </div>
-                <div class="guessing-container"></div>
+                <div class="guessing-container" style="z-index: -1;"></div>
             </div>
             <div class="blockspan">
                 <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
@@ -50,7 +50,7 @@
                         <span class="logo-container">{{ logos.BLOCKS }} {{ logos.CONTRACT }}</span>
                     </div>
                 </div>
-                <div class="guessing-container">
+                <div class="guessing-container" style="z-index: 1;">
                     <div class="oe-guessing-box pb-3">
                         <button class="btn btn-lg btn-light btn-outline-warning" type="button"
                             [class.active]="selectedGuess === 'fast'" [disabled]="disabled"
