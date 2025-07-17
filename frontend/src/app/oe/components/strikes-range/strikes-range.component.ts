@@ -44,7 +44,7 @@ export class StrikesRangeComponent implements OnInit {
     outcome: 'class',
     result: 'observedResultEQ',
   };
-  currentTip = null;
+  currentTip: number;
   linesPerPage = 15;
 
   constructor(
@@ -157,7 +157,7 @@ export class StrikesRangeComponent implements OnInit {
     const queryParams = {
       strikeHeight: item.block,
       strikeTime: item.strikeMediantime,
-      startblock: item.block - 14,
+      startblock: Math.min(this.currentTip, item.block - 14),
     };
 
     if (this.guessableScreen) {
@@ -168,6 +168,8 @@ export class StrikesRangeComponent implements OnInit {
     }
 
     // Use the Router service to navigate with query parameters
-    this.router.navigate(['/hashstrikes/blockrate-strike-details'], { queryParams });
+    this.router.navigate(['/hashstrikes/blockrate-strike-details'], {
+      queryParams,
+    });
   }
 }
