@@ -1,0 +1,68 @@
+.judgement-block-container {
+  width: 95%;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 18px;
+  font-weight: 700;
+  color: black;
+  margin-left: 0.5rem;
+  margin-top: 2rem;
+
+  .top-blocks {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 0.5rem;
+
+    .judgement-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border: 2px solid black;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .yellow-block {
+      background-color: yellow;
+      width: 15rem;
+      height: 6rem;
+    }
+
+    .orange-block {
+      background-color: orange;
+      width: 15rem;
+      height: 6rem;
+    }
+
+    .hash-block {
+      background-color: #d5a6bd;
+      width: 32.75rem;
+      height: 6rem;
+      border: 2px solid black;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .label {
+      background-color: unset;
+      color: white;
+      border: none;
+    }
+
+    .small-font{
+      font-size: 0.75rem;
+    }
+  }
+
+  .judgement-placeholder {
+    display: flex;
+    flex-direction: column;
+    color: white;
+  }
+}

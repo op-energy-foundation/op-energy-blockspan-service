@@ -14,6 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, take } from 'rxjs';
 import { OeStateService } from '../../services/state.service';
+import { APP_CONFIGURATION } from '../../types/constant';
 
 @Component({
   selector: 'app-strikes-range',
@@ -157,7 +158,7 @@ export class StrikesRangeComponent implements OnInit {
     const queryParams = {
       strikeHeight: item.block,
       strikeTime: item.strikeMediantime,
-      startblock: Math.min(this.currentTip, item.block - 14),
+      startblock: Math.min(this.currentTip, item.block - APP_CONFIGURATION.SPAN_SIZE),
     };
 
     if (this.guessableScreen) {

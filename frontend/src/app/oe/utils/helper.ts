@@ -1,5 +1,6 @@
 import { Router } from '@angular/router';
 import { Block, BlockHeader } from '../interfaces/oe-energy.interface';
+import { APP_CONFIGURATION } from '../types/constant';
 
 export function navigator(router: Router, link: string): void {
   // Check if the link contains query parameters
@@ -134,7 +135,7 @@ export const convertHashrate = (
 export const getBlockSpanByHeight = (
   tipBlock: number,
   noOfBlock: number,
-  span = 14
+  span = APP_CONFIGURATION.SPAN_SIZE
 ): { fromBlock: number; toBlock: number } => {
   const fromBlock = tipBlock - span * noOfBlock;
   return {
