@@ -54,6 +54,7 @@ executable op-energy-api
 library
     hs-source-dirs: src
     exposed-modules: Data.OpEnergy.API
+                   , Data.OpEnergy.API.V2
                    , Data.OpEnergy.API.V1
                    , Data.OpEnergy.API.V1.Natural
                    , Data.OpEnergy.API.V1.Positive

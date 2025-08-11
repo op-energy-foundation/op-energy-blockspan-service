@@ -14,9 +14,11 @@ import           Servant.Swagger
 import           Servant.API.WebSocket (WebSocket)
 
 import           Data.OpEnergy.API.V1
+import           Data.OpEnergy.API.V2
 
 type BackendAPI =
-  "api" :> "v1" :> V1API {- V1 API -}
+  ( "api" :> "v1" :> V1API {- V1 API -} )
+  :<|> ( "api" :> "v2" :> "blockspans" :> V2API {- V2 API -} )
 
 backendAPI :: Proxy BackendAPI
 backendAPI = Proxy
@@ -29,7 +31,7 @@ type SwaggerAPI = "api" :> "v1" :> "swagger.json" :> Get '[JSON] Swagger
 
 -- | API for WebSocket connection. It have to be separate as Websocket does not support servant-client so it should be apart from BackendAPI
 type WebSocketAPI = "api" :> "v1" :> "ws" :> WebSocket
-  :<|> "api" :> "v1" :> "blockspans" :> "ws" :> WebSocket
+  :<|> "api" :> "v2" :> "blockspans" :> "ws" :> WebSocket
 
 -- | This type describes both websocket and backend APIs
 type WebSocketBackendAPI = WebSocketAPI :<|> BackendAPI

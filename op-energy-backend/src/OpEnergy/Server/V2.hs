@@ -11,9 +11,9 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE RecordWildCards            #-}
-module OpEnergy.Server.V1
-  ( schedulerIteration
-  , websocketHandler
+module OpEnergy.Server.V2
+  ( websocketHandler
+  , schedulerIteration
   , server
   )where
 
