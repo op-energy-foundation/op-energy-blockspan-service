@@ -19,14 +19,14 @@ import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1
 import qualified Data.OpEnergy.API.V1 as V1
 
-v1getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
-v1getBlock :: BlockHash-> ClientM BlockHeader
-v1getBlockByHeight :: BlockHeight-> ClientM BlockHeader
-v1getBlocksByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> Maybe Bool-> Maybe Bool-> ClientM [BlockSpanHeadersNbdrHashrate]
-v1getBlocksWithNbdrByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersNbdr]
-v1getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersHashrate]
-v1getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
-v1getGitHash :: ClientM GitHashResponse
+getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
+getBlock :: BlockHash-> ClientM BlockHeader
+getBlockByHeight :: BlockHeight-> ClientM BlockHeader
+getBlocksByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> Maybe Bool-> Maybe Bool-> ClientM [BlockSpanHeadersNbdrHashrate]
+getBlocksWithNbdrByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersNbdr]
+getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersHashrate]
+getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
+getGitHash :: ClientM GitHashResponse
 
 v2getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
 v2getBlock :: BlockHash-> ClientM BlockHeader
@@ -37,14 +37,14 @@ v2getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positi
 v2getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
 v2getGitHash :: ClientM V1.GitHashResponse
 
-(v1getStatistics
-  :<|> v1getBlock
-  :<|> v1getBlockByHeight
-  :<|> v1getBlocksByBlockspan
-  :<|> v1getBlocksWithNbdrByBlockspan
-  :<|> v1getBlocksWithHashrateByBlockspan
-  :<|> v1getBlockspanlist
-  :<|> v1getGitHash )
+(getStatistics
+  :<|> getBlock
+  :<|> getBlockByHeight
+  :<|> getBlocksByBlockspan
+  :<|> getBlocksWithNbdrByBlockspan
+  :<|> getBlocksWithHashrateByBlockspan
+  :<|> getBlockspanlist
+  :<|> getGitHash )
 
   :<|> ( v2getStatistics
   :<|> v2getBlock
