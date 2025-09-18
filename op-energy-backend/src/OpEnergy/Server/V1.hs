@@ -45,7 +45,6 @@ import           Data.OpEnergy.API.V1.Error(throwJSON)
 
 websocketHandler :: ServerT WebSocketAPI (AppT Handler)
 websocketHandler = OpEnergy.Server.V1.WebSocketService.webSocketConnection
-  :<|> OpEnergy.Server.V1.WebSocketService.webSocketConnection
 
 -- | here goes implementation of OpEnergy API, which should match Data.OpEnergy.API.V1.V1API
 server:: ServerT V1API (AppT Handler)

@@ -11,13 +11,15 @@ import           Data.Proxy              (Proxy (..))
 import           Network.HTTP.Client.TLS as Client
 import           Network.HTTP.Client hiding (Proxy)
 import           Servant.Client hiding ((//), (/:))
-import           Servant.API
+import           Servant.API hiding (Header)
+import qualified Servant.API as Servant (Header)
 
 import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1
 import qualified Data.OpEnergy.API.V1 as V1
+import           Data.OpEnergy.API.V2
 
 getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
 getBlock :: BlockHash-> ClientM BlockHeader
@@ -28,14 +30,15 @@ getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive
 getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
 getGitHash :: ClientM GitHashResponse
 
-v2getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
 v2getBlock :: BlockHash-> ClientM BlockHeader
 v2getBlockByHeight :: BlockHeight-> ClientM BlockHeader
-v2getBlocksByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> Maybe Bool-> Maybe Bool-> ClientM [BlockSpanHeadersNbdrHashrate]
-v2getBlocksWithNbdrByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersNbdr]
-v2getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersHashrate]
-v2getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
+v2getBlocksByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> Maybe Bool-> Maybe Bool-> ClientM (Headers '[Servant.Header "Deprecation" String, Servant.Header "Sunset" String, Servant.Header "Link" String] [BlockSpanHeadersNbdrHashrate])
+v2getBlocksWithNbdrByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM (Headers '[Servant.Header "Deprecation" String, Servant.Header "Sunset" String, Servant.Header "Link" String] [BlockSpanHeadersNbdr])
+v2getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM (Headers '[Servant.Header "Deprecation" String, Servant.Header "Sunset" String, Servant.Header "Link" String] [BlockSpanHeadersHashrate])
+v2getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM (Headers '[Servant.Header "Deprecation" String, Servant.Header "Sunset" String, Servant.Header "Link" String] [BlockSpan])
 v2getGitHash :: ClientM V1.GitHashResponse
+v2getSingleBlockspan :: BlockHeight -> Maybe (Positive Int) -> Maybe Bool -> ClientM BlockSpanV2
+v2getMultipleBlockspans :: BlockHeight -> Positive Int -> Maybe (Positive Int) -> Maybe Bool -> ClientM [BlockSpanV2]
 
 (getStatistics
   :<|> getBlock
@@ -46,14 +49,15 @@ v2getGitHash :: ClientM V1.GitHashResponse
   :<|> getBlockspanlist
   :<|> getGitHash )
 
-  :<|> ( v2getStatistics
-  :<|> v2getBlock
+  :<|> ( v2getBlock
   :<|> v2getBlockByHeight
   :<|> v2getBlocksByBlockspan
   :<|> v2getBlocksWithNbdrByBlockspan
   :<|> v2getBlocksWithHashrateByBlockspan
   :<|> v2getBlockspanlist
-  :<|> v2getGitHash )
+  :<|> v2getGitHash
+  :<|> v2getSingleBlockspan
+  :<|> v2getMultipleBlockspans )
   = client $ Proxy @BackendAPI
 
 {-

@@ -73,6 +73,7 @@ runServer = do
         serverSwaggerBackend :: ServerT API AppM
         serverSwaggerBackend = (return apiSwagger)
           :<|> OpEnergy.Server.V1.websocketHandler
+          :<|> V2.websocketV2Handler
           :<|> ( OpEnergy.Server.V1.server
                :<|> V2.server
                )
