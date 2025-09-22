@@ -161,20 +161,29 @@ getSingleBlockspan blockHeight mSpanSize = do
     let spanSize = case mSpanSize of
           Just size -> size
           Nothing -> defaultSpanSize
-    -- Calculate start height: blockHeight - spanSize + 1
-    let startHeight = blockHeight - naturalFromPositive spanSize + 1
-    -- Use existing logic but request only 1 span
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight spanSize (Just $ verifyPositive 1) (Just True) (Just True)
-    case blockSpansBlocks of
-      [singleBlockspan] -> return singleBlockspan
-      [] -> do
-        let err = "ERROR: getSingleBlockspan: no blockspan found for block height " <> tshow blockHeight
+    
+    -- Validate that blockHeight is sufficient for the requested span
+    let spanSizeNat = naturalFromPositive spanSize
+    if blockHeight < spanSizeNat
+      then do
+        let err = "ERROR: getSingleBlockspan: block height " <> tshow blockHeight <> " is too low for span size " <> tshow (fromPositive spanSize) <> " (minimum required: " <> tshow spanSizeNat <> ")"
         runLogging $ $(logError) err
         throwJSON err400 err
-      _ -> do
-        let err = "ERROR: getSingleBlockspan: unexpected multiple blockspans returned for single blockspan request"
-        runLogging $ $(logError) err
-        throwJSON err500 err
+      else do
+        -- Calculate start height: blockHeight - spanSize + 1
+        let startHeight = blockHeight - spanSizeNat + 1
+        -- Use existing logic but request only 1 span
+        blockSpansBlocks <- getBlocksByBlockSpan startHeight spanSize (Just $ verifyPositive 1) (Just True) (Just True)
+        case blockSpansBlocks of
+          [singleBlockspan] -> return singleBlockspan
+          [] -> do
+            let err = "ERROR: getSingleBlockspan: no blockspan found for block height " <> tshow blockHeight
+            runLogging $ $(logError) err
+            throwJSON err400 err
+          _ -> do
+            let err = "ERROR: getSingleBlockspan: unexpected multiple blockspans returned for single blockspan request"
+            runLogging $ $(logError) err
+            throwJSON err500 err
 
 -- returns just commit hash, provided by build system
 oeGitHashGet :: AppT Handler GitHashResponse
