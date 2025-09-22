@@ -69,14 +69,14 @@ type V2API
     :> Get '[JSON] V1.GitHashResponse
 
   -- New V2 Blockspan endpoints following document specification
-  :<|> "blockspans" :> "blockspan" 
+  :<|> "blockspan" 
     :> Capture "blockHeight" BlockHeight
     :> QueryParam "spansize" (Positive Int)
     :> QueryParam "withHeaderInfos" Bool
     :> Description "Returns a single blockspan ending at the specified block height. Always includes nbdr and hashrate values. spansize defaults to 24 if not provided."
     :> Get '[JSON] BlockSpanV2
 
-  :<|> "blockspans" :> "blockspans"
+  :<|> "blockspans"
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "numberOfSpans" (Positive Int)
     :> QueryParam "spansize" (Positive Int)
