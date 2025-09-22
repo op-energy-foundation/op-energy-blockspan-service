@@ -15,6 +15,7 @@
 , http-client-tls
 , servant-client
 , data-default
+, insert-ordered-containers
 , ...
 }:
 mkDerivation {
@@ -40,6 +41,7 @@ mkDerivation {
     http-client-tls
     servant-client
     data-default
+    insert-ordered-containers
   ];
   executableHaskellDepends = [
     base
