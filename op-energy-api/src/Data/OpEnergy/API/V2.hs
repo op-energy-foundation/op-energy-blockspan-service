@@ -62,6 +62,12 @@ type V2API
     :> Description "Returns list of blockspans started from startBlockHeight of size span and numberOfSpan length "
     :> Get '[JSON] [BlockSpan]
 
+  :<|> "blockspan"
+    :> Capture "blockHeight" BlockHeight
+    :> QueryParam "spanSize" (Positive Int)
+    :> Description "Returns a single blockspan ending at the specified block height. A blockspan is the start and end block for a blockspan, along with summary data (NBDR and hashrate) and optional header infos for blocks. spanSize defaults to 24 if not specified."
+    :> Get '[JSON] V1.BlockSpanHeadersNbdrHashrate
+
   :<|> "git-hash"
     :> Description "returns short hash of commit of the op-energy git repo that had been used to build backend"
     :> Get '[JSON] V1.GitHashResponse

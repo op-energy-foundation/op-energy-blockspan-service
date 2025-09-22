@@ -27,6 +27,7 @@ import           Data.Maybe(fromJust)
 
 import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1
+import           Data.OpEnergy.API.V2
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
 import qualified OpEnergy.Server.GitCommitHash as Server
@@ -42,13 +43,16 @@ import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
 import           Data.OpEnergy.API.V1.Error(throwJSON)
 
+-- | Default span size for single blockspan queries
+defaultSpanSize :: Positive Int
+defaultSpanSize = verifyPositive 24
 
 websocketHandler :: ServerT WebSocketAPI (AppT Handler)
 websocketHandler = OpEnergy.Server.V1.WebSocketService.webSocketConnection
   :<|> OpEnergy.Server.V1.WebSocketService.webSocketConnection
 
--- | here goes implementation of OpEnergy API, which should match Data.OpEnergy.API.V1.V1API
-server:: ServerT V1API (AppT Handler)
+-- | here goes implementation of OpEnergy API, which should match Data.OpEnergy.API.V2.V2API
+server:: ServerT V2API (AppT Handler)
 server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHash
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHeight
@@ -56,6 +60,7 @@ server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
     :<|> getBlocksWithNbdrByBlockSpan
     :<|> getBlocksWithHashrateByBlockSpan
     :<|> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList
+    :<|> getSingleBlockspan
     :<|> oeGitHashGet
 
 -- | one iteration that called from scheduler thread
@@ -144,6 +149,32 @@ getBlocksWithHashrateByBlockSpan startHeight span mNumberOfSpans = do
       , endBlock = endBlock
       , Data.OpEnergy.API.V1.hashrate = fromJust hashrate
       }
+
+-- | Returns a single blockspan ending at the specified block height
+getSingleBlockspan
+  :: BlockHeight
+  -> Maybe (Positive Int)
+  -> AppM BlockSpanHeadersNbdrHashrate
+getSingleBlockspan blockHeight mSpanSize = do
+  State{ metrics = Metrics.MetricsState{ getSingleBlockspan = getSingleBlockspanH} } <- ask
+  P.observeDuration getSingleBlockspanH $ do
+    let spanSize = case mSpanSize of
+          Just size -> size
+          Nothing -> defaultSpanSize
+    -- Calculate start height: blockHeight - spanSize + 1
+    let startHeight = blockHeight - naturalFromPositive spanSize + 1
+    -- Use existing logic but request only 1 span
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight spanSize (Just $ verifyPositive 1) (Just True) (Just True)
+    case blockSpansBlocks of
+      [singleBlockspan] -> return singleBlockspan
+      [] -> do
+        let err = "ERROR: getSingleBlockspan: no blockspan found for block height " <> tshow blockHeight
+        runLogging $ $(logError) err
+        throwJSON err400 err
+      _ -> do
+        let err = "ERROR: getSingleBlockspan: unexpected multiple blockspans returned for single blockspan request"
+        runLogging $ $(logError) err
+        throwJSON err500 err
 
 -- returns just commit hash, provided by build system
 oeGitHashGet :: AppT Handler GitHashResponse
