@@ -11,6 +11,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE FlexibleContexts           #-}
 module OpEnergy.Server.V2
   ( websocketHandler
   , schedulerIteration
@@ -22,14 +23,20 @@ import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
 import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
+import           Control.Monad.Trans(lift)
+import           Control.Monad.Trans.Except( ExceptT(..), throwE)
 import qualified Control.Concurrent.STM.TVar as TVar
-import           Data.Maybe(fromJust)
+import           Data.Maybe(fromJust, fromMaybe)
 
 import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1
 import           Data.OpEnergy.API.V2
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
+import           OpEnergy.Server.Common
+                   ( eitherLogThrowOrReturn
+                   , runExceptPrefixT
+                   )
 import qualified OpEnergy.Server.GitCommitHash as Server
 import qualified OpEnergy.Server.V1.Metrics as Metrics( MetricsState(..))
 import           OpEnergy.Server.V1.Class (AppT, AppM, runLogging, State(..))
@@ -155,35 +162,37 @@ getSingleBlockspan
   :: BlockHeight
   -> Maybe (Positive Int)
   -> AppM BlockSpanHeadersNbdrHashrate
-getSingleBlockspan blockHeight mSpanSize = do
-  State{ metrics = Metrics.MetricsState{ getSingleBlockspan = getSingleBlockspanH} } <- ask
-  P.observeDuration getSingleBlockspanH $ do
-    let spanSize = case mSpanSize of
-          Just size -> size
-          Nothing -> defaultSpanSize
-    
-    -- Validate that blockHeight is sufficient for the requested span
-    let spanSizeNat = naturalFromPositive spanSize
-    if blockHeight < spanSizeNat
-      then do
-        let err = "ERROR: getSingleBlockspan: block height " <> tshow blockHeight <> " is too low for span size " <> tshow (fromPositive spanSize) <> " (minimum required: " <> tshow spanSizeNat <> ")"
-        runLogging $ $(logError) err
-        throwJSON err400 err
-      else do
-        -- Calculate start height: blockHeight - spanSize + 1
-        let startHeight = blockHeight - spanSizeNat + 1
-        -- Use existing logic but request only 1 span
-        blockSpansBlocks <- getBlocksByBlockSpan startHeight spanSize (Just $ verifyPositive 1) (Just True) (Just True)
-        case blockSpansBlocks of
-          [singleBlockspan] -> return singleBlockspan
-          [] -> do
-            let err = "ERROR: getSingleBlockspan: no blockspan found for block height " <> tshow blockHeight
-            runLogging $ $(logError) err
-            throwJSON err400 err
-          _ -> do
-            let err = "ERROR: getSingleBlockspan: unexpected multiple blockspans returned for single blockspan request"
-            runLogging $ $(logError) err
-            throwJSON err500 err
+getSingleBlockspan blockHeight mSpanSize =
+    let name = "getSingleBlockspan"
+    in profile name $ eitherLogThrowOrReturn $ runExceptPrefixT name $ do
+  let
+      spanSize = fromMaybe defaultSpanSize mSpanSize
+      -- Validate that blockHeight is sufficient for the requested span
+      spanSizeNat = naturalFromPositive spanSize
+  startHeight <- if blockHeight < spanSizeNat
+    then throwE $ "ERROR: getSingleBlockspan: block height " <> tshow blockHeight
+             <> " is too low for span size " <> tshow (fromPositive spanSize)
+             <> " (minimum required: " <> tshow spanSizeNat <> ")"
+      -- Calculate start height: blockHeight - spanSize + 1
+    else return $! blockHeight - spanSizeNat + 1
+  -- Use existing logic but request only 1 span
+  positive1 <- ExceptT $ return $ verifyPositiveEither 1
+  blockSpansBlocks <- lift $ getBlocksByBlockSpan
+                        startHeight
+                        spanSize
+                        (Just positive1)
+                        (Just True)
+                        (Just True)
+  case blockSpansBlocks of
+    [singleBlockspan] -> return singleBlockspan
+    [] -> throwE $! "ERROR: getSingleBlockspan: no blockspan found for block height "
+                 <> tshow blockHeight
+    _ -> throwE "ERROR: getSingleBlockspan: unexpected multiple blockspans \
+                \returned for single blockspan request"
+  where
+  profile _reservedForFutureUse func = do
+    State{ metrics = Metrics.MetricsState{ getSingleBlockspan = getSingleBlockspanH} } <- ask
+    P.observeDuration getSingleBlockspanH func
 
 -- returns just commit hash, provided by build system
 oeGitHashGet :: AppT Handler GitHashResponse

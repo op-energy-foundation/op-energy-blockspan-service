@@ -15,7 +15,7 @@ import           Data.OpEnergy.API.V1.Block
 import qualified Data.OpEnergy.API.V1 as V1
 import           Data.OpEnergy.API.Tags
 
-type V2API = Tags "Blockspans API v2" :> V2APIEndpoints
+type V2API = Tags "Blockspans" :> V2APIEndpoints
 
 -- | API specifications of a backend service for Swagger
 type V2APIEndpoints
