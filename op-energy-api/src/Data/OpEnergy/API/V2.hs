@@ -13,9 +13,12 @@ import           Servant.API
 import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1.Block
 import qualified Data.OpEnergy.API.V1 as V1
+import           Data.OpEnergy.API.Tags
+
+type V2API = Tags "Blockspans" :> V2APIEndpoints
 
 -- | API specifications of a backend service for Swagger
-type V2API
+type V2APIEndpoints
   = "statistics"
     :> Capture "blockheight" BlockHeight
     :> Capture "spansize" (Positive Int)

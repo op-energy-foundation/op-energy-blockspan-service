@@ -13,6 +13,8 @@
 {-# LANGUAGE DuplicateRecordFields      #-}
 module Data.OpEnergy.API.V1.Positive where
 
+import           Data.Text(Text)
+import qualified Data.Text as Text
 import           Data.Swagger
 import           Control.Lens
 import           GHC.Generics
@@ -67,11 +69,23 @@ verifyPositiveInt v =
   then Positive v
   else error "verifyPositiveInt: wrong value"
 
+verifyPositiveIntEither:: Int -> Either Text (Positive a)
+verifyPositiveIntEither v =
+  if v > 0
+  then Right (Positive v)
+  else Left "verifyPositiveInt: wrong value"
+
+verifyPositiveEither:: Scientific -> Either Text (Positive a)
+verifyPositiveEither s =
+  case toBoundedInteger s of
+    Just v -> verifyPositiveIntEither v
+    _  -> error "verifyPositive: wrong value"
+
 verifyPositive:: Scientific -> Positive a
 verifyPositive s =
-  case toBoundedInteger s of
-    Just v -> verifyPositiveInt v
-    _  -> error "verifyPositive: wrong value"
+  case verifyPositiveEither s of
+    Right v -> v
+    Left reason  -> error $! Text.unpack reason
 
 fromPositive :: Positive a -> Int
 fromPositive (Positive v) = v
