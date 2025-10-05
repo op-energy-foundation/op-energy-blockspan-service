@@ -13,9 +13,12 @@ import           Servant.API
 import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1.Block
 import qualified Data.OpEnergy.API.V1 as V1
+import           Data.OpEnergy.API.Tags
+
+type V2API = Tags "Blockspans" :> V2APIEndpoints
 
 -- | API specifications of a backend service for Swagger
-type V2API
+type V2APIEndpoints
   = "statistics"
     :> Capture "blockheight" BlockHeight
     :> Capture "spansize" (Positive Int)
@@ -61,6 +64,12 @@ type V2API
     :> Capture "numberOfSpan" (Positive Int)
     :> Description "Returns list of blockspans started from startBlockHeight of size span and numberOfSpan length "
     :> Get '[JSON] [BlockSpan]
+
+  :<|> "blockspan"
+    :> Capture "blockHeight" BlockHeight
+    :> QueryParam "spanSize" (Positive Int)
+    :> Description "Returns a single blockspan ending at the specified block height. A blockspan is the start and end block for a blockspan, along with summary data (NBDR and hashrate) and optional header infos for blocks. spanSize defaults to 24 if not specified."
+    :> Get '[JSON] V1.BlockSpanHeadersNbdrHashrate
 
   :<|> "git-hash"
     :> Description "returns short hash of commit of the op-energy git repo that had been used to build backend"

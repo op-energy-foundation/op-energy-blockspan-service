@@ -35,6 +35,7 @@ v2getBlocksByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> Ma
 v2getBlocksWithNbdrByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersNbdr]
 v2getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersHashrate]
 v2getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
+v2getSingleBlockspan :: BlockHeight-> Maybe (Positive Int)-> ClientM V1.BlockSpanHeadersNbdrHashrate
 v2getGitHash :: ClientM V1.GitHashResponse
 
 (getStatistics
@@ -53,6 +54,7 @@ v2getGitHash :: ClientM V1.GitHashResponse
   :<|> v2getBlocksWithNbdrByBlockspan
   :<|> v2getBlocksWithHashrateByBlockspan
   :<|> v2getBlockspanlist
+  :<|> v2getSingleBlockspan
   :<|> v2getGitHash )
   = client $ Proxy @BackendAPI
 
