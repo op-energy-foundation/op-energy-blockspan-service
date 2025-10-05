@@ -71,21 +71,15 @@ getBlocksByBlockSpan
   :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> Maybe Bool
-  -> Maybe Bool
   -> AppM [BlockSpanHeadersNbdrHashrate]
-getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
+getBlocksByBlockSpan startHeight span mNumberOfSpan = do
   State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan}
        , currentTip = currentTipV
        } <- ask
   P.observeDuration getBlocksByBlockSpan $ do
     mCurrentTip <- liftIO $! TVar.readTVarIO currentTipV
-    let withNbdr = case mNbdr of
-          Just some -> some
-          _ -> False
-        withHashrate = case mHashrate of
-          Just some -> some
-          _ -> False
+    let withNbdr = True
+        withHashrate = True
     spans <- case mNumberOfSpan of
       Just numberOfSpan -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span numberOfSpan
       Nothing-> case mCurrentTip of
@@ -124,7 +118,7 @@ getBlocksWithNbdrByBlockSpan
 getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan} } <- ask
   P.observeDuration getBlocksWithNbdrByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans (Just True) Nothing
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
     return $! map toBlockSpanHeadersNbdr blockSpansBlocks
   where
     toBlockSpanHeadersNbdr (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersNbdr
@@ -141,7 +135,7 @@ getBlocksWithHashrateByBlockSpan
 getBlocksWithHashrateByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan} } <- ask
   P.observeDuration getBlocksWithHashrateByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans Nothing (Just True)
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
     return $! map toBlockSpanHeadersHashrate blockSpansBlocks
   where
     toBlockSpanHeadersHashrate (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersHashrate
@@ -173,7 +167,7 @@ getSingleBlockspan blockHeight mSpanSize = do
         -- Calculate start height: blockHeight - spanSize + 1
         let startHeight = blockHeight - spanSizeNat + 1
         -- Use existing logic but request only 1 span
-        blockSpansBlocks <- getBlocksByBlockSpan startHeight spanSize (Just $ verifyPositive 1) (Just True) (Just True)
+        blockSpansBlocks <- getBlocksByBlockSpan startHeight spanSize (Just $ verifyPositive 1)
         case blockSpansBlocks of
           [singleBlockspan] -> return singleBlockspan
           [] -> do
