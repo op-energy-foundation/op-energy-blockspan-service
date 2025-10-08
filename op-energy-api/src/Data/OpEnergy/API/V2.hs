@@ -39,9 +39,7 @@ type V2APIEndpoints
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "spansize" (Positive Int)
     :> QueryParam "numberOfSpan" (Positive Int)
-    :> QueryParam "withNBDR" Bool
-    :> QueryParam "withHashrate" Bool
-    :> Description "Returns list of blocks' headers by a given block span. In case if withNBDR=true, the answer will contain NBDR value. In case if 'withHashrate=true', the answer will contain Hashrate value. NBDR here is ratio (spansize * 600 * 100) / (endBlockMedianTime - startBlockMediantime). Hashrate here is a ratio (endBlockChainwork - startBlockChainwork) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
+    :> Description "Returns list of blocks' headers by a given block span. The response always contains NBDR and Hashrate values. NBDR here is ratio (spansize * 600 * 100) / (endBlockMedianTime - startBlockMediantime). Hashrate here is a ratio (endBlockChainwork - startBlockChainwork) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
     :> Get '[JSON] [V1.BlockSpanHeadersNbdrHashrate]
 
   :<|> "blockswithnbdrbyblockspan"

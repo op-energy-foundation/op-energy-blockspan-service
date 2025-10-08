@@ -31,7 +31,7 @@ getGitHash :: ClientM GitHashResponse
 v2getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
 v2getBlock :: BlockHash-> ClientM BlockHeader
 v2getBlockByHeight :: BlockHeight-> ClientM BlockHeader
-v2getBlocksByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> Maybe Bool-> Maybe Bool-> ClientM [BlockSpanHeadersNbdrHashrate]
+v2getBlocksByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersNbdrHashrate]
 v2getBlocksWithNbdrByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersNbdr]
 v2getBlocksWithHashrateByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersHashrate]
 v2getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
