@@ -18,6 +18,7 @@ import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1
 import qualified Data.OpEnergy.API.V1 as V1
+import qualified Data.OpEnergy.API.V2 as V2
 
 getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
 getBlock :: BlockHash-> ClientM BlockHeader
@@ -32,7 +33,7 @@ v2getStatistics :: BlockHeight-> Positive Int-> ClientM Statistics
 v2getBlock :: BlockHash-> ClientM BlockHeader
 v2getBlockByHeight :: BlockHeight-> ClientM BlockHeader
 v2getBlocksWithNbdrByBlockspan :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> ClientM [BlockSpanHeadersNbdr]
-v2getBlockspanlist :: BlockHeight-> Positive Int-> Positive Int-> ClientM [BlockSpan]
+v2getBlockspans :: BlockHeight-> Positive Int-> Maybe (Positive Int)-> Maybe Bool-> ClientM [V2.BlockSpanResponse]
 v2getSingleBlockspan :: BlockHeight-> Maybe (Positive Int)-> ClientM V1.BlockSpanHeadersNbdrHashrate
 v2getGitHash :: ClientM V1.GitHashResponse
 
@@ -49,7 +50,7 @@ v2getGitHash :: ClientM V1.GitHashResponse
   :<|> v2getBlock
   :<|> v2getBlockByHeight
   :<|> v2getBlocksWithNbdrByBlockspan
-  :<|> v2getBlockspanlist
+  :<|> v2getBlockspans
   :<|> v2getSingleBlockspan
   :<|> v2getGitHash )
   = client $ Proxy @BackendAPI

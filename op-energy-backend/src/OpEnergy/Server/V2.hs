@@ -23,12 +23,15 @@ import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
 import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
+import           Control.Monad.Trans.Except (ExceptT(..), throwE)
+import           Control.Monad.Trans.Class(lift)
 import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust, fromMaybe)
 
 import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1
-import           Data.OpEnergy.API.V2
+import qualified Data.OpEnergy.API.V2 as V2
+import           Data.OpEnergy.API.V2 (V2API)
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
 import qualified OpEnergy.Server.GitCommitHash as Server
@@ -38,6 +41,7 @@ import           OpEnergy.Server.V1.BlockHeadersService(syncBlockHeaders, getBlo
 import           OpEnergy.Server.V1.WebSocketService(webSocketConnection)
 import           OpEnergy.Server.V1.BlockSpanService(getBlockSpanListByRange, getBlockSpanList)
 import           OpEnergy.Server.V1.StatisticsService(calculateStatistics, getTheoreticalActualMTPPercents)
+import           OpEnergy.Server.Common(eitherLogThrowOrReturn, runExceptPrefixT)
 import           Data.Text.Show(tshow)
 
 import           Prometheus(MonadMonitor)
@@ -58,7 +62,7 @@ server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHash
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHeight
     :<|> getBlocksWithNbdrByBlockSpan
-    :<|> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList
+    :<|> getMultipleBlockspans
     :<|> getSingleBlockspan
     :<|> oeGitHashGet
 
@@ -160,6 +164,30 @@ getSingleBlockspan blockHeight mSpanSize =
   profile _reservedForFutureUse func = do
     State{ metrics = Metrics.MetricsState{ getSingleBlockspan = getSingleBlockspanH} } <- ask
     P.observeDuration getSingleBlockspanH func
+
+getMultipleBlockspans
+  :: BlockHeight
+  -> Positive Int
+  -> Maybe (Positive Int)
+  -> Maybe Bool
+  -> AppM [V2.BlockSpanResponse]
+getMultipleBlockspans startHeight spanSize mNumberOfSpans mWithHeaders = do
+  State{ metrics = Metrics.MetricsState{ getBlockSpanListH = getBlockSpanListH} } <- ask
+  P.observeDuration getBlockSpanListH $ do
+    fullBlockspans <- getBlocksByBlockSpan startHeight spanSize mNumberOfSpans
+    let withHeaders = case mWithHeaders of
+          Just False -> False
+          _ -> True
+    return $! if withHeaders
+      then map V2.BlockSpanFullResponse fullBlockspans
+      else map toSummary fullBlockspans
+  where
+    toSummary (BlockSpanHeadersNbdrHashrate {..}) = V2.BlockSpanSummaryResponse $ BlockSpanSummary
+      { startBlockHeight = blockHeaderHeight startBlock
+      , endBlockHeight = blockHeaderHeight endBlock
+      , Data.OpEnergy.API.V1.nbdr = fromJust nbdr
+      , Data.OpEnergy.API.V1.hashrate = fromJust hashrate
+      }
 
 -- returns just commit hash, provided by build system
 oeGitHashGet :: AppT Handler GitHashResponse
