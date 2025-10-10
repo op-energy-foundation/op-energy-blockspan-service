@@ -168,27 +168,6 @@ defaultBlockSpanHeadersHashrate = BlockSpanHeadersHashrate
   , hashrate = 100
   }
 
-data BlockSpanSummary = BlockSpanSummary
-  { startBlockHeight :: Natural Int
-  , endBlockHeight :: Natural Int
-  , nbdr :: Double
-  , hashrate :: Natural Integer
-  }
-  deriving (Show, Generic, Typeable)
-instance ToJSON   BlockSpanSummary
-instance FromJSON BlockSpanSummary
-instance ToSchema BlockSpanSummary where
-  declareNamedSchema proxy = genericDeclareNamedSchema defaultSchemaOptions proxy
-    & mapped.schema.description ?~ "BlockSpanSummary schema"
-    & mapped.schema.example ?~ toJSON defaultBlockSpanSummary
-defaultBlockSpanSummary :: BlockSpanSummary
-defaultBlockSpanSummary = BlockSpanSummary
-  { startBlockHeight = 100000
-  , endBlockHeight = 100024
-  , nbdr = 100.0
-  , hashrate = 1000000
-  }
-
 data NbdrStatistics = NbdrStatistics
   { avg :: Double
   , stddev :: Double

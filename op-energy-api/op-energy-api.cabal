@@ -56,6 +56,7 @@ library
     exposed-modules: Data.OpEnergy.API
                    , Data.OpEnergy.API.Tags
                    , Data.OpEnergy.API.V2
+                   , Data.OpEnergy.API.V2.BlockSpanSummary
                    , Data.OpEnergy.API.V1
                    , Data.OpEnergy.API.V1.Natural
                    , Data.OpEnergy.API.V1.Positive

@@ -2,41 +2,17 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 module Data.OpEnergy.API.V2 where
 
 import           Servant.API
-import           Data.Aeson (ToJSON(..), FromJSON(..))
-import qualified Data.Aeson as Aeson
-import           Control.Applicative ((<|>))
-import           GHC.Generics
-import           Data.Swagger (ToSchema(..))
-import           Data.Typeable (Typeable)
-import           Data.Proxy (Proxy(..))
 
 import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1.Block
+import           Data.OpEnergy.API.V2.BlockSpanSummary (BlockSpanSummary(..))
 import qualified Data.OpEnergy.API.V1 as V1
 import           Data.OpEnergy.API.Tags
-
--- | Response type that can be either a summary or full headers
-data BlockSpanResponse
-  = BlockSpanSummaryResponse V1.BlockSpanSummary
-  | BlockSpanFullResponse V1.BlockSpanHeadersNbdrHashrate
-  deriving (Show, Generic, Typeable)
-
-instance ToJSON BlockSpanResponse where
-  toJSON (BlockSpanSummaryResponse summary) = toJSON summary
-  toJSON (BlockSpanFullResponse full) = toJSON full
-
-instance FromJSON BlockSpanResponse where
-  parseJSON v = (BlockSpanFullResponse <$> Aeson.parseJSON v) <|> (BlockSpanSummaryResponse <$> Aeson.parseJSON v)
-
-instance ToSchema BlockSpanResponse where
-  declareNamedSchema _ = declareNamedSchema (Proxy :: Proxy V1.BlockSpanHeadersNbdrHashrate)
 
 type V2API = Tags "Blockspans" :> V2APIEndpoints
 
@@ -71,7 +47,7 @@ type V2APIEndpoints
     :> QueryParam "numberOfSpans" (Positive Int)
     :> QueryParam "withHeaders" Bool
     :> Description "Returns a numberOfSpans sized array of blockspans, with same options as 'blockspan' (single blockspan) for each blockspan. If numberOfSpans is not given, then it will provide as many blockspans as possible with size 'spansize' until the current tip. If withHeaders is not given or true, returns full block headers; if false, returns summary with just heights, nbdr, and hashrate."
-    :> Get '[JSON] [BlockSpanResponse]
+    :> Get '[JSON] (Either [BlockSpanSummary] [V1.BlockSpanHeadersNbdrHashrate])
 
   :<|> "blockspan"
     :> Capture "blockHeight" BlockHeight
