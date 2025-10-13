@@ -30,7 +30,7 @@ import           Data.Maybe(fromJust, fromMaybe)
 
 import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1
-import qualified Data.OpEnergy.API.V2 as V2
+import qualified Data.OpEnergy.API.V2.BlockSpanSummary as V2
 import           Data.OpEnergy.API.V2 (V2API)
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
@@ -170,7 +170,7 @@ getMultipleBlockspans
   -> Positive Int
   -> Maybe (Positive Int)
   -> Maybe Bool
-  -> AppM [V2.BlockSpanResponse]
+  -> AppM (Either [V2.BlockSpanSummary] [BlockSpanHeadersNbdrHashrate])
 getMultipleBlockspans startHeight spanSize mNumberOfSpans mWithHeaders = do
   State{ metrics = Metrics.MetricsState{ getBlockSpanListH = getBlockSpanListH} } <- ask
   P.observeDuration getBlockSpanListH $ do
@@ -179,14 +179,14 @@ getMultipleBlockspans startHeight spanSize mNumberOfSpans mWithHeaders = do
           Just False -> False
           _ -> True
     return $! if withHeaders
-      then map V2.BlockSpanFullResponse fullBlockspans
-      else map toSummary fullBlockspans
+      then Right fullBlockspans
+      else Left $! map toSummary fullBlockspans
   where
-    toSummary (BlockSpanHeadersNbdrHashrate {..}) = V2.BlockSpanSummaryResponse $ BlockSpanSummary
+    toSummary (BlockSpanHeadersNbdrHashrate {..}) = V2.BlockSpanSummary
       { startBlockHeight = blockHeaderHeight startBlock
       , endBlockHeight = blockHeaderHeight endBlock
-      , Data.OpEnergy.API.V1.nbdr = fromJust nbdr
-      , Data.OpEnergy.API.V1.hashrate = fromJust hashrate
+      , V2.nbdr = fromJust nbdr
+      , V2.hashrate = fromJust hashrate
       }
 
 -- returns just commit hash, provided by build system
