@@ -23,20 +23,17 @@ import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
 import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
-import           Control.Monad.Trans(lift)
-import           Control.Monad.Trans.Except( ExceptT(..), throwE)
+import           Control.Monad.Trans.Except (ExceptT(..), throwE)
+import           Control.Monad.Trans.Class(lift)
 import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe(fromJust, fromMaybe)
 
 import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1
-import           Data.OpEnergy.API.V2
+import qualified Data.OpEnergy.API.V2.BlockSpanSummary as V2
+import           Data.OpEnergy.API.V2 (V2API)
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
-import           OpEnergy.Server.Common
-                   ( eitherLogThrowOrReturn
-                   , runExceptPrefixT
-                   )
 import qualified OpEnergy.Server.GitCommitHash as Server
 import qualified OpEnergy.Server.V1.Metrics as Metrics( MetricsState(..))
 import           OpEnergy.Server.V1.Class (AppT, AppM, runLogging, State(..))
@@ -44,6 +41,7 @@ import           OpEnergy.Server.V1.BlockHeadersService(syncBlockHeaders, getBlo
 import           OpEnergy.Server.V1.WebSocketService(webSocketConnection)
 import           OpEnergy.Server.V1.BlockSpanService(getBlockSpanListByRange, getBlockSpanList)
 import           OpEnergy.Server.V1.StatisticsService(calculateStatistics, getTheoreticalActualMTPPercents)
+import           OpEnergy.Server.Common(eitherLogThrowOrReturn, runExceptPrefixT)
 import           Data.Text.Show(tshow)
 
 import           Prometheus(MonadMonitor)
@@ -63,10 +61,8 @@ server:: ServerT V2API (AppT Handler)
 server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHash
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHeight
-    :<|> getBlocksByBlockSpan
     :<|> getBlocksWithNbdrByBlockSpan
-    :<|> getBlocksWithHashrateByBlockSpan
-    :<|> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList
+    :<|> getMultipleBlockspans
     :<|> getSingleBlockspan
     :<|> oeGitHashGet
 
@@ -74,25 +70,20 @@ server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
 schedulerIteration :: (MonadIO m, MonadMonitor m) => AppT m ()
 schedulerIteration = OpEnergy.Server.V1.BlockHeadersService.syncBlockHeaders
 
+-- Internal helper function (not exposed as API)
 getBlocksByBlockSpan
   :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> Maybe Bool
-  -> Maybe Bool
   -> AppM [BlockSpanHeadersNbdrHashrate]
-getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
+getBlocksByBlockSpan startHeight span mNumberOfSpan = do
   State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan}
        , currentTip = currentTipV
        } <- ask
   P.observeDuration getBlocksByBlockSpan $ do
     mCurrentTip <- liftIO $! TVar.readTVarIO currentTipV
-    let withNbdr = case mNbdr of
-          Just some -> some
-          _ -> False
-        withHashrate = case mHashrate of
-          Just some -> some
-          _ -> False
+    let withNbdr = True
+        withHashrate = True
     spans <- case mNumberOfSpan of
       Just numberOfSpan -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span numberOfSpan
       Nothing-> case mCurrentTip of
@@ -131,7 +122,7 @@ getBlocksWithNbdrByBlockSpan
 getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan} } <- ask
   P.observeDuration getBlocksWithNbdrByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans (Just True) Nothing
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
     return $! map toBlockSpanHeadersNbdr blockSpansBlocks
   where
     toBlockSpanHeadersNbdr (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersNbdr
@@ -140,24 +131,6 @@ getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
       , Data.OpEnergy.API.V1.nbdr = fromJust $! nbdr
       }
 
-getBlocksWithHashrateByBlockSpan
-  :: BlockHeight
-  -> Positive Int
-  -> Maybe (Positive Int)
-  -> AppM [BlockSpanHeadersHashrate]
-getBlocksWithHashrateByBlockSpan startHeight span mNumberOfSpans = do
-  State{ metrics = Metrics.MetricsState{ getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan} } <- ask
-  P.observeDuration getBlocksWithHashrateByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans Nothing (Just True)
-    return $! map toBlockSpanHeadersHashrate blockSpansBlocks
-  where
-    toBlockSpanHeadersHashrate (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersHashrate
-      { startBlock = startBlock
-      , endBlock = endBlock
-      , Data.OpEnergy.API.V1.hashrate = fromJust hashrate
-      }
-
--- | Returns a single blockspan ending at the specified block height
 getSingleBlockspan
   :: BlockHeight
   -> Maybe (Positive Int)
@@ -181,8 +154,6 @@ getSingleBlockspan blockHeight mSpanSize =
                         startHeight
                         spanSize
                         (Just positive1)
-                        (Just True)
-                        (Just True)
   case blockSpansBlocks of
     [singleBlockspan] -> return singleBlockspan
     [] -> throwE $! "ERROR: getSingleBlockspan: no blockspan found for block height "
@@ -193,6 +164,30 @@ getSingleBlockspan blockHeight mSpanSize =
   profile _reservedForFutureUse func = do
     State{ metrics = Metrics.MetricsState{ getSingleBlockspan = getSingleBlockspanH} } <- ask
     P.observeDuration getSingleBlockspanH func
+
+getMultipleBlockspans
+  :: BlockHeight
+  -> Positive Int
+  -> Maybe (Positive Int)
+  -> Maybe Bool
+  -> AppM (Either [V2.BlockSpanSummary] [BlockSpanHeadersNbdrHashrate])
+getMultipleBlockspans startHeight spanSize mNumberOfSpans mWithHeaders = do
+  State{ metrics = Metrics.MetricsState{ getBlockSpanListH = getBlockSpanListH} } <- ask
+  P.observeDuration getBlockSpanListH $ do
+    fullBlockspans <- getBlocksByBlockSpan startHeight spanSize mNumberOfSpans
+    let withHeaders = case mWithHeaders of
+          Just False -> False
+          _ -> True
+    return $! if withHeaders
+      then Right fullBlockspans
+      else Left $! map toSummary fullBlockspans
+  where
+    toSummary (BlockSpanHeadersNbdrHashrate {..}) = V2.BlockSpanSummary
+      { startBlockHeight = blockHeaderHeight startBlock
+      , endBlockHeight = blockHeaderHeight endBlock
+      , V2.nbdr = fromJust nbdr
+      , V2.hashrate = fromJust hashrate
+      }
 
 -- returns just commit hash, provided by build system
 oeGitHashGet :: AppT Handler GitHashResponse

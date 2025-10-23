@@ -2,8 +2,6 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 module Data.OpEnergy.API.V2 where
@@ -12,6 +10,7 @@ import           Servant.API
 
 import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1.Block
+import           Data.OpEnergy.API.V2.BlockSpanSummary (BlockSpanSummary(..))
 import qualified Data.OpEnergy.API.V1 as V1
 import           Data.OpEnergy.API.Tags
 
@@ -35,15 +34,6 @@ type V2APIEndpoints
     :> Description "Returns block's header by a given block height"
     :> Get '[JSON] BlockHeader
 
-  :<|> "blocksbyblockspan"
-    :> Capture "startBlockHeight" BlockHeight
-    :> Capture "spansize" (Positive Int)
-    :> QueryParam "numberOfSpan" (Positive Int)
-    :> QueryParam "withNBDR" Bool
-    :> QueryParam "withHashrate" Bool
-    :> Description "Returns list of blocks' headers by a given block span. In case if withNBDR=true, the answer will contain NBDR value. In case if 'withHashrate=true', the answer will contain Hashrate value. NBDR here is ratio (spansize * 600 * 100) / (endBlockMedianTime - startBlockMediantime). Hashrate here is a ratio (endBlockChainwork - startBlockChainwork) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
-    :> Get '[JSON] [V1.BlockSpanHeadersNbdrHashrate]
-
   :<|> "blockswithnbdrbyblockspan"
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "spansize" (Positive Int)
@@ -51,19 +41,13 @@ type V2APIEndpoints
     :> Description "DEPRECATED. use blockbyblockspan instead. Returns list of start and end blocks' headers and their nbdr for each appropriate block span. NBDR here is ratio (spansize * 600 * 100) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
     :> Get '[JSON] [V1.BlockSpanHeadersNbdr]
 
-  :<|> "blockswithhashratebyblockspan"
+  :<|> "blockspans"
     :> Capture "startBlockHeight" BlockHeight
     :> Capture "spansize" (Positive Int)
-    :> QueryParam "numberOfSpan" (Positive Int)
-    :> Description "Returns list of start and end blocks' headers and their hashrate for each appropriate block span. Hashrate here is a ratio (endBlockChainwork - startBlockChainwork) / (endBlockMedianTime - startBlockMediantime). If numberOfSpan is missing, then it will provide blockspans until the current tip."
-    :> Get '[JSON] [V1.BlockSpanHeadersHashrate]
-
-  :<|> "blockspanlist"
-    :> Capture "startBlockHeight" BlockHeight
-    :> Capture "spansize" (Positive Int)
-    :> Capture "numberOfSpan" (Positive Int)
-    :> Description "Returns list of blockspans started from startBlockHeight of size span and numberOfSpan length "
-    :> Get '[JSON] [BlockSpan]
+    :> QueryParam "numberOfSpans" (Positive Int)
+    :> QueryParam "withHeaders" Bool
+    :> Description "Returns a numberOfSpans sized array of blockspans, with same options as 'blockspan' (single blockspan) for each blockspan. If numberOfSpans is not given, then it will provide as many blockspans as possible with size 'spansize' until the current tip. If withHeaders is not given or true, returns full block headers; if false, returns summary with just heights, nbdr, and hashrate."
+    :> Get '[JSON] (Either [BlockSpanSummary] [V1.BlockSpanHeadersNbdrHashrate])
 
   :<|> "blockspan"
     :> Capture "blockHeight" BlockHeight
