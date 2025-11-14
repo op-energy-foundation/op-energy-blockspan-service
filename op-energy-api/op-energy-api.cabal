@@ -54,6 +54,9 @@ executable op-energy-api
 library
     hs-source-dirs: src
     exposed-modules: Data.OpEnergy.API
+                   , Data.OpEnergy.API.Tags
+                   , Data.OpEnergy.API.V2
+                   , Data.OpEnergy.API.V2.BlockSpanSummary
                    , Data.OpEnergy.API.V1
                    , Data.OpEnergy.API.V1.Natural
                    , Data.OpEnergy.API.V1.Positive
@@ -89,6 +92,8 @@ library
                     , transformers
                     , data-default
                     , QuickCheck
+                    , insert-ordered-containers
+                    , servant-foreign
 
     ghc-options:    -O2 -Wall -Werror -Wno-unticked-promoted-constructors -fno-warn-name-shadowing -Wno-orphans
 

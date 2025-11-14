@@ -32,6 +32,7 @@ import           OpEnergy.Server.V1.Class (AppT, AppM, State(..), defaultState, 
 import           OpEnergy.Server.V1.BlockHeadersService (loadDBState, syncBlockHeaders)
 import           OpEnergy.Server.V1.DB
 import           OpEnergy.Server.V1.Metrics
+import qualified OpEnergy.Server.V2 as V2
 
 -- required by prometheus-client
 instance MonadMonitor (LoggingT IO)
@@ -71,7 +72,10 @@ runServer = do
         -- | Combined server of a OpEnergy service with Swagger documentation.
         serverSwaggerBackend :: ServerT API AppM
         serverSwaggerBackend = (return apiSwagger)
-          :<|> OpEnergy.Server.V1.websocketAndBackendServer
+          :<|> OpEnergy.Server.V1.websocketHandler
+          :<|> ( OpEnergy.Server.V1.server
+               :<|> V2.server
+               )
 
 -- | tasks, that should be running during start
 bootstrapTasks :: (MonadLoggerIO m, MonadMonitor m) => State -> m ()

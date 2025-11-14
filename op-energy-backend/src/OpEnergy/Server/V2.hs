@@ -11,9 +11,10 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE RecordWildCards            #-}
-module OpEnergy.Server.V1
-  ( schedulerIteration
-  , websocketHandler
+{-# LANGUAGE FlexibleContexts           #-}
+module OpEnergy.Server.V2
+  ( websocketHandler
+  , schedulerIteration
   , server
   )where
 
@@ -22,11 +23,15 @@ import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
 import           Control.Monad.Reader(ask)
 import           Control.Monad.Logger(logError)
+import           Control.Monad.Trans.Except (ExceptT(..), throwE)
+import           Control.Monad.Trans.Class(lift)
 import qualified Control.Concurrent.STM.TVar as TVar
-import           Data.Maybe(fromJust)
+import           Data.Maybe(fromJust, fromMaybe)
 
 import           Data.OpEnergy.API
 import           Data.OpEnergy.API.V1
+import qualified Data.OpEnergy.API.V2.BlockSpanSummary as V2
+import           Data.OpEnergy.API.V2 (V2API)
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
 import qualified OpEnergy.Server.GitCommitHash as Server
@@ -36,51 +41,49 @@ import           OpEnergy.Server.V1.BlockHeadersService(syncBlockHeaders, getBlo
 import           OpEnergy.Server.V1.WebSocketService(webSocketConnection)
 import           OpEnergy.Server.V1.BlockSpanService(getBlockSpanListByRange, getBlockSpanList)
 import           OpEnergy.Server.V1.StatisticsService(calculateStatistics, getTheoreticalActualMTPPercents)
+import           OpEnergy.Server.Common(eitherLogThrowOrReturn, runExceptPrefixT)
 import           Data.Text.Show(tshow)
 
 import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
 import           Data.OpEnergy.API.V1.Error(throwJSON)
 
+-- | Default span size for single blockspan queries
+defaultSpanSize :: Positive Int
+defaultSpanSize = verifyPositive 24
 
 websocketHandler :: ServerT WebSocketAPI (AppT Handler)
 websocketHandler = OpEnergy.Server.V1.WebSocketService.webSocketConnection
   :<|> OpEnergy.Server.V1.WebSocketService.webSocketConnection
 
--- | here goes implementation of OpEnergy API, which should match Data.OpEnergy.API.V1.V1API
-server:: ServerT V1API (AppT Handler)
+-- | here goes implementation of OpEnergy API, which should match Data.OpEnergy.API.V2.V2API
+server:: ServerT V2API (AppT Handler)
 server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHash
     :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHeight
-    :<|> getBlocksByBlockSpan
     :<|> getBlocksWithNbdrByBlockSpan
-    :<|> getBlocksWithHashrateByBlockSpan
-    :<|> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList
+    :<|> getMultipleBlockspans
+    :<|> getSingleBlockspan
     :<|> oeGitHashGet
 
 -- | one iteration that called from scheduler thread
 schedulerIteration :: (MonadIO m, MonadMonitor m) => AppT m ()
 schedulerIteration = OpEnergy.Server.V1.BlockHeadersService.syncBlockHeaders
 
+-- Internal helper function (not exposed as API)
 getBlocksByBlockSpan
   :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> Maybe Bool
-  -> Maybe Bool
   -> AppM [BlockSpanHeadersNbdrHashrate]
-getBlocksByBlockSpan startHeight span mNumberOfSpan mNbdr mHashrate = do
+getBlocksByBlockSpan startHeight span mNumberOfSpan = do
   State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan}
        , currentTip = currentTipV
        } <- ask
   P.observeDuration getBlocksByBlockSpan $ do
     mCurrentTip <- liftIO $! TVar.readTVarIO currentTipV
-    let withNbdr = case mNbdr of
-          Just some -> some
-          _ -> False
-        withHashrate = case mHashrate of
-          Just some -> some
-          _ -> False
+    let withNbdr = True
+        withHashrate = True
     spans <- case mNumberOfSpan of
       Just numberOfSpan -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span numberOfSpan
       Nothing-> case mCurrentTip of
@@ -119,7 +122,7 @@ getBlocksWithNbdrByBlockSpan
 getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
   State{ metrics = Metrics.MetricsState{ getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan} } <- ask
   P.observeDuration getBlocksWithNbdrByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans (Just True) Nothing
+    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
     return $! map toBlockSpanHeadersNbdr blockSpansBlocks
   where
     toBlockSpanHeadersNbdr (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersNbdr
@@ -128,21 +131,62 @@ getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
       , Data.OpEnergy.API.V1.nbdr = fromJust $! nbdr
       }
 
-getBlocksWithHashrateByBlockSpan
+getSingleBlockspan
+  :: BlockHeight
+  -> Maybe (Positive Int)
+  -> AppM BlockSpanHeadersNbdrHashrate
+getSingleBlockspan blockHeight mSpanSize =
+    let name = "getSingleBlockspan"
+    in profile name $ eitherLogThrowOrReturn $ runExceptPrefixT name $ do
+  let
+      spanSize = fromMaybe defaultSpanSize mSpanSize
+      -- Validate that blockHeight is sufficient for the requested span
+      spanSizeNat = naturalFromPositive spanSize
+  startHeight <- if blockHeight < spanSizeNat
+    then throwE $ "ERROR: getSingleBlockspan: block height " <> tshow blockHeight
+             <> " is too low for span size " <> tshow (fromPositive spanSize)
+             <> " (minimum required: " <> tshow spanSizeNat <> ")"
+      -- Calculate start height: blockHeight - spanSize + 1
+    else return $! blockHeight - spanSizeNat + 1
+  -- Use existing logic but request only 1 span
+  positive1 <- ExceptT $ return $ verifyPositiveEither 1
+  blockSpansBlocks <- lift $ getBlocksByBlockSpan
+                        startHeight
+                        spanSize
+                        (Just positive1)
+  case blockSpansBlocks of
+    [singleBlockspan] -> return singleBlockspan
+    [] -> throwE $! "ERROR: getSingleBlockspan: no blockspan found for block height "
+                 <> tshow blockHeight
+    _ -> throwE "ERROR: getSingleBlockspan: unexpected multiple blockspans \
+                \returned for single blockspan request"
+  where
+  profile _reservedForFutureUse func = do
+    State{ metrics = Metrics.MetricsState{ getSingleBlockspan = getSingleBlockspanH} } <- ask
+    P.observeDuration getSingleBlockspanH func
+
+getMultipleBlockspans
   :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> AppM [BlockSpanHeadersHashrate]
-getBlocksWithHashrateByBlockSpan startHeight span mNumberOfSpans = do
-  State{ metrics = Metrics.MetricsState{ getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan} } <- ask
-  P.observeDuration getBlocksWithHashrateByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans Nothing (Just True)
-    return $! map toBlockSpanHeadersHashrate blockSpansBlocks
+  -> Maybe Bool
+  -> AppM (Either [V2.BlockSpanSummary] [BlockSpanHeadersNbdrHashrate])
+getMultipleBlockspans startHeight spanSize mNumberOfSpans mWithHeaders = do
+  State{ metrics = Metrics.MetricsState{ getBlockSpanListH = getBlockSpanListH} } <- ask
+  P.observeDuration getBlockSpanListH $ do
+    fullBlockspans <- getBlocksByBlockSpan startHeight spanSize mNumberOfSpans
+    let withHeaders = case mWithHeaders of
+          Just False -> False
+          _ -> True
+    return $! if withHeaders
+      then Right fullBlockspans
+      else Left $! map toSummary fullBlockspans
   where
-    toBlockSpanHeadersHashrate (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersHashrate
-      { startBlock = startBlock
-      , endBlock = endBlock
-      , Data.OpEnergy.API.V1.hashrate = fromJust hashrate
+    toSummary (BlockSpanHeadersNbdrHashrate {..}) = V2.BlockSpanSummary
+      { startBlockHeight = blockHeaderHeight startBlock
+      , endBlockHeight = blockHeaderHeight endBlock
+      , V2.nbdr = fromJust nbdr
+      , V2.hashrate = fromJust hashrate
       }
 
 -- returns just commit hash, provided by build system
