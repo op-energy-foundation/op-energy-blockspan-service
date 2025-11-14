@@ -45,6 +45,7 @@ executable op-energy-backend
 library
     hs-source-dirs: src
     exposed-modules: OpEnergy.Server.V1
+                   , OpEnergy.Server.V2
                    , OpEnergy.Server.GitCommitHash
                    , OpEnergy.Server
                    , OpEnergy.Server.Common

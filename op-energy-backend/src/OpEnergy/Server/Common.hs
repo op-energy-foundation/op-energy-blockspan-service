@@ -1,8 +1,17 @@
+{-# LANGUAGE TemplateHaskell            #-}
 module OpEnergy.Server.Common
   ( exceptTMaybeT
+  , eitherLogThrowOrReturn
+  , runExceptPrefixT
   )where
 
-import           Control.Monad.Trans.Except (ExceptT(..))
+import           Data.Text(Text)
+
+import           Control.Monad.Trans.Except (ExceptT(..), runExceptT)
+import           Control.Monad.Logger(logError)
+import           OpEnergy.Server.V1.Class ( AppM, runLogging)
+import           Data.OpEnergy.API.V1.Error (throwJSON)
+import           Servant.Server.Internal.ServerError(err500)
 
 exceptTMaybeT
   :: Monad m
@@ -15,3 +24,26 @@ exceptTMaybeT onNothing action = ExceptT $ do
     Nothing -> return (Left onNothing)
     Just result -> return (Right result)
 
+-- | In case of success this function will just return @r@
+-- In case of failure, it will log error reason and throw it as a JSON error.
+eitherLogThrowOrReturn
+  :: AppM (Either Text r)
+  -> AppM r
+eitherLogThrowOrReturn foo = do
+  r <- foo
+  case r of
+    Left reason-> do
+      runLogging $ $(logError) reason
+      throwJSON err500 reason
+    Right ret -> return ret
+
+-- | this function is basically an extension to @runExceptT@ with the addition
+-- of @prefix@ to the error reason in case of failure
+runExceptPrefixT
+  :: (Monad m)
+  => Text
+  -> ExceptT Text m r
+  -> m (Either Text r)
+runExceptPrefixT prefix payload = do
+  ret <- runExceptT payload
+  return $! either (\reason -> Left (prefix <> ": " <> reason)) Right ret
