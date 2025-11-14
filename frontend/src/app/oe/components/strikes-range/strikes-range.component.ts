@@ -139,9 +139,17 @@ export class StrikesRangeComponent implements OnInit {
       return;
     }
     this.tableData = data.results.map((result) => {
+      const strike = result.strike;
+      const queryParams = {
+        strikeHeight: strike.block,
+        strikeTime: strike.strikeMediantime,
+        startblock: Math.min(this.currentTip, strike.block - APP_CONFIGURATION.SPAN_SIZE),
+      };
       return {
-        ...result.strike,
+        ...strike,
         guessesCount: result.guessesCount,
+        queryParams, // Add queryParams for use in data-table
+        routerLink: '/hashstrikes/blockrate-strike-summary', // Add routerLink for use in data-table
       };
     });
     // this.totalPages = Math.floor(data.count / data.results.length);
@@ -161,15 +169,9 @@ export class StrikesRangeComponent implements OnInit {
       startblock: Math.min(this.currentTip, item.block - APP_CONFIGURATION.SPAN_SIZE),
     };
 
-    if (this.guessableScreen) {
-      this.router.navigate(['/hashstrikes/blockrate-strike-summary'], {
-        queryParams,
-      });
-      return;
-    }
-
+    // all pages should goes to strike summary
     // Use the Router service to navigate with query parameters
-    this.router.navigate(['/hashstrikes/blockrate-strike-details'], {
+    this.router.navigate(['/hashstrikes/blockrate-strike-summary'], {
       queryParams,
     });
   }

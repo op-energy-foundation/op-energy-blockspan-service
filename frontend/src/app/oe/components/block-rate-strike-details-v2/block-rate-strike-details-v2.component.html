@@ -1,75 +1,15 @@
-<div class="oe-strike-blockspan-container">
-    <div>
+<div class="blockrate-strike-container">
+    <div class="oe-strike-blockspan-container">
         <app-blockspan-bhs [result]="getJudgementResult()"> </app-blockspan-bhs>
     </div>
     <div class="observed-strike-detail">
         <div class="observed-strike-detail--top" *ngIf="!isLoadingBlock">
             <div class="strike-container">
-                <div class="blockspan">
-                    <app-box class="blockspan-block" [fromLabel]="fromBlock.height" [toLabel]="toBlock.height"
-                        footerText="blocks" [logo]="logos.BLOCKS"></app-box>
-                    <div>
-                        <div class="timeblocks">
-                            <div class="timeblocks-lower">
-                                <app-box class="timeblock" [fromLabel]="fromBlock.mediantime" [toLabel]="strike.strikeMediantime"
-                                    [spanLabel]="getSpan('striketime')" footerText="seconds" background="#f1c232"
-                                    [logo]="logos.TIMES"></app-box>
-                                <app-box class="timeblock-utc" [fromLabel]="convertToUTC(fromBlock.mediantime)"
-                                    [toLabel]="convertToUTC(strike.strikeMediantime)"
-                                    [spanLabel]="calculateTimeDifference(fromBlock.mediantime, strike.strikeMediantime)"
-                                    footerText="utc" background="#f1c232" [logo]="logos.TIMES"></app-box>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="blockspan-bottom">
-                    <div>
-                        <div class="blockrate">
-                            <div class="to-block">{{getBlockRate('striketime')}}</div>
-                            <div class="from-block">
-                                <span class="equation-part">(</span>
-                                <span class="equation-block">600 * 100</span>
-                                <span class="equation-part">*</span>
-                                <span class="highlight-block">{{getSpan('blockspan')}}</span>
-                                <span class="equation-part">/</span>
-                                <span class="highlight-block">{{getSpan('striketime')}}</span>
-                                <span class="equation-part">)</span>
-                            </div>
-                            <div class="footer">blockrate</div>
-                            <div class="logos">
-                                <div class="logo">{{ logos.BLOCKS }}</div>
-                                <div class="logo">{{ logos.CONTRACT }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="hashrate">
-                        <div class="oe-guessing-box pb-3">
-                            <button class="btn btn-lg btn-light btn-outline-warning" type="button"
-                                [class.active]="selectedGuess === 'fast'" [disabled]="disabled"
-                                (click)="handleSelectedGuess('fast')"
-                                [ngbTooltip]="strikeKnown ? 'Can\'t add guess as strike outcome is known' : null">
-                                <span class="oe-icon">🐰</span> - faster
-                            </button>
-                        </div>
-                        <div class="oe-guessing-box">
-                            <button class="btn btn-lg btn-light btn-outline-warning" type="button"
-                                [class.active]="selectedGuess === 'slow'" [disabled]="disabled"
-                                (click)="handleSelectedGuess('slow')"
-                                [ngbTooltip]="strikeKnown ? 'Can\'t add guess as strike outcome is known' : null">
-                                <span class="oe-icon">🐢</span> - slower
-                            </button>
-                        </div>
-                    </div>
-                    <div class="oe-message-container" *ngIf="selectedGuess && strike.observedResult">
-                        <div class="oe-message-text" *ngIf="getResult() === selectedGuess">
-                            <h1>🤠&nbsp;💰You<br>Won</h1>
-                        </div>
-                        <div class="oe-message-text" *ngIf="getResult() === selectedGuess">
-                            <h1>😭&nbsp;💩You<br>Lost</h1>
-                        </div>
-                    </div>
-                </div>
-                <app-judgement-block [strike]="strike"></app-judgement-block>
+                 <app-blockrate-strike-summary-v2
+                    [fromBlock]="fromBlock"
+                    [toBlock]="toBlock"
+                    [strike]="strike">
+                 </app-blockrate-strike-summary-v2>
             </div>
         </div>
     </div>

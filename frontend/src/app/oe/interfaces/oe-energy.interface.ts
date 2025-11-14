@@ -179,6 +179,7 @@ export interface TableColumn {
   isSrNo?: boolean;
   customSrNoHeader?: string;
   defaultValue?: string;
+  isClickable?: boolean;
 }
 
 export interface BlockTimeStrikePublic {

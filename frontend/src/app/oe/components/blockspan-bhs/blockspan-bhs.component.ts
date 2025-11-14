@@ -138,14 +138,14 @@ export class BlockspanBHSComponent implements OnInit {
             group.length < 4 ? group.padEnd(4, '\u00A0') : group;
           const groupIndexFromRight = arr.length - 1 - index;
           if (groupIndexFromRight <= 2) {
-            return `<span class="red">${paddedGroup}</span>`;
+            return `<span class="red link">${paddedGroup}</span>`;
           }
           return paddedGroup;
         })
         .join('\u00A0'); // Join groups with spaces between them
 
       // Return HTML with leading zeros wrapped in a span
-      return `<span class="leading-zeros">${groupedZeros}</span><span class="remaining-text">${remainingText}</span>`;
+      return `<span class="leading-zeros">${groupedZeros}</span><span class="remaining-text link">${remainingText}</span>`;
     }
 
     // If no leading zeros, return the original text

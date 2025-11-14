@@ -14,14 +14,26 @@
     </thead>
     <tbody>
         <ng-container *ngIf="!isLoading">
-            <tr *ngFor="let item of data; let i = index" (click)="onRowClick(item)" class="clickable-row">
+            <tr *ngFor="let item of data; let i = index" class="clickable-row">
                 <!-- Conditionally display Sr No for each row -->
                 <td *ngIf="showSerialNumberColumn">
                     <i class="row-icon fas fa-chevron-right"></i>{{(currentPage - 1) * pageSize + (i + 1) }}
                 </td>
-                <td *ngFor="let header of headers">
+                <td *ngFor="let header of headers"
+                    [class.clickable-cell]="header.isClickable">
                     <ng-container *ngIf="!header.isSrNo">
+                      <a *ngIf="header.isClickable && item.routerLink"
+                         class="oe-link"
+                         [routerLink]="[item.routerLink]"
+                         [queryParams]="item.queryParams"
+                         [attr.href]="item.routerLink"
+                         (click)="$event.stopPropagation()">
                         {{ item[header.columnKey] || header.defaultValue }}
+                      </a>
+                      <span *ngIf="!header.isClickable || !item.routerLink"
+                            (click)="header.isClickable ? onRowClick(item) : null">
+                        {{ item[header.columnKey] || header.defaultValue }}
+                      </span>
                     </ng-container>
                 </td>
             </tr>
