@@ -245,12 +245,23 @@ in
                   limit_req zone=api burst=10 nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1;
           }
+          location /api/v2/blockspans/ws {
+                  proxy_pass ${cfg.mainnet_api_host}/api/v2/blockspans/ws;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "Upgrade";
+                  limit_conn websocket 100;
+          }
+          location /api/v2/blockspans {
+                  limit_req zone=api burst=10 nodelay;
+                  proxy_pass ${cfg.mainnet_api_host}/api/v2/blockspans;
+          }
           location /api/ {
                   limit_req zone=api burst=10 nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v1/;
           }
 
- 
+
           # here we include possible options to route testnet-related requests.
           ${testnet_locations}
           # here we include possible options to route signet-related requests.
