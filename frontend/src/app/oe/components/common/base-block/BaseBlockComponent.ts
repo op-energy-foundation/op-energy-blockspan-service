@@ -7,6 +7,7 @@ import {
   of,
   Subscription,
   take,
+  map,
 } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import {
@@ -56,34 +57,35 @@ export abstract class BaseBlockComponent {
   ): Observable<(Block | PaginationResponse<BlockTimeStrikePublic> | null)[]> {
     this.isLoadingBlock = true;
 
-    const observables: Observable<
-      Block | PaginationResponse<BlockTimeStrikePublic> | null
-    >[] = [
-      this.oeEnergyApiService
-        .$getBlockByHeight(fromBlockHeight)
-        .pipe(catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))),
-    ];
-
+    // Collect all block heights for batch fetching
+    const heights = [fromBlockHeight];
     if (strikeHeight !== undefined) {
-      observables.push(
-        this.oeEnergyApiService
-          .$getBlockByHeight(strikeHeight)
-          .pipe(catchError(() => of(getEmptyBlockHeader(strikeHeight))))
-      );
+      heights.push(strikeHeight);
     }
 
+    // Fetch all blocks in a single call (or multiple calls if V1 mode)
+    const blocksObservable = this.oeEnergyApiService
+      .$getBlocksByHeights(heights)
+      .pipe(
+        catchError(() => of(heights.map(h => getEmptyBlockHeader(h))))
+      );
+
+    // If strike filter is needed, combine blocks with strike data
     if (strikeTime !== undefined && strikeHeight !== undefined) {
-      observables.push(
-        this.oeBlocktimeApiService
-          .$strikesWithFilter({
-            strikeMediantimeEQ: strikeTime,
-            blockHeightEQ: strikeHeight,
-          })
-          .pipe(catchError(() => of(null)))
+      const strikeObservable = this.oeBlocktimeApiService
+        .$strikesWithFilter({
+          strikeMediantimeEQ: strikeTime,
+          blockHeightEQ: strikeHeight,
+        })
+        .pipe(catchError(() => of(null)));
+
+      return combineLatest([blocksObservable, strikeObservable]).pipe(
+        map(([blocks, strikeFilter]) => [...blocks, strikeFilter])
       );
     }
 
-    return combineLatest(observables);
+    // Otherwise, just return the blocks
+    return blocksObservable;
   }
 
   // Shared method for processing query parameters with defaults

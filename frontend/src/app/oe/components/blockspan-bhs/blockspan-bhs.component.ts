@@ -89,14 +89,16 @@ export class BlockspanBHSComponent implements OnInit {
 
           this.isLoadingBlock = true;
 
-          return combineLatest([
-            this.oeEnergyApiService
-              .$getBlockByHeight(fromBlockHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))),
-            this.oeEnergyApiService
-              .$getBlockByHeight(toBlockHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(toBlockHeight)))),
-          ]);
+          return this.oeEnergyApiService
+            .$getBlocksByHeights([fromBlockHeight, toBlockHeight])
+            .pipe(
+              catchError(() =>
+                of([
+                  getEmptyBlockHeader(fromBlockHeight),
+                  getEmptyBlockHeader(toBlockHeight),
+                ])
+              )
+            );
         })
       )
       .subscribe(([fromBlock, toBlock]: [Block, Block]) => {
