@@ -106,14 +106,9 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
             if (fromBlockInCache && toBlockInCache) {
               return of([fromBlockInCache, toBlockInCache]);
             }
-            return combineLatest([
-              this.oeEnergyApiService
-                .$getBlockByHeight(fromBlockHeight)
-                .pipe(catchError(() => of(fromBlockHeight))),
-              this.oeEnergyApiService
-                .$getBlockByHeight(toBlockHeight)
-                .pipe(catchError(() => of(toBlockHeight))),
-            ]);
+            return this.oeEnergyApiService
+              .$getBlocksByHeights([fromBlockHeight, toBlockHeight])
+              .pipe(catchError(() => of([fromBlockHeight, toBlockHeight])));
           }
         })
       )

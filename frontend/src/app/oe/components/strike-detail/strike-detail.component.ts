@@ -15,6 +15,7 @@ import {
   TimeStrike,
 } from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
+import { getEmptyBlockHeader } from '../../utils/helper';
 import {
   OeBlocktimeApiService,
   OeEnergyApiService,
@@ -184,26 +185,23 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
           return combineLatest([
             this.oeEnergyApiService
-              .$getBlockByHeight(fromBlockHeight)
-              .pipe(catchError(() => of(fromBlockHeight))),
-            this.oeEnergyApiService
-              .$getBlockByHeight(strikeHeight)
-              .pipe(catchError(() => of(strikeHeight))),
+              .$getBlocksByHeights([fromBlockHeight, strikeHeight])
+              .pipe(catchError(() => of([getEmptyBlockHeader(fromBlockHeight), getEmptyBlockHeader(strikeHeight)]))),
             this.oeBlocktimeApiService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
-          ]);
+          ]).pipe(
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+          );
         })
       )
       .subscribe(
-        async ([fromBlock, toBlock, strikesDetails]: [
-          Block,
-          Block,
-          PaginationResponse<BlockTimeStrikePublic>
-        ]) => {
+        async (result: any) => {
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic> | number];
+          const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           this.toBlock =
             typeof toBlock === BlockTypes.NUMBER
@@ -213,9 +211,17 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
           this.nextBlockHeight = fromBlock.height + 1;
           this.setNextAndPreviousBlockLink();
 
+          // Type guard: check if strikesDetails is a PaginationResponse
+          if (typeof strikesDetails === 'number') {
+            this.toastr.error('Strikes Not Found!', 'Failed!');
+            this.isLoadingBlock = false;
+            return;
+          }
+
           const strikesResult = strikesDetails.results;
           if (!strikesResult.length) {
             this.toastr.error('Strikes Not Found!', 'Failed!');
+            this.isLoadingBlock = false;
             return;
           }
 
