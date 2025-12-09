@@ -108,6 +108,7 @@ library
                     , ghc-compact
                     , resourcet
                     , persistent-pagination
+                    , safe-exceptions
 
     ghc-options:    -O2 -Wall -Werror -Wno-unticked-promoted-constructors -fno-warn-name-shadowing -Wno-orphans
     extensions:       OverloadedStrings
