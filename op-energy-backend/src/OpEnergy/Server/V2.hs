@@ -146,8 +146,8 @@ getSingleBlockspan blockHeight mSpanSize =
     then throwE $ "ERROR: getSingleBlockspan: block height " <> tshow blockHeight
              <> " is too low for span size " <> tshow (fromPositive spanSize)
              <> " (minimum required: " <> tshow spanSizeNat <> ")"
-      -- Calculate start height: blockHeight - spanSize + 1
-    else return $! blockHeight - spanSizeNat + 1
+      -- Calculate start height: blockHeight - spanSize
+    else return $! blockHeight - spanSizeNat
   -- Use existing logic but request only 1 span
   positive1 <- ExceptT $ return $ verifyPositiveEither 1
   blockSpansBlocks <- lift $ getBlocksByBlockSpan
