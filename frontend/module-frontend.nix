@@ -241,7 +241,7 @@ in
                   proxy_set_header Connection "Upgrade";
                   limit_conn websocket 100;
           }
-          location /api/v2 {
+          location /api/v2/blockspans {
                   limit_req zone=api burst=10 nodelay;
                   proxy_pass ${cfg.mainnet_api_host}/api/v2;
           }
