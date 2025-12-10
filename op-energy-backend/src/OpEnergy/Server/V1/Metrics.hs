@@ -4,10 +4,15 @@
 module OpEnergy.Server.V1.Metrics where
 
 -- import           System.Clock (Clock(..), diffTimeSpec, getTime, toNanoSecs)
-import           Control.Monad.IO.Class(MonadIO)
+import           Data.Text(Text)
+import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Concurrent.MVar(MVar)
 import qualified Control.Concurrent.MVar as MVar
-  
+import           Control.Concurrent.STM.TVar(TVar)
+import qualified Control.Concurrent.STM as STM
+import           Data.Map (Map)
+import qualified Data.Map as Map
+
 import qualified Prometheus as P
 import qualified Network.Wai.Middleware.Prometheus as P
 import qualified Prometheus.Metric.GHC as P
@@ -50,6 +55,8 @@ data MetricsState = MetricsState
   , getBlocksWithNbdrByBlockSpan :: P.Histogram
   , getBlocksWithHashrateByBlockSpan :: P.Histogram
   , getSingleBlockspan :: P.Histogram
+    -- for dynamic routines
+  , dynamicHistograms :: TVar (Map Text P.Histogram)
   }
 
 -- | constructs default state with given config and DB pool
@@ -85,6 +92,7 @@ initMetrics _config = do
   getSingleBlockspan <- P.register $ P.histogram (P.Info "getSingleBlockspan" "") microBuckets
   _ <- P.register P.ghcMetrics
   _ <- P.register P.procMetrics
+  tmap <- liftIO $ STM.newTVarIO Map.empty
   return $ MetricsState
     { syncBlockHeadersH = syncBlockHeadersH
     , loadDBStateH = loadDBStateH
@@ -111,18 +119,20 @@ initMetrics _config = do
     , getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan
     , getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan
     , getSingleBlockspan = getSingleBlockspan
+    , dynamicHistograms = tmap
     }
-  where
-    microBuckets = [ 0.0000001 -- 100 nanoseconds
-                   , 0.00000025 -- 250 ns
-                   , 0.0000005 -- 500 ns
-                   , 0.000001 -- 1 microsecond
-                   , 0.00001 -- 10 microseconds
-                   , 0.0001 -- 100 microseconds
-                   , 0.00025 -- 250 microseconds
-                   , 0.0005 -- 500 microseconds
-                   , 0.001 -- 1 ms
-                   ] ++ P.defaultBuckets
+
+microBuckets :: [ Double]
+microBuckets = [ 0.0000001 -- 100 nanoseconds
+               , 0.00000025 -- 250 ns
+               , 0.0000005 -- 500 ns
+               , 0.000001 -- 1 microsecond
+               , 0.00001 -- 10 microseconds
+               , 0.0001 -- 100 microseconds
+               , 0.00025 -- 250 microseconds
+               , 0.0005 -- 500 microseconds
+               , 0.001 -- 1 ms
+               ] ++ P.defaultBuckets
 
 -- | runs metrics HTTP server
 runMetricsServer :: Config -> MVar MetricsState -> IO ()
@@ -131,3 +141,15 @@ runMetricsServer config metricsV = do
   metrics <- initMetrics config
   MVar.putMVar metricsV metrics
   W.run (fromPositive metricsPort) P.metricsApp
+
+-- | searchs for histogram with given name or creates in case of non-existing
+dynamicHistogram :: TVar (Map Text P.Histogram) -> Text -> IO P.Histogram
+dynamicHistogram tmap name = do
+  map <- STM.atomically $ STM.readTVar tmap
+  case Map.lookup name map of
+    Just some -> return some
+    Nothing-> do
+      ret <- P.register $ P.histogram (P.Info name "") microBuckets
+      STM.atomically $ STM.modifyTVar tmap $ Map.insert name ret
+      return ret
+
