@@ -91,10 +91,8 @@ profile
   -> AppT m r
 profile name next = do
   metricsV <- asks metrics
-  callstackV <- asks callStack
-  let
-      newCallStack = callstackV <> "." <> name
+  newCallStack <- asks $! (<> "." <> name) . callStack
   local (\r-> r{ callStack = newCallStack}) $ do
-    histogram <- liftIO $ dynamicHistogram (dynamicHistograms metricsV) callstackV
+    histogram <- liftIO $ dynamicHistogram (dynamicHistograms metricsV) newCallStack
     P.observeDuration histogram next
 
