@@ -3,12 +3,17 @@ module OpEnergy.Server.Common
   ( exceptTMaybeT
   , eitherLogThrowOrReturn
   , runExceptPrefixT
+  , eitherException
   )where
 
 import           Data.Text(Text)
+import qualified Data.Text as Text
 
 import           Control.Monad.Trans.Except (ExceptT(..), runExceptT)
 import           Control.Monad.Logger(logError)
+import           Control.Exception.Safe (SomeException)
+import qualified Control.Exception.Safe as E
+
 import           OpEnergy.Server.V1.Class ( AppM, runLogging)
 import           Data.OpEnergy.API.V1.Error (throwJSON)
 import           Servant.Server.Internal.ServerError(err500)
@@ -47,3 +52,26 @@ runExceptPrefixT
 runExceptPrefixT prefix payload = do
   ret <- runExceptT payload
   return $! either (\reason -> Left (prefix <> ": " <> reason)) Right ret
+
+--
+-- | this functions's goal is to handle possible exception into @Either@ type
+-- in order to wrap side-effectful routine into ExceptT transformer
+-- Example:
+-- @ eitherException $ readFile "/file/not/found" @
+eitherException
+  :: ( Monad m
+     , E.MonadCatch m
+     )
+  => m r
+  -> m (Either Text r)
+eitherException next = do
+  !ret <- E.handle
+    (\(e::SomeException)->
+      return (Left (Text.pack (show e)))
+    )
+    (do
+      !ret <- next
+      return (Right ret)
+    )
+  return ret
+

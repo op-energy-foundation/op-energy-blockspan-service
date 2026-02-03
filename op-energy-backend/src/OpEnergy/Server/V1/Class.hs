@@ -3,9 +3,11 @@
  -}
 module OpEnergy.Server.V1.Class where
 
+import           Data.Text(Text)
 import           Control.Concurrent.STM.TVar (TVar)
 import qualified Control.Concurrent.STM.TVar as TVar
-import           Control.Monad.Trans.Reader (runReaderT, ReaderT, ask)
+import           Control.Monad.Trans.Reader
+                 (runReaderT, ReaderT, ask, asks, local)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Trans(lift)
 import           Control.Monad.Logger (runLoggingT, filterLogger, LoggingT, MonadLoggerIO, Loc, LogSource, LogLevel, LogStr)
@@ -14,7 +16,9 @@ import           Servant (Handler)
 import           Data.Pool(Pool)
 import           Database.Persist.Postgresql (SqlBackend)
 import           System.IO(hFlush, stdout)
+
 import           Prometheus(MonadMonitor(..))
+import qualified Prometheus as P
 
 import           Data.OpEnergy.API.V1.Block ( BlockHeader)
 import           OpEnergy.Server.V1.Config
@@ -40,6 +44,8 @@ data State = State
   , logLevel :: TVar LogLevel
   , metrics :: MetricsState
   -- ^ contains metrics handlers
+  , callStack :: Text
+    -- ^ dot-separated call stack
   }
 
 type AppT = ReaderT State
@@ -60,6 +66,7 @@ defaultState config metrics logFunc _blockHeadersDBPool = do
     , logFunc = logFunc
     , logLevel = logLevelV
     , metrics = metrics
+    , callStack = ""
     }
 
 -- | Runs app transformer with given context
@@ -73,3 +80,19 @@ runLogging loggingAction = do
   _ <- lift $ runLoggingT (filterLogger filterUnwantedLevels loggingAction) logFunc
   liftIO $ hFlush stdout
   return ()
+
+-- | this function profiles execution of the provided function
+profile
+  :: ( MonadIO m
+     , MonadMonitor m
+     )
+  => Text
+  -> AppT m r
+  -> AppT m r
+profile name next = do
+  metricsV <- asks metrics
+  newCallStack <- asks $! (<> "." <> name) . callStack
+  local (\r-> r{ callStack = newCallStack}) $ do
+    histogram <- liftIO $ dynamicHistogram (dynamicHistograms metricsV) newCallStack
+    P.observeDuration histogram next
+

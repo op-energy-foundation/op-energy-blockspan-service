@@ -18,11 +18,12 @@ module OpEnergy.Server.V2
   , server
   )where
 
+import           Data.Text(Text)
+
 import           Servant
 import           Control.Monad.IO.Class(MonadIO, liftIO)
 import           Control.Monad(forM)
-import           Control.Monad.Reader(ask)
-import           Control.Monad.Logger(logError)
+import           Control.Monad.Reader( asks)
 import           Control.Monad.Trans.Except (ExceptT(..), throwE)
 import           Control.Monad.Trans.Class(lift)
 import qualified Control.Concurrent.STM.TVar as TVar
@@ -35,18 +36,26 @@ import           Data.OpEnergy.API.V2 (V2API)
 import           Data.OpEnergy.API.V1.Block
 import           Data.OpEnergy.API.V1.Positive
 import qualified OpEnergy.Server.GitCommitHash as Server
-import qualified OpEnergy.Server.V1.Metrics as Metrics( MetricsState(..))
-import           OpEnergy.Server.V1.Class (AppT, AppM, runLogging, State(..))
-import           OpEnergy.Server.V1.BlockHeadersService(syncBlockHeaders, getBlockHeaderByHash, getBlockHeaderByHeight, mgetBlockHeaderByHeight)
+import           OpEnergy.Server.V1.Class
+                 as State(AppT, AppM, State(..), profile)
+import qualified OpEnergy.Server.V1.BlockHeadersService
+                 as V1 ( syncBlockHeaders
+                       , getBlockHeaderByHash
+                       , getBlockHeaderByHeight
+                       , mgetBlockHeaderByHeight
+                       )
 import           OpEnergy.Server.V1.WebSocketService(webSocketConnection)
 import           OpEnergy.Server.V1.BlockSpanService(getBlockSpanListByRange, getBlockSpanList)
 import           OpEnergy.Server.V1.StatisticsService(calculateStatistics, getTheoreticalActualMTPPercents)
-import           OpEnergy.Server.Common(eitherLogThrowOrReturn, runExceptPrefixT)
+import           OpEnergy.Server.Common
+                 ( eitherLogThrowOrReturn
+                 , runExceptPrefixT
+                 , exceptTMaybeT
+                 , eitherException
+                 )
 import           Data.Text.Show(tshow)
 
 import           Prometheus(MonadMonitor)
-import qualified Prometheus as P
-import           Data.OpEnergy.API.V1.Error(throwJSON)
 
 -- | Default span size for single blockspan queries
 defaultSpanSize :: Positive Int
@@ -59,8 +68,8 @@ websocketHandler = OpEnergy.Server.V1.WebSocketService.webSocketConnection
 -- | here goes implementation of OpEnergy API, which should match Data.OpEnergy.API.V2.V2API
 server:: ServerT V2API (AppT Handler)
 server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
-    :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHash
-    :<|> OpEnergy.Server.V1.BlockHeadersService.getBlockHeaderByHeight
+    :<|> V1.getBlockHeaderByHash
+    :<|> V1.getBlockHeaderByHeight
     :<|> getBlocksWithNbdrByBlockSpan
     :<|> getMultipleBlockspans
     :<|> getSingleBlockspan
@@ -68,62 +77,62 @@ server = OpEnergy.Server.V1.StatisticsService.calculateStatistics
 
 -- | one iteration that called from scheduler thread
 schedulerIteration :: (MonadIO m, MonadMonitor m) => AppT m ()
-schedulerIteration = OpEnergy.Server.V1.BlockHeadersService.syncBlockHeaders
+schedulerIteration = V1.syncBlockHeaders
 
 -- Internal helper function (not exposed as API)
 getBlocksByBlockSpan
   :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
-  -> AppM [BlockSpanHeadersNbdrHashrate]
-getBlocksByBlockSpan startHeight span mNumberOfSpan = do
-  State{ metrics = Metrics.MetricsState{ getBlocksByBlockSpan = getBlocksByBlockSpan}
-       , currentTip = currentTipV
-       } <- ask
-  P.observeDuration getBlocksByBlockSpan $ do
-    mCurrentTip <- liftIO $! TVar.readTVarIO currentTipV
-    let withNbdr = True
-        withHashrate = True
-    spans <- case mNumberOfSpan of
-      Just numberOfSpan -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span numberOfSpan
-      Nothing-> case mCurrentTip of
-        Just currentTip -> OpEnergy.Server.V1.BlockSpanService.getBlockSpanListByRange startHeight (blockHeaderHeight currentTip) span
-        Nothing -> do
-          let err = "ERROR: getBlocksByBlockSpan: no current tip had been discovered yet"
-          runLogging $ $(logError) err
-          throwJSON err400 err
-    forM spans $ \(BlockSpan startHeight endHeight)-> do
-      mstart <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight startHeight
-      mend <- OpEnergy.Server.V1.BlockHeadersService.mgetBlockHeaderByHeight endHeight
-      case (mstart, mend) of
-        (Just start, Just end ) -> do
-          mNbdr <- if withNbdr
-            then return $! Just $! getTheoreticalActualMTPPercents start end
-            else return Nothing
-          mHashrate <- if withHashrate
-            then return $! Just $! (blockHeaderChainwork end - blockHeaderChainwork start) `div` (fromIntegral (blockHeaderMediantime end - blockHeaderMediantime start))
-            else return Nothing
-          return $! BlockSpanHeadersNbdrHashrate
-            { startBlock = start
-            , endBlock = end
-            , nbdr = mNbdr
-            , hashrate = mHashrate
-            }
-        _ -> do
-          let err = "ERROR: getBlocksByBlockSpan: failed to get block headers for block span {" <> tshow startHeight <> ", " <> tshow endHeight <> "}"
-          runLogging $ $(logError) err
-          throwJSON err400 err
+  -> AppM (Either Text [BlockSpanHeadersNbdrHashrate])
+getBlocksByBlockSpan startHeight span mNumberOfSpan =
+    let name = "getBlocksByBlockSpan"
+    in profile name $ runExceptPrefixT name $ do
+  currentTipV <- lift $ asks State.currentTip
+  currentTip <- exceptTMaybeT "no current tip had been discovered yet"
+    $ liftIO $! TVar.readTVarIO currentTipV
+  spans <- case mNumberOfSpan of
+    Just numberOfSpan -> ExceptT $ eitherException
+      $ OpEnergy.Server.V1.BlockSpanService.getBlockSpanList startHeight span
+        numberOfSpan
+    Nothing-> ExceptT $ eitherException
+      $ OpEnergy.Server.V1.BlockSpanService.getBlockSpanListByRange startHeight
+        (blockHeaderHeight currentTip) span
+  forM spans $ \(BlockSpan startHeight endHeight)-> do
+    mstart <- ExceptT $ eitherException $ V1.mgetBlockHeaderByHeight startHeight
+    mend <- ExceptT $ eitherException $ V1.mgetBlockHeaderByHeight endHeight
+    (start, end) <- exceptTMaybeT
+      ( "failed to get block headers for block span {"
+      <> tshow startHeight <> ", " <> tshow endHeight <> "}"
+      )
+      $ return $ do
+        start <- mstart
+        end <- mend
+        return (start, end)
+    let
+        mNbdr = Just $! getTheoreticalActualMTPPercents start end
+        mHashrate = Just $!
+          (blockHeaderChainwork end - blockHeaderChainwork start)
+          `div`
+          (fromIntegral (blockHeaderMediantime end - blockHeaderMediantime start))
+    return $! BlockSpanHeadersNbdrHashrate
+      { startBlock = start
+      , endBlock = end
+      , nbdr = mNbdr
+      , hashrate = mHashrate
+      }
 
 getBlocksWithNbdrByBlockSpan
   :: BlockHeight
   -> Positive Int
   -> Maybe (Positive Int)
   -> AppM [BlockSpanHeadersNbdr]
-getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans = do
-  State{ metrics = Metrics.MetricsState{ getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan} } <- ask
-  P.observeDuration getBlocksWithNbdrByBlockSpan $ do
-    blockSpansBlocks <- getBlocksByBlockSpan startHeight span mNumberOfSpans
-    return $! map toBlockSpanHeadersNbdr blockSpansBlocks
+getBlocksWithNbdrByBlockSpan startHeight span mNumberOfSpans =
+    let name = "V2.getBlocksWithNbdrByBlockSpan"
+    in profile name $ eitherLogThrowOrReturn $ runExceptPrefixT name $ do
+  blockSpansBlocks <- ExceptT $ getBlocksByBlockSpan startHeight span
+    mNumberOfSpans
+  return $! map toBlockSpanHeadersNbdr blockSpansBlocks
   where
     toBlockSpanHeadersNbdr (BlockSpanHeadersNbdrHashrate {..}) = BlockSpanHeadersNbdr
       { startBlock = startBlock
@@ -136,34 +145,30 @@ getSingleBlockspan
   -> Maybe (Positive Int)
   -> AppM BlockSpanHeadersNbdrHashrate
 getSingleBlockspan blockHeight mSpanSize =
-    let name = "getSingleBlockspan"
+    let name = "V2.getSingleBlockspan"
     in profile name $ eitherLogThrowOrReturn $ runExceptPrefixT name $ do
   let
       spanSize = fromMaybe defaultSpanSize mSpanSize
       -- Validate that blockHeight is sufficient for the requested span
       spanSizeNat = naturalFromPositive spanSize
   startHeight <- if blockHeight < spanSizeNat
-    then throwE $ "ERROR: getSingleBlockspan: block height " <> tshow blockHeight
+    then throwE $ "block height " <> tshow blockHeight
              <> " is too low for span size " <> tshow (fromPositive spanSize)
              <> " (minimum required: " <> tshow spanSizeNat <> ")"
       -- Calculate start height: blockHeight - spanSize
     else return $! blockHeight - spanSizeNat
   -- Use existing logic but request only 1 span
   positive1 <- ExceptT $ return $ verifyPositiveEither 1
-  blockSpansBlocks <- lift $ getBlocksByBlockSpan
+  blockSpansBlocks <- ExceptT $ getBlocksByBlockSpan
                         startHeight
                         spanSize
                         (Just positive1)
   case blockSpansBlocks of
     [singleBlockspan] -> return singleBlockspan
-    [] -> throwE $! "ERROR: getSingleBlockspan: no blockspan found for block height "
+    [] -> throwE $! "no blockspan found for block height "
                  <> tshow blockHeight
-    _ -> throwE "ERROR: getSingleBlockspan: unexpected multiple blockspans \
-                \returned for single blockspan request"
-  where
-  profile _reservedForFutureUse func = do
-    State{ metrics = Metrics.MetricsState{ getSingleBlockspan = getSingleBlockspanH} } <- ask
-    P.observeDuration getSingleBlockspanH func
+    _ -> throwE "unexpected multiple blockspans returned for single blockspan \
+                \request"
 
 getMultipleBlockspans
   :: BlockHeight
@@ -171,16 +176,16 @@ getMultipleBlockspans
   -> Maybe (Positive Int)
   -> Maybe Bool
   -> AppM (Either [V2.BlockSpanSummary] [BlockSpanHeadersNbdrHashrate])
-getMultipleBlockspans startHeight spanSize mNumberOfSpans mWithHeaders = do
-  State{ metrics = Metrics.MetricsState{ getBlockSpanListH = getBlockSpanListH} } <- ask
-  P.observeDuration getBlockSpanListH $ do
-    fullBlockspans <- getBlocksByBlockSpan startHeight spanSize mNumberOfSpans
-    let withHeaders = case mWithHeaders of
-          Just False -> False
-          _ -> True
-    return $! if withHeaders
-      then Right fullBlockspans
-      else Left $! map toSummary fullBlockspans
+getMultipleBlockspans startHeight spanSize mNumberOfSpans mWithHeaders =
+    let name = "getMultipleBlockspans"
+    in profile name $ eitherLogThrowOrReturn $ runExceptPrefixT name $ do
+  fullBlockspans <- ExceptT $ getBlocksByBlockSpan startHeight spanSize mNumberOfSpans
+  let withHeaders = case mWithHeaders of
+        Just False -> False
+        _ -> True
+  return $! if withHeaders
+    then Right fullBlockspans
+    else Left $! map toSummary fullBlockspans
   where
     toSummary (BlockSpanHeadersNbdrHashrate {..}) = V2.BlockSpanSummary
       { startBlockHeight = blockHeaderHeight startBlock
