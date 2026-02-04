@@ -243,7 +243,7 @@ in
           }
           location /api/v2/blockspans {
                   limit_req zone=api burst=10 nodelay;
-                  proxy_pass ${cfg.mainnet_api_host}/api/v2;
+                  proxy_pass ${cfg.mainnet_api_host}/api/v2/blockspans;
           }
           location /api/v1 {
                   limit_req zone=api burst=10 nodelay;
