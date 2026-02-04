@@ -5,10 +5,11 @@ import {
 } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { switchMap, catchError, take } from 'rxjs/operators';
+import { switchMap, catchError, take, map } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { TimeStrike } from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
+import { getEmptyBlockHeader } from '../../utils/helper';
 import {
   OeBlocktimeApiService,
   OeEnergyApiService,
@@ -122,25 +123,24 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
             return of([fromBlockInCache, toBlockInCache]);
           }
           return combineLatest([
-            this.oeEnergyApiService.$getBlockByHeight(fromBlockHeight),
             this.oeEnergyApiService
-              .$getBlockByHeight(strikeHeight)
-              .pipe(catchError(() => of(strikeHeight))),
+              .$getBlocksByHeights([fromBlockHeight, strikeHeight])
+              .pipe(catchError(() => of([getEmptyBlockHeader(fromBlockHeight), getEmptyBlockHeader(strikeHeight)]))),
             this.oeBlocktimeApiService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
-          ]);
+          ]).pipe(
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+          );
         })
       )
       .subscribe(
-        ([fromBlock, toBlock, strikesDetails]: [
-          Block,
-          Block,
-          PaginationResponse<BlockTimeStrikePublic>
-        ]) => {
+        (result: any) => {
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic> | number];
+          const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           if (typeof toBlock === BlockTypes.NUMBER) {
             this.toBlock = {
@@ -153,9 +153,17 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
           this.blockHeight = fromBlock.height;
           this.nextBlockHeight = fromBlock.height + 1;
 
+          // Type guard: check if strikesDetails is a PaginationResponse
+          if (typeof strikesDetails === 'number') {
+            this.toastr.error('Strikes Not Found!', 'Failed!');
+            this.isLoadingBlock = false;
+            return;
+          }
+
           const strikesResult = strikesDetails.results;
           if (!strikesResult.length) {
             this.toastr.error('Strikes Not Found!', 'Failed!');
+            this.isLoadingBlock = false;
             return;
           }
 

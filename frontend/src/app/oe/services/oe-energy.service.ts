@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, combineLatest } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import {
   TimeStrike,
   TimeStrikesHistory,
@@ -18,7 +19,7 @@ import {
   PaginationResponse,
   LoginResult,
 } from '../interfaces/oe-energy.interface';
-import { take, switchMap, tap, shareReplay, catchError } from 'rxjs/operators';
+import { take, switchMap, tap, shareReplay, catchError, map } from 'rxjs/operators';
 import { OeStateService } from './state.service';
 import { CookieService } from 'ngx-cookie-service';
 
@@ -131,9 +132,32 @@ export class OeEnergyApiService {
   }
 
   $getBlockByHeight(height: number): Observable<BlockHeader> {
-    return this.httpClient.get<BlockHeader>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/oe/blockbyheight/' + height
-    );
+    const endpoint = environment.useV2BlockspanApi
+      ? `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockbyheight/${height}`
+      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockbyheight/${height}`;
+    return this.httpClient.get<BlockHeader>(endpoint);
+  }
+
+  // Fetch multiple blocks by heights - uses V2 batch API if enabled, falls back to V1 with multiple calls
+  $getBlocksByHeights(heights: number[]): Observable<BlockHeader[]> {
+    if (environment.useV2BlockspanApi) {
+      // V2: Single API call using blockspan endpoint
+      // Assumes heights[0] is start, heights[1] is end
+      const startHeight = heights[0];
+      const endHeight = heights[heights.length - 1];
+      const spanSize = endHeight - startHeight;
+
+      return this.httpClient.get<{ startBlock: BlockHeader; endBlock: BlockHeader }>(
+        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspan/${endHeight}?spanSize=${spanSize}`
+      ).pipe(
+        map(response => [response.startBlock, response.endBlock])
+      );
+    } else {
+      // V1: Multiple API calls combined
+      return combineLatest(
+        heights.map(h => this.$getBlockByHeight(h))
+      );
+    }
   }
 
   $getNbdrStatistics(

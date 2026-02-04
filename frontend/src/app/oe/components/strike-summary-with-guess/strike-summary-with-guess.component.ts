@@ -7,7 +7,7 @@ import {
 } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { switchMap, catchError, take } from 'rxjs/operators';
+import { switchMap, catchError, take, map } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { BlockTypes } from '../../types/constant';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
+import { getEmptyBlockHeader } from '../../utils/helper';
 
 @Component({
   selector: 'app-strike-summary-with-guess',
@@ -106,38 +107,12 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
           this.isLoadingBlock = true;
 
           return combineLatest([
-            this.oeEnergyApiService.$getBlockByHeight(fromBlockHeight).pipe(
+            this.oeEnergyApiService.$getBlocksByHeights([fromBlockHeight, strikeHeight]).pipe(
               catchError(() =>
-                of({
-                  height: fromBlockHeight,
-                  version: 0,
-                  merkle_root: '',
-                  current_block_hash: '',
-                  previous_block_hash: '',
-                  timestamp: 0,
-                  difficulty: 0,
-                  nonce: 0,
-                  reward: 0,
-                  chainwork: '',
-                  mediantime: 0,
-                })
-              )
-            ),
-            this.oeEnergyApiService.$getBlockByHeight(strikeHeight).pipe(
-              catchError(() =>
-                of({
-                  height: strikeHeight,
-                  version: 0,
-                  merkle_root: '',
-                  current_block_hash: '',
-                  previous_block_hash: '',
-                  timestamp: strikeTime,
-                  difficulty: 0,
-                  nonce: 0,
-                  reward: 0,
-                  chainwork: '',
-                  mediantime: 0,
-                })
+                of([
+                  getEmptyBlockHeader(fromBlockHeight),
+                  { ...getEmptyBlockHeader(strikeHeight), timestamp: strikeTime }
+                ])
               )
             ),
             this.oeBlocktimeApiService
@@ -146,15 +121,15 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
-          ]);
+          ]).pipe(
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+          );
         })
       )
       .subscribe(
-        ([fromBlock, toBlock, strikesDetails]: [
-          Block,
-          Block,
-          PaginationResponse<BlockTimeStrikePublic>
-        ]) => {
+        (result: any) => {
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic>];
+          const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           if (typeof toBlock === BlockTypes.NUMBER) {
             this.toBlock = {

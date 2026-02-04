@@ -112,16 +112,16 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
               return of([fromBlockInCache, toBlockInCache]);
             }
 
-            return combineLatest([
-              this.oeEnergyApiService
-                .$getBlockByHeight(fromBlockHeight)
-                .pipe(
-                  catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))
-                ),
-              this.oeEnergyApiService
-                .$getBlockByHeight(toBlockHeight)
-                .pipe(catchError(() => of(getEmptyBlockHeader(toBlockHeight)))),
-            ]);
+            return this.oeEnergyApiService
+              .$getBlocksByHeights([fromBlockHeight, toBlockHeight])
+              .pipe(
+                catchError(() =>
+                  of([
+                    getEmptyBlockHeader(fromBlockHeight),
+                    getEmptyBlockHeader(toBlockHeight),
+                  ])
+                )
+              );
           }
         })
       )

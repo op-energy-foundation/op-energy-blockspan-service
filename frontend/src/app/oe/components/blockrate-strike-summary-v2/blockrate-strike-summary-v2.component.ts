@@ -20,6 +20,7 @@ import {
   Subscription,
   switchMap,
   take,
+  map,
 } from 'rxjs';
 import {
   getEmptyBlockHeader,
@@ -115,26 +116,23 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
 
           return combineLatest([
             this.oeEnergyApiService
-              .$getBlockByHeight(fromBlockHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(fromBlockHeight)))),
-            this.oeEnergyApiService
-              .$getBlockByHeight(strikeHeight)
-              .pipe(catchError(() => of(getEmptyBlockHeader(strikeHeight)))),
+              .$getBlocksByHeights([fromBlockHeight, strikeHeight])
+              .pipe(catchError(() => of([getEmptyBlockHeader(fromBlockHeight), getEmptyBlockHeader(strikeHeight)]))),
             this.oeBlocktimeApiService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
-          ]);
+          ]).pipe(
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+          );
         })
       )
       .subscribe(
-        ([fromBlock, toBlock, strikesDetails]: [
-          Block,
-          Block,
-          PaginationResponse<BlockTimeStrikePublic>
-        ]) => {
+        (result: any) => {
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic>];
+          const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           if (typeof toBlock === BlockTypes.NUMBER) {
             this.toBlock = {
