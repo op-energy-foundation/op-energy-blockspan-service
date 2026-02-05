@@ -7,6 +7,7 @@ import {
   TimeStrikesHistory,
   EnergyNbdrStatistics,
   BlockSpan,
+  BlockSpanSummary,
   BlockHeader,
   Block,
   SwaggerJson,
@@ -18,6 +19,7 @@ import {
   BlockTimeStrikeGuessPublic,
   PaginationResponse,
   LoginResult,
+  EitherBlockSpansResponse,
 } from '../interfaces/oe-energy.interface';
 import { take, switchMap, tap, shareReplay, catchError, map } from 'rxjs/operators';
 import { OeStateService } from './state.service';
@@ -164,9 +166,10 @@ export class OeEnergyApiService {
     blockHeight: number,
     span: number
   ): Observable<EnergyNbdrStatistics> {
-    return this.httpClient.get<EnergyNbdrStatistics>(
-      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/statistics/${blockHeight}/${span}`
-    );
+    const endpoint = environment.useV2BlockspanApi
+      ? `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/statistics/${blockHeight}/${span}`
+      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/statistics/${blockHeight}/${span}`;
+    return this.httpClient.get<EnergyNbdrStatistics>(endpoint);
   }
 
   $getBlockSpanList(
@@ -174,6 +177,21 @@ export class OeEnergyApiService {
     span: number,
     numberOfSpan: number
   ): Observable<BlockSpan[]> {
+    if (environment.useV2BlockspanApi) {
+      // V2 API returns Either [BlockSpanSummary] [BlockSpanHeaders] as {Left: [...]} or {Right: [...]}
+      // With withHeaders=false, we get {Left: BlockSpanSummary[]}
+      return this.httpClient.get<EitherBlockSpansResponse>(
+        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspans/${startBlockHeight}/${span}?numberOfSpans=${numberOfSpan}&withHeaders=false`
+      ).pipe(
+        map((response: EitherBlockSpansResponse) => {
+          const summaries = response.Left || [];
+          return summaries.map(s => ({
+            startBlockHeight: s.startBlockHeight,
+            endBlockHeight: s.endBlockHeight
+          }));
+        })
+      );
+    }
     return this.httpClient.get<BlockSpan[]>(
       `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockspanlist/${startBlockHeight}/${span}/${numberOfSpan}`
     );
@@ -189,10 +207,10 @@ export class OeEnergyApiService {
 
   // returns swagger API json
   $getGitHash(): Observable<BackendGitHash> {
-    return this.httpClient.get<BackendGitHash>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/oe/git-hash',
-      {}
-    );
+    const endpoint = environment.useV2BlockspanApi
+      ? `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/git-hash`
+      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/git-hash`;
+    return this.httpClient.get<BackendGitHash>(endpoint);
   }
 
   // returns list of start and end block for given blockspan
@@ -203,6 +221,19 @@ export class OeEnergyApiService {
     withNbdr = false,
     withHashrate = false
   ): Observable<BlockSpanHeaders[]> {
+    if (environment.useV2BlockspanApi) {
+      // V2 API returns Either [BlockSpanSummary] [BlockSpanHeaders] as {Left: [...]} or {Right: [...]}
+      // With withHeaders=true, we get {Right: BlockSpanHeaders[]}
+      let queryParam = typeof mNumberOfSpan !== 'undefined'
+        ? `?numberOfSpans=${mNumberOfSpan}&withHeaders=true`
+        : '?withHeaders=true';
+      return this.httpClient.get<EitherBlockSpansResponse>(
+        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspans/${startBlockHeight}/${span}${queryParam}`
+      ).pipe(
+        map((response: EitherBlockSpansResponse) => response.Right || [])
+      );
+    }
+    // V1 fallback
     let queryParam = `?withNBDR=${withNbdr}&withHashrate=${withHashrate}`;
     queryParam =
       queryParam +
@@ -215,11 +246,24 @@ export class OeEnergyApiService {
   }
 
   // return block with nbdr data
+  // @deprecated Use $getBlocksByBlockSpan() instead - V2 API always includes NBDR
   $getBlocksWithNbdrByBlockSpan(
     startBlockHeight: number,
     span: number,
     mNumberOfSpan?: number
   ): Observable<BlockSpanHeadersNbdr[]> {
+    if (environment.useV2BlockspanApi) {
+      // V2 API returns Either [BlockSpanSummary] [BlockSpanHeaders] as {Left: [...]} or {Right: [...]}
+      const queryParam = typeof mNumberOfSpan !== 'undefined'
+        ? `?numberOfSpans=${mNumberOfSpan}&withHeaders=true`
+        : '?withHeaders=true';
+      return this.httpClient.get<EitherBlockSpansResponse>(
+        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspans/${startBlockHeight}/${span}${queryParam}`
+      ).pipe(
+        map((response: EitherBlockSpansResponse) => response.Right || [])
+      );
+    }
+    // V1 fallback (deprecated endpoint)
     const numberOfSpan =
       typeof mNumberOfSpan !== 'undefined'
         ? `?numberOfSpan=${mNumberOfSpan}`
@@ -229,12 +273,25 @@ export class OeEnergyApiService {
     );
   }
 
-  // return block with nbdr data
+  // return block with hashrate data
+  // @deprecated Use $getBlocksByBlockSpan() instead - V2 API always includes hashrate
   $getBlocksWithHashrateByBlockSpan(
     startBlockHeight: number,
     span: number,
     mNumberOfSpan?: number
   ): Observable<BlockSpanHeaders[]> {
+    if (environment.useV2BlockspanApi) {
+      // V2 API returns Either [BlockSpanSummary] [BlockSpanHeaders] as {Left: [...]} or {Right: [...]}
+      const queryParam = typeof mNumberOfSpan !== 'undefined'
+        ? `?numberOfSpans=${mNumberOfSpan}&withHeaders=true`
+        : '?withHeaders=true';
+      return this.httpClient.get<EitherBlockSpansResponse>(
+        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspans/${startBlockHeight}/${span}${queryParam}`
+      ).pipe(
+        map((response: EitherBlockSpansResponse) => response.Right || [])
+      );
+    }
+    // V1 fallback
     const numberOfSpan =
       typeof mNumberOfSpan !== 'undefined'
         ? `?numberOfSpan=${mNumberOfSpan}`
