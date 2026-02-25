@@ -128,9 +128,10 @@ export class OeEnergyApiService {
   }
 
   $getBlock(hash: string): Observable<Block> {
-    return this.httpClient.get<Block>(
-      this.apiBaseUrl + this.apiBasePath + '/api/oe/block/' + hash
-    );
+    const endpoint = environment.useV2BlockspanApi
+      ? `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/block/${hash}`
+      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/block/${hash}`;
+    return this.httpClient.get<Block>(endpoint);
   }
 
   $getBlockByHeight(height: number): Observable<BlockHeader> {
@@ -168,7 +169,7 @@ export class OeEnergyApiService {
   ): Observable<EnergyNbdrStatistics> {
     const endpoint = environment.useV2BlockspanApi
       ? `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/statistics/${blockHeight}/${span}`
-      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/statistics/${blockHeight}/${span}`;
+      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blockspans/statistics/${blockHeight}/${span}`;
     return this.httpClient.get<EnergyNbdrStatistics>(endpoint);
   }
 
