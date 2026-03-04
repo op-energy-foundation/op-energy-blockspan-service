@@ -23,7 +23,6 @@ import {
   map,
 } from 'rxjs';
 import {
-  getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
 } from '../../utils/helper';
@@ -116,8 +115,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
 
           return combineLatest([
             this.oeEnergyApiService
-              .$getBlocksByHeights([fromBlockHeight, strikeHeight])
-              .pipe(catchError(() => of([getEmptyBlockHeader(fromBlockHeight), getEmptyBlockHeader(strikeHeight)]))),
+              .$getBlocksByHeights([fromBlockHeight, strikeHeight]),
             this.oeBlocktimeApiService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,

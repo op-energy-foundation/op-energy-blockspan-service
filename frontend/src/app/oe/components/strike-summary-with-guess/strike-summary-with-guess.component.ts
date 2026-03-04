@@ -16,7 +16,6 @@ import {
 } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
-import { getEmptyBlockHeader } from '../../utils/helper';
 
 @Component({
   selector: 'app-strike-summary-with-guess',
@@ -107,14 +106,8 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
           this.isLoadingBlock = true;
 
           return combineLatest([
-            this.oeEnergyApiService.$getBlocksByHeights([fromBlockHeight, strikeHeight]).pipe(
-              catchError(() =>
-                of([
-                  getEmptyBlockHeader(fromBlockHeight),
-                  { ...getEmptyBlockHeader(strikeHeight), timestamp: strikeTime }
-                ])
-              )
-            ),
+            this.oeEnergyApiService
+              .$getBlocksByHeights([fromBlockHeight, strikeHeight]),
             this.oeBlocktimeApiService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,

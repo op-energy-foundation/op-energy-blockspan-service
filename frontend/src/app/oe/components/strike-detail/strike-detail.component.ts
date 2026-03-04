@@ -15,7 +15,6 @@ import {
   TimeStrike,
 } from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import { getEmptyBlockHeader } from '../../utils/helper';
 import {
   OeBlocktimeApiService,
   OeEnergyApiService,
@@ -185,8 +184,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
           return combineLatest([
             this.oeEnergyApiService
-              .$getBlocksByHeights([fromBlockHeight, strikeHeight])
-              .pipe(catchError(() => of([getEmptyBlockHeader(fromBlockHeight), getEmptyBlockHeader(strikeHeight)]))),
+              .$getBlocksByHeights([fromBlockHeight, strikeHeight]),
             this.oeBlocktimeApiService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,

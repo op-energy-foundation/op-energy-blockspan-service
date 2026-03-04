@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { switchMap, catchError, take } from 'rxjs/operators';
-import { combineLatest, of, Subscription } from 'rxjs';
+import { switchMap, take } from 'rxjs/operators';
+import { of, Subscription } from 'rxjs';
 import { APP_CONFIGURATION, BlockTypes } from '../../types/constant';
 import {
   Block,
@@ -14,7 +14,7 @@ import {
   OeBlocktimeApiService,
   OeEnergyApiService,
 } from '../../services/oe-energy.service';
-import { getEmptyBlockHeader, navigator } from '../../utils/helper';
+import { navigator } from '../../utils/helper';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -113,15 +113,7 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
             }
 
             return this.oeEnergyApiService
-              .$getBlocksByHeights([fromBlockHeight, toBlockHeight])
-              .pipe(
-                catchError(() =>
-                  of([
-                    getEmptyBlockHeader(fromBlockHeight),
-                    getEmptyBlockHeader(toBlockHeight),
-                  ])
-                )
-              );
+              .$getBlocksByHeights([fromBlockHeight, toBlockHeight]);
           }
         })
       )

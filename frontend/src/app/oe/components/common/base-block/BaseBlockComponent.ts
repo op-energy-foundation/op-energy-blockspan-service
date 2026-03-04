@@ -22,7 +22,6 @@ import {
   PaginationResponse,
 } from '../../../interfaces/oe-energy.interface';
 import {
-  getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
   calculateTimeDifference,
@@ -63,12 +62,8 @@ export abstract class BaseBlockComponent {
       heights.push(strikeHeight);
     }
 
-    // Fetch all blocks in a single call (or multiple calls if V1 mode)
     const blocksObservable = this.oeEnergyApiService
-      .$getBlocksByHeights(heights)
-      .pipe(
-        catchError(() => of(heights.map(h => getEmptyBlockHeader(h))))
-      );
+      .$getBlocksByHeights(heights);
 
     // If strike filter is needed, combine blocks with strike data
     if (strikeTime !== undefined && strikeHeight !== undefined) {

@@ -6,15 +6,12 @@ import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import {
-  catchError,
-  combineLatest,
   of,
   Subscription,
   switchMap,
   take,
 } from 'rxjs';
 import {
-  getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
 } from '../../utils/helper';
@@ -28,8 +25,8 @@ export class BlockspanBHSComponent implements OnInit {
   logos = Logos;
   isLoadingBlock = true;
   subscription: Subscription;
-  fromBlock: Block;
-  toBlock: Block;
+  @Input() fromBlock: Block;
+  @Input() toBlock: Block;
   latestBlock: Block;
   @Input() result: string;
   addedZeros = false;
@@ -43,6 +40,11 @@ export class BlockspanBHSComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    if (this.fromBlock && this.toBlock) {
+      this.isLoadingBlock = false;
+      return;
+    }
+
     (this.subscription = this.route.queryParamMap
       .pipe(
         switchMap((params: ParamMap) =>
@@ -90,15 +92,7 @@ export class BlockspanBHSComponent implements OnInit {
           this.isLoadingBlock = true;
 
           return this.oeEnergyApiService
-            .$getBlocksByHeights([fromBlockHeight, toBlockHeight])
-            .pipe(
-              catchError(() =>
-                of([
-                  getEmptyBlockHeader(fromBlockHeight),
-                  getEmptyBlockHeader(toBlockHeight),
-                ])
-              )
-            );
+            .$getBlocksByHeights([fromBlockHeight, toBlockHeight]);
         })
       )
       .subscribe(([fromBlock, toBlock]: [Block, Block]) => {
