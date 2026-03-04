@@ -5,5 +5,6 @@ export const environment = {
   // V2 Blockspan API toggle:
   // - Set to 'true' when backend server supports V2 endpoints (/api/v2/blockspans/*)
   // - Set to 'false' to use V1 endpoints (/api/v1/oe/*)
-  useV2BlockspanApi: true
+  useV2BlockspanApi: true,
+  useV2StrikesApi: true
 };
