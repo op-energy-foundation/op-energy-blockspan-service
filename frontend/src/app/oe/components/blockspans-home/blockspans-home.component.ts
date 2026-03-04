@@ -8,12 +8,11 @@ import {
   ElementRef,
 } from '@angular/core';
 import { Location } from '@angular/common';
-import { Subscription, from, of } from 'rxjs';
+import { Subscription, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { switchMap, take } from 'rxjs/operators';
 import { OeStateService } from 'src/app/oe/services/state.service';
-import { TimeStrike } from 'src/app/oe/interfaces/oe-energy.interface';
 import {
   BlockHeader,
   BlockSpanHeaders,
@@ -60,9 +59,6 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
   mouseDragStartX: number;
   blockchainScrollLeftInit: number;
   @ViewChild('blockchainContainer') blockchainContainer: ElementRef;
-
-  timeStrikes: TimeStrike[] = [];
-  initStrike = 1200;
 
   constructor(
     private location: Location,
@@ -158,7 +154,6 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
               ])
               .toString()
           );
-          this.getTimeStrikes();
         },
         (error) => {
           this.toastr.error(
@@ -167,21 +162,6 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
           );
         }
       );
-  }
-
-  getTimeStrikes() {
-    this.oeEnergyApiService
-      .$listTimeStrikes()
-      .subscribe((timeStrikes: TimeStrike[]) => {
-        this.timeStrikes = timeStrikes.map((strike) => ({
-          ...strike,
-          elapsedTime: strike.strikeMediantime - this.pastBlocks[0].mediantime,
-        }));
-        const existingElapsedTimes = this.timeStrikes.map((s) => s.elapsedTime);
-        while (existingElapsedTimes.includes(this.initStrike)) {
-          this.initStrike += 1;
-        }
-      });
   }
 
   onMouseDown(event: MouseEvent) {
@@ -253,22 +233,4 @@ export class BlockspansHomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  addStrike(strike) {
-    const nLockTime =
-      this.pastBlocks[0].mediantime + Number(strike.elapsedTime);
-    this.oeEnergyApiService
-      .$addTimeStrike(strike.blockHeight, nLockTime)
-      .subscribe(
-        (timeStrike) => {
-          this.getTimeStrikes();
-          this.toastr.success(
-            'A strike has been added successfully!',
-            'Success!'
-          );
-        },
-        (err) => {
-          this.toastr.error('Error occurred!', 'Failed!');
-        }
-      );
-  }
 }
