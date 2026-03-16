@@ -382,6 +382,7 @@ export class OeBlocktimeApiService {
           count: response.count,
           results: response.results.map(strike => ({
             guessesCount: strike.guessesCount,
+            mBlockSpan: strike.mBlockSpan,
             strike: {
               block: strike.block,
               strikeMediantime: strike.mediantime,

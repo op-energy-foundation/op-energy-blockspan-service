@@ -199,6 +199,7 @@ export interface TableColumn {
 export interface BlockTimeStrikePublic {
   guessesCount : number;
   strike : BlockTimeStrike;
+  mBlockSpan?: BlockSpanHeadersNbdrHashRate;
 }
 
 export type PaginationResponse<T> = {

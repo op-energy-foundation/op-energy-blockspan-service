@@ -23,6 +23,7 @@ import {
   map,
 } from 'rxjs';
 import {
+  getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
 } from '../../utils/helper';
@@ -38,7 +39,12 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   subscription: Subscription;
   @Input() strike: BlockTimeStrike = {} as BlockTimeStrike;
   @Input() fromBlock: Block;
+  @Input() fromBlockHeight: number;
   @Input() toBlock: Block;
+  @Input() toBlockHeight: number;
+  @Input() strikeTime: number;
+  @Input() existingGuess: 'slow' | 'fast';
+  @Input() preloaded = false;
   latestBlock: Block;
   disabled: boolean = false;
   isSelected: boolean = false;
@@ -56,10 +62,19 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   ) {}
 
   ngOnInit() {
-
-    if (this.strike && this.fromBlock && this.toBlock) {
+    if (this.strike?.block && this.fromBlock && this.toBlock) {
       this.isLoadingBlock = false;
-      this.checkExistingGuess();
+      this.applyExistingGuess();
+      return;
+    }
+
+    if (this.fromBlock && this.toBlock && this.strikeTime) {
+      this.strike = {
+        block: this.toBlock.height,
+        strikeMediantime: this.strikeTime,
+        creationTime: undefined,
+      };
+      this.fetchStrikeDetails();
       return;
     }
     
@@ -78,20 +93,28 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
       )
       .pipe(
         switchMap((params: ParamMap) => {
-          let fromBlockHeight = +params.get('startblock');
-          const strikeHeight = +params.get('strikeHeight') || 1200000;
-          let strikeTime = +params.get('strikeTime');
-
-          if (fromBlockHeight > this.latestBlock.height) {
-            this.toastr.error('Viewing requires known start block', 'Failed!');
-            return of(null);
-          }
+          let fromBlockHeight = this.fromBlockHeight || +params.get('startblock');
+          const strikeHeight = this.toBlockHeight || +params.get('strikeHeight') || 1200000;
+          let strikeTime = this.strikeTime || +params.get('strikeTime');
 
           if (fromBlockHeight >= strikeHeight) {
             this.toastr.error(
               'Start block must be less than strike height',
               'Failed!'
             );
+            return of(null);
+          }
+
+          if (fromBlockHeight > this.latestBlock.height) {
+            this.fromBlock = getEmptyBlockHeader(fromBlockHeight) as Block;
+            this.toBlock = getEmptyBlockHeader(strikeHeight) as Block;
+            this.strike = {
+              block: strikeHeight,
+              strikeMediantime: strikeTime,
+              creationTime: undefined,
+            };
+            this.isLoadingBlock = false;
+            this.checkExistingGuess();
             return of(null);
           }
 
@@ -129,6 +152,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
       )
       .subscribe(
         (result: any) => {
+          if (!result) return;
           const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic>];
           const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
@@ -140,19 +164,16 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
           } else {
             this.toBlock = toBlock;
           }
-          const strikesResult = strikesDetails.results;
-          if (!strikesResult.length) {
-            this.toastr.error('Strikes Not Found!', 'Failed!');
-            return;
+          if (strikesDetails?.results?.length) {
+            const strikesResult = strikesDetails.results;
+            this.strike = {
+              ...strikesResult[0].strike,
+              block: strikesResult[0].strike.block,
+              creationTime: strikesResult[0].strike.creationTime,
+              strikeMediantime: strikesResult[0].strike.strikeMediantime,
+              observedResult: strikesResult[0].strike.observedResult,
+            };
           }
-
-          this.strike = {
-            ...strikesResult[0].strike,
-            block: strikesResult[0].strike.block,
-            creationTime: strikesResult[0].strike.creationTime,
-            strikeMediantime: strikesResult[0].strike.strikeMediantime,
-            observedResult: strikesResult[0].strike.observedResult,
-          };
 
           this.isLoadingBlock = false;
           this.checkExistingGuess();
@@ -162,6 +183,30 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
         this.toastr.error(`Strikes Failed To Fetch: ${error.error}`, 'Failed!');
         this.isLoadingBlock = false;
       };
+  }
+
+  private fetchStrikeDetails(): void {
+    this.isLoadingBlock = true;
+    this.oeBlocktimeApiService
+      .$strikesWithFilter({
+        strikeMediantimeEQ: this.strikeTime,
+        blockHeightEQ: this.toBlock.height,
+      })
+      .pipe(catchError(() => of(null)))
+      .subscribe((strikesDetails: PaginationResponse<BlockTimeStrikePublic>) => {
+        if (strikesDetails?.results?.length) {
+          const result = strikesDetails.results[0];
+          this.strike = {
+            ...result.strike,
+            block: result.strike.block,
+            creationTime: result.strike.creationTime,
+            strikeMediantime: result.strike.strikeMediantime,
+            observedResult: result.strike.observedResult,
+          };
+        }
+        this.isLoadingBlock = false;
+        this.checkExistingGuess();
+      });
   }
 
   getSpan(type: string): string {
@@ -248,6 +293,21 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
       );
   }
 
+  private applyExistingGuess(): void {
+    if (this.existingGuess) {
+      this.disabled = true;
+      this.selectedGuess = this.existingGuess;
+    }
+    if (this.strike.observedResult) {
+      this.disabled = true;
+      this.strikeKnown = true;
+    }
+    if (this.preloaded) return;
+    if (!this.existingGuess) {
+      this.checkExistingGuess();
+    }
+  }
+
   checkExistingGuess(): void {
     this.isLoadingBlock = true;
     this.oeBlocktimeApiService
@@ -256,10 +316,12 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
         (response) => {
           this.isLoadingBlock = false;
           this.disabled = true;
-          this.toastr.warning(
-            'You already have a guess: ' + response.guess,
-            'Warning'
-          );
+          if (!this.fromBlockHeight && !this.preloaded) {
+            this.toastr.warning(
+              'You already have a guess: ' + response.guess,
+              'Warning'
+            );
+          }
           this.selectedGuess = response.guess;
         },
         (error) => {
@@ -345,21 +407,19 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   }
 
   getAnimal(type: string = ''): string {
-    const result = this.getResult(); // Fetch the result
-    const selectedGuess = this.selectedGuess; // Fetch the selected guess
+    const result = this.getResult();
 
-    if (!result && !selectedGuess) {
+    if (!result && !this.selectedGuess) {
       return '?';
     }
 
-    const value = result ? result : selectedGuess;
+    const value = result ? result : this.selectedGuess;
     const logo = value === 'slow' ? '🐢' : '🐰';
 
-    if(type !== 'hashrate') {
+    if (type !== 'hashrate') {
       return logo;
     }
 
-    return  value === 'slow' ? '🐰' : '🐢';
-    
+    return value === 'slow' ? '🐰' : '🐢';
   }
 }

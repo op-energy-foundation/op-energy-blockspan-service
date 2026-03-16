@@ -55,7 +55,7 @@
                     </div>
                 </div>
             </ng-container>
-            <div class="strike-list" *ngIf="!format || format === 'line'">
+            <div class="strike-list" *ngIf="!format || format === 'table'">
                 <div class="strike-table m-5 text-center">
                     <div class="content">
                         <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)">

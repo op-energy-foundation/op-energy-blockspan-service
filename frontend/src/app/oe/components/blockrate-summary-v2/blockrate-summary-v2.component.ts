@@ -6,7 +6,7 @@ import {
   StrikeDetails,
   TableColumn,
 } from '../../interfaces/oe-energy.interface';
-import { FormatType, Logos } from '../../types/constant';
+import { APP_CONFIGURATION, FormatType, Logos } from '../../types/constant';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   OeBlocktimeApiService,
@@ -150,7 +150,7 @@ export class BlockrateSummaryV2Component
       this.isLoadingBlock = false;
       return;
     }
-    if (this.format === FormatType.LINE) {
+    if (this.format === FormatType.TABLE) {
       this.tableData = data.results.map((result) => {
         return {
           ...result.strike,
@@ -168,7 +168,7 @@ export class BlockrateSummaryV2Component
     const queryParams = {
       strikeHeight: item.block,
       strikeTime: item.strikeMediantime,
-      startblock: item.block - 24,
+      startblock: item.block - APP_CONFIGURATION.SPAN_SIZE,
     };
 
     // Use the Router service to navigate with query parameters
