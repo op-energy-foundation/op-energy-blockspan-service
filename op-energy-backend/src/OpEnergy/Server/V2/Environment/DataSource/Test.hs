@@ -55,11 +55,11 @@ init logAction logActionSTM = do
         <! ( Right <$> STM.atomically foo)
 
       , Class.storeBlockHeader = \arg-> logActionSTM1
-        (Env.DataSource <. Request.StoreBlockHeader <. Call (Just arg) <. Just <. Right)
+        (Env.DataSource <. Request.WriteRequest <. Request.StoreBlockHeader <. Call (Just arg) <. Just <. Right)
         <! storeBlockHeader state arg
 
       , Class.mgetBlockHeaderByHeightRO = \arg-> logActionSTM1
-        ( Env.DataSource <. Request.MGetBlockHeaderByHeightRO <. Call (Just arg)
+        ( Env.DataSource <. Request.ReadRequest <. Request.MGetBlockHeaderByHeightRO <. Call (Just arg)
         <. Just <. Right
         )
         <! mgetBlockHeaderByHeightRO state arg
