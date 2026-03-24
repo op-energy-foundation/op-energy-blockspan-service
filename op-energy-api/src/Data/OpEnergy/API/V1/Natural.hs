@@ -1,3 +1,4 @@
+{-# LANGUAGE Trustworthy                #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TypeOperators              #-}
