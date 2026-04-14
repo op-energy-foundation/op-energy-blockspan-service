@@ -1,18 +1,13 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
 import {
-  TimeStrike,
   BlockHeader,
   SwaggerJson,
   BackendGitHash,
   BlockSpanHeaders,
   RegisterResult,
-  BlockTimeStrikePublic,
   BlockTimeStrikeGuessPublic,
-  BlockSpanTimeStrike,
-  BlockSpanTimeStrikeGuessesSummary,
   PaginationResponse,
   LoginResult,
   EitherBlockSpansResponse,
@@ -20,7 +15,6 @@ import {
 import { tap, shareReplay, catchError, map } from 'rxjs/operators';
 import { OeStateService } from './state.service';
 import { CookieService } from 'ngx-cookie-service';
-import { APP_CONFIGURATION } from '../types/constant';
 import { getEmptyBlockHeader } from '../utils/helper';
 
 @Injectable({
@@ -38,96 +32,33 @@ export class OeEnergyApiService {
     this.apiBasePath = '';
   }
 
-  // adds blocked, locked by time by current user
-  // params:
-  // - blockHeight - height of the block
-  // - strikeMediantime - time, by which lock is being blocked
-  // returns TimeStrike value in case of success or throws error otherwise
-  $addTimeStrike(
-    blockHeight: number,
-    strikeMediantime: number
-  ): Observable<TimeStrike> {
-    var accountToken;
-    // get account token from the state service
-    let subscription = this.oeEnergyStateService.$accountToken.subscribe(
-      (newAccountToken) => {
-        accountToken = newAccountToken;
-      }
-    );
-    subscription.unsubscribe();
-
-    let params = {
-      block_height: blockHeight,
-      strike_mediantime: strikeMediantime,
-      account_token: accountToken,
-    };
-
-    return this.httpClient.post<TimeStrike>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/strike/mediantime',
-      params,
-      {
-        observe: 'body',
-        responseType: 'json',
-      }
-    );
-  }
-  // returns list of available locked blocks or throws error in case of failure
-  $listTimeStrikes(): Observable<TimeStrike[]> {
-    let params = {};
-
-    return this.httpClient.get<TimeStrike[]>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/strike/mediantime',
-      { params }
-    );
-  }
-  // returns list of available locked blocks for a given block height or throws error in case of failure
-  $listTimeStrikesByBlockHeight(blockHeight: number): Observable<TimeStrike[]> {
-    let params = {
-      block_height: blockHeight,
-    };
-
-    return this.httpClient.get<TimeStrike[]>(
-      this.apiBaseUrl + this.apiBasePath + '/api/v1/strike/block/mediantime',
-      { params }
-    );
-  }
-
   $getBlockByHeight(height: number): Observable<BlockHeader> {
-    const endpoint = environment.useV2BlockspanApi
-      ? `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockbyheight/${height}`
-      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blockbyheight/${height}`;
-    return this.httpClient.get<BlockHeader>(endpoint);
+    return this.httpClient.get<BlockHeader>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockbyheight/${height}`
+    );
   }
 
   $getBlocksByHeights(heights: number[]): Observable<BlockHeader[]> {
-    if (environment.useV2BlockspanApi) {
-      const startHeight = heights[0];
-      const endHeight = heights[heights.length - 1];
-      const spanSize = endHeight - startHeight;
-      const tipHeight = this.oeEnergyStateService.latestReceivedBlockHeight;
+    const startHeight = heights[0];
+    const endHeight = heights[heights.length - 1];
+    const spanSize = endHeight - startHeight;
+    const tipHeight = this.oeEnergyStateService.latestReceivedBlockHeight;
 
-      if (endHeight > tipHeight && tipHeight > 0) {
-        return this.httpClient.get<{ startBlock: BlockHeader; endBlock: BlockHeader }>(
-          `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspan/${startHeight}?spanSize=${spanSize}`
-        ).pipe(
-          map(response => [response.endBlock, getEmptyBlockHeader(endHeight)]),
-          catchError(() => of(heights.map(h => getEmptyBlockHeader(h))))
-        );
-      }
-
+    if (endHeight > tipHeight && tipHeight > 0) {
       return this.httpClient.get<{ startBlock: BlockHeader; endBlock: BlockHeader }>(
-        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspan/${endHeight}?spanSize=${spanSize}`
+        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspan/${startHeight}?spanSize=${spanSize}`
       ).pipe(
-        map(response => [response.startBlock, response.endBlock]),
-        catchError(() => of(heights.map(h => getEmptyBlockHeader(h))))
-      );
-    } else {
-      return combineLatest(
-        heights.map(h => this.$getBlockByHeight(h))
-      ).pipe(
+        map(response => [response.endBlock, getEmptyBlockHeader(endHeight)]),
         catchError(() => of(heights.map(h => getEmptyBlockHeader(h))))
       );
     }
+
+    return this.httpClient.get<{ startBlock: BlockHeader; endBlock: BlockHeader }>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspan/${endHeight}?spanSize=${spanSize}`
+    ).pipe(
+      map(response => [response.startBlock, response.endBlock]),
+      catchError(() => of(heights.map(h => getEmptyBlockHeader(h))))
+    );
   }
 
   // returns swagger API json
@@ -138,43 +69,24 @@ export class OeEnergyApiService {
     );
   }
 
-  // returns swagger API json
   $getGitHash(): Observable<BackendGitHash> {
-    const endpoint = environment.useV2BlockspanApi
-      ? `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/git-hash`
-      : `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/git-hash`;
-    return this.httpClient.get<BackendGitHash>(endpoint);
+    return this.httpClient.get<BackendGitHash>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/git-hash`
+    );
   }
 
-  // returns list of start and end block for given blockspan
   $getBlocksByBlockSpan(
     startBlockHeight: number,
     span: number,
-    mNumberOfSpan?: number,
-    withNbdr = false,
-    withHashrate = false
+    mNumberOfSpan?: number
   ): Observable<BlockSpanHeaders[]> {
-    if (environment.useV2BlockspanApi) {
-      // V2 API returns Either [BlockSpanSummary] [BlockSpanHeaders] as {Left: [...]} or {Right: [...]}
-      // With withHeaders=true, we get {Right: BlockSpanHeaders[]}
-      let queryParam = typeof mNumberOfSpan !== 'undefined'
-        ? `?numberOfSpans=${mNumberOfSpan}&withHeaders=true`
-        : '?withHeaders=true';
-      return this.httpClient.get<EitherBlockSpansResponse>(
-        `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspans/${startBlockHeight}/${span}${queryParam}`
-      ).pipe(
-        map((response: EitherBlockSpansResponse) => response.Right || [])
-      );
-    }
-    // V1 fallback
-    let queryParam = `?withNBDR=${withNbdr}&withHashrate=${withHashrate}`;
-    queryParam =
-      queryParam +
-      (typeof mNumberOfSpan !== 'undefined'
-        ? `&numberOfSpan=${mNumberOfSpan}`
-        : '');
-    return this.httpClient.get<BlockSpanHeaders[]>(
-      `${this.apiBaseUrl}${this.apiBasePath}/api/v1/oe/blocksbyblockspan/${startBlockHeight}/${span}${queryParam}`
+    let queryParam = typeof mNumberOfSpan !== 'undefined'
+      ? `?numberOfSpans=${mNumberOfSpan}&withHeaders=true`
+      : '?withHeaders=true';
+    return this.httpClient.get<EitherBlockSpansResponse>(
+      `${this.apiBaseUrl}${this.apiBasePath}/api/v2/blockspans/blockspans/${startBlockHeight}/${span}${queryParam}`
+    ).pipe(
+      map((response: EitherBlockSpansResponse) => response.Right || [])
     );
   }
 
@@ -291,23 +203,15 @@ export class OeAccountApiService {
   providedIn: 'root',
 })
 export class OeBlocktimeApiService {
-  private apiBaseUrl: string; // base URL is protocol, hostname, and port
-  private apiBasePath: string; // network path is /testnet, etc. or '' for mainnet
-  private defaultSpanSize = APP_CONFIGURATION.SPAN_SIZE;
-  constructor(
-    private httpClient: HttpClient,
-    private oeEnergyStateService: OeStateService
-  ) {
+  private apiBaseUrl: string;
+  private apiBasePath: string;
+
+  constructor(private httpClient: HttpClient) {
     this.apiBaseUrl =
-      document.location.protocol + '//' + document.location.host; // use relative URL by default
+      document.location.protocol + '//' + document.location.host;
     this.apiBasePath = '';
   }
 
-  private resolveSpanSize(spanSize?: number): number {
-    return spanSize ?? this.defaultSpanSize;
-  }
-
-  // returns swagger API json
   $getSwaggerFile(): Observable<SwaggerJson> {
     return this.httpClient.get<SwaggerJson>(
       this.apiBaseUrl + this.apiBasePath + '/api/v1/blocktime/swagger.json',
@@ -315,112 +219,11 @@ export class OeBlocktimeApiService {
     );
   }
 
-  // returns swagger API json
   $getGitHash(): Observable<BackendGitHash> {
     return this.httpClient.get<BackendGitHash>(
       this.apiBaseUrl + this.apiBasePath + '/api/v1/blocktime/git-hash',
       {}
     );
-  }
-
-  $createStrike(
-    accountToken: string,
-    blockHeight: number,
-    strikeMediantime: number,
-  ): Observable<void> {
-    return this.httpClient.post<void>(
-      this.apiBaseUrl +
-        this.apiBasePath +
-        `/api/v1/blocktime/strike/${blockHeight}/${strikeMediantime}`,
-      {
-        headers: { 'Content-Type': 'application/json',
-                   'AccountToken': accountToken,
-                 }
-      }
-    );
-  }
-
-  $createStrikeGuess(
-    accountToken: string,
-    blockHeight: number,
-    strikeMediantime: number,
-    guess: 'slow' | 'fast',
-    spanSize?: number
-  ): Observable<BlockTimeStrikeGuessPublic> {
-    if (environment.useV2StrikesApi) {
-      const resolvedSpanSize = this.resolveSpanSize(spanSize);
-      const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v2/strikes/blockrate/strike/${blockHeight}/${strikeMediantime}/guess/${guess}?spanSize=${resolvedSpanSize}`;
-      return this.httpClient.post<BlockTimeStrikeGuessPublic>(url, null, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    return this.httpClient.post<BlockTimeStrikeGuessPublic>(
-      this.apiBaseUrl +
-        this.apiBasePath +
-        `/api/v1/blocktime/strike/guess/${blockHeight}/${strikeMediantime}/${guess}`,
-      {
-        headers: { 'Content-Type': 'application/json',
-                   'AccountToken': accountToken,
-                 }
-      }
-    );
-  }
-
-  $strikesWithFilter(
-    filter: any | {},
-    pageNo = 0,
-    spanSize?: number
-  ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
-    if (environment.useV2StrikesApi) {
-      const resolvedSpanSize = this.resolveSpanSize(spanSize);
-      const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v2/strikes/blockrate/strikes?page=${pageNo}&filter=${encodeURI(JSON.stringify(filter))}&spanSize=${resolvedSpanSize}`;
-      return this.httpClient.get<PaginationResponse<BlockSpanTimeStrike>>(url, {
-        headers: { 'Content-Type': 'application/json' },
-      }).pipe(
-        map(response => ({
-          nextPage: response.nextPage,
-          count: response.count,
-          results: response.results.map(strike => ({
-            guessesCount: strike.guessesCount,
-            mBlockSpan: strike.mBlockSpan,
-            strike: {
-              block: strike.block,
-              strikeMediantime: strike.mediantime,
-              creationTime: strike.creationTime,
-              observedResult: strike.observedResult,
-              observedBlockMediantime: strike.observedBlockMediantime,
-              observedBlockHash: strike.observedBlockHash,
-              observedBlockHeight: strike.observedBlockHeight,
-            }
-          }))
-        }))
-      );
-    }
-    const url = `${this.apiBaseUrl}${
-      this.apiBasePath
-    }/api/v1/blocktime/strikes/page?page=${pageNo}&filter=${encodeURI(
-      JSON.stringify(filter)
-    )}`;
-
-    return this.httpClient.get<PaginationResponse<BlockTimeStrikePublic>>(url, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  $guessableStrikesWithFilter(
-    pageNo: number,
-    filter: any | {},
-    spanSize?: number
-  ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
-    return this.$strikesWithFilter({ ...filter, class: 'guessable' }, pageNo, spanSize);
-  }
-
-  $outcomeKnownStrikesWithFilter(
-    pageNo: number,
-    filter: any | {},
-    spanSize?: number
-  ): Observable<PaginationResponse<BlockTimeStrikePublic>> {
-    return this.$strikesWithFilter(filter, pageNo, spanSize);
   }
 
   $strikesGuessesWithFilter(
@@ -459,88 +262,5 @@ export class OeBlocktimeApiService {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  }
-
-  $strike(
-    blockHeight: number,
-    strikeMediantime: number,
-    spanSize?: number
-  ): Observable<BlockTimeStrikePublic> {
-    if (environment.useV2StrikesApi) {
-      const resolvedSpanSize = this.resolveSpanSize(spanSize);
-      const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v2/strikes/blockrate/strike/${blockHeight}/${strikeMediantime}?spanSize=${resolvedSpanSize}`;
-      return this.httpClient.get<BlockSpanTimeStrike>(url, {
-        headers: { 'Content-Type': 'application/json' },
-      }).pipe(
-        map(strike => ({
-          guessesCount: strike.guessesCount,
-          strike: {
-            block: strike.block,
-            strikeMediantime: strike.mediantime,
-            creationTime: strike.creationTime,
-            observedResult: strike.observedResult,
-            observedBlockMediantime: strike.observedBlockMediantime,
-            observedBlockHash: strike.observedBlockHash,
-            observedBlockHeight: strike.observedBlockHeight,
-          }
-        }))
-      );
-    }
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/${blockHeight}/${strikeMediantime}`;
-
-    return this.httpClient.get<BlockTimeStrikePublic>(url, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  $strikeGuess(
-    blockHeight: number,
-    strikeMediantime: number,
-    guess: 'slow' | 'fast',
-    spanSize?: number
-  ): Observable<BlockTimeStrikeGuessPublic> {
-    if (environment.useV2StrikesApi) {
-      const resolvedSpanSize = this.resolveSpanSize(spanSize);
-      const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v2/strikes/blockrate/strike/${blockHeight}/${strikeMediantime}/guess/${guess}?spanSize=${resolvedSpanSize}`;
-      return this.httpClient.post<BlockTimeStrikeGuessPublic>(url, null, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/${blockHeight}/${strikeMediantime}/${guess}`;
-
-    return this.httpClient.post<BlockTimeStrikeGuessPublic>(url, null, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  $getStrikeGuessesSummary(
-    blockHeight: number,
-    strikeMediantime: number,
-    spanSize?: number
-  ): Observable<BlockSpanTimeStrikeGuessesSummary> {
-    const resolvedSpanSize = this.resolveSpanSize(spanSize);
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v2/strikes/blockrate/strike/${blockHeight}/${strikeMediantime}/guesses/summary?spanSize=${resolvedSpanSize}`;
-    return this.httpClient.get<BlockSpanTimeStrikeGuessesSummary>(url, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  $strikeGuessPerson(
-    blockHeight: number,
-    strikeMediantime: number,
-    spanSize?: number
-  ): Observable<BlockTimeStrikeGuessPublic> {
-    if (environment.useV2StrikesApi) {
-      const resolvedSpanSize = this.resolveSpanSize(spanSize);
-      const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v2/strikes/blockrate/strike/${blockHeight}/${strikeMediantime}/guess?spanSize=${resolvedSpanSize}`;
-      return this.httpClient.get<BlockTimeStrikeGuessPublic>(url, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-    const url = `${this.apiBaseUrl}${this.apiBasePath}/api/v1/blocktime/strike/guess/${blockHeight}/${strikeMediantime}`;
-
-    return this.httpClient.get<BlockTimeStrikeGuessPublic>(url, {
-      headers: { 'Content-Type': 'application/json' },
-    });
   }
 }

@@ -148,7 +148,7 @@ export class BlockRatesGraphComponent implements OnInit {
 
   fetchAndRenderChart(startDate: Date, endDate: Date): void {
     this.oeEnergyApiService
-      .$getBlocksByBlockSpan(0, this.blockSpan, undefined, true, true)
+      .$getBlocksByBlockSpan(0, this.blockSpan)
       .subscribe(
         (blocks: any[]) => {
           if (this.showLessDataPoints) {

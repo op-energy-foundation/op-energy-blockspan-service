@@ -1,19 +1,15 @@
 import {
   Block,
-  BlockTimeStrike,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   PaginationResponse,
-  TimeStrike,
 } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap, catchError, take, map } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { BlockTypes } from '../../types/constant';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -29,14 +25,14 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
   blockHeight: number;
   nextBlockHeight: number;
   fromBlockHash: string;
-  strike: BlockTimeStrike;
+  strike: BlockSpanTimeStrike;
   toBlockHash: string;
   isLoadingBlock = true;
   latestBlock: Block;
   latestBlocks: Block[] = [];
   error: any;
   subscription: Subscription;
-  timeStrikes: BlockTimeStrike[] = [];
+  timeStrikes: BlockSpanTimeStrike[] = [];
   isSelected = false;
   selectedGuess: string;
 
@@ -53,13 +49,13 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
   }
 
   get strikeDetailLink(): string {
-    return `/hashstrikes/blockrate-strike-detail?strikeHeight=${this.strike.block}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
+    return `/hashstrikes/blockrate-strike-detail?strikeHeight=${this.strike.block}&strikeTime=${this.strike.mediantime}&blockspanStart=${this.fromBlock.height}`;
   }
 
   constructor(
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
-    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     private stateService: OeStateService,
     private toastr: ToastrService
   ) {}
@@ -92,8 +88,10 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
           // Creating temporary strike
           this.strike = {
             block: strikeHeight,
-            strikeMediantime: strikeTime,
+            mediantime: strikeTime,
             creationTime: undefined,
+            spanSize: 0,
+            guessesCount: 0,
           };
 
           // this.fromBlockHeight = fromBlockHeight;
@@ -108,20 +106,20 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
           return combineLatest([
             this.oeEnergyApiService
               .$getBlocksByHeights([fromBlockHeight, strikeHeight]),
-            this.oeBlocktimeApiService
+            this.blockrateTimeStrikeService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
           ]).pipe(
-            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockSpanTimeStrike> | number])
           );
         })
       )
       .subscribe(
         (result: any) => {
-          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic>];
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockSpanTimeStrike>];
           const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           if (typeof toBlock === BlockTypes.NUMBER) {
@@ -142,10 +140,12 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
           }
 
           this.strike = {
-            block: strikesResult[0].strike.block,
-            creationTime: strikesResult[0].strike.creationTime,
-            strikeMediantime: strikesResult[0].strike.strikeMediantime,
-            observedResult: strikesResult[0].strike.observedResult,
+            block: strikesResult[0].block,
+            mediantime: strikesResult[0].mediantime,
+            creationTime: strikesResult[0].creationTime,
+            spanSize: strikesResult[0].spanSize,
+            guessesCount: strikesResult[0].guessesCount,
+            observedResult: strikesResult[0].observedResult,
           };
 
           this.isLoadingBlock = false;
@@ -170,8 +170,8 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
   handleSelectedGuess(selected: 'slow' | 'fast'): void {
     // this.isSelected = true;
     this.selectedGuess = selected;
-    this.oeBlocktimeApiService
-      .$strikeGuess(this.strike.block, this.strike.strikeMediantime, selected)
+    this.blockrateTimeStrikeService
+      .$strikeGuess(this.strike.block, this.strike.mediantime, selected)
       .subscribe(
         (response) => {
           this.toastr.success('Successfully added guess', 'Success');
@@ -187,8 +187,8 @@ export class StrikeSummaryWithGuessComponent implements OnInit, OnDestroy {
 
   checkExistingGuess(): void {
     this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
-      .$strikeGuessPerson(this.strike.block, this.strike.strikeMediantime)
+    this.blockrateTimeStrikeService
+      .$strikeGuessPerson(this.strike.block, this.strike.mediantime)
       .subscribe(
         (response) => {
           this.isLoadingBlock = false;

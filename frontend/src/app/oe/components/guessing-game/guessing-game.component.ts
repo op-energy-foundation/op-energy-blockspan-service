@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
-import { Block, BlockTimeStrike } from '../../interfaces/oe-energy.interface';
-import { OeBlocktimeApiService } from '../../services/oe-energy.service';
+import { Block, BlockSpanTimeStrike } from '../../interfaces/oe-energy.interface';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -11,13 +11,13 @@ import { ToastrService } from 'ngx-toastr';
 export class GuessingGameComponent implements OnInit {
   @Input() fromBlock: Block;
   @Input() toBlock: Block;
-  @Input() strike: BlockTimeStrike;
+  @Input() strike: BlockSpanTimeStrike;
   selectedGuess: string;
   isLoadingBlock = false;
   strikeKnown: boolean = false;
 
   constructor(
-    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     private toastr: ToastrService
   ) {}
 
@@ -36,8 +36,8 @@ export class GuessingGameComponent implements OnInit {
     }
 
     this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
-      .$strikeGuessPerson(this.strike.block, this.strike.strikeMediantime)
+    this.blockrateTimeStrikeService
+      .$strikeGuessPerson(this.strike.block, this.strike.mediantime)
       .subscribe(
         (response) => {
           this.isLoadingBlock = false;
@@ -59,8 +59,8 @@ export class GuessingGameComponent implements OnInit {
 
   handleSelectedGuess(selected: 'slow' | 'fast'): void {
     this.selectedGuess = selected;
-    this.oeBlocktimeApiService
-      .$strikeGuess(this.strike.block, this.strike.strikeMediantime, selected)
+    this.blockrateTimeStrikeService
+      .$strikeGuess(this.strike.block, this.strike.mediantime, selected)
       .subscribe(
         (response) => {
           this.toastr.success('Successfully added guess', 'Success');

@@ -25,7 +25,7 @@ export class WebsocketService {
     this.webSocketProtocol +
     '//' +
     document.location.host.replace(/^https?:\/\//i, '') +
-    '/api/v1/ws'; // Note: V2 WebSocket (/api/v2/blockspans/ws) returns 426 on backend; keeping V1 until backend fix
+    '/api/v1/ws';
   private websocketSubject: WebSocketSubject<WebsocketResponse>;
   private goneOffline = false;
   private lastWant: string | null = null;

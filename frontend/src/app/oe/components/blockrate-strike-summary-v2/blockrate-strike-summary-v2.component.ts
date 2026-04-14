@@ -1,16 +1,13 @@
 import { Component, Input, OnInit } from '@angular/core';
 import {
   Block,
-  BlockTimeStrike,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { APP_CONFIGURATION, BlockTypes, Logos } from '../../types/constant';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import {
@@ -37,7 +34,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   logos = Logos;
   isLoadingBlock = true;
   subscription: Subscription;
-  @Input() strike: BlockTimeStrike = {} as BlockTimeStrike;
+  @Input() strike: BlockSpanTimeStrike = {} as BlockSpanTimeStrike;
   @Input() fromBlock: Block;
   @Input() fromBlockHeight: number;
   @Input() toBlock: Block;
@@ -57,7 +54,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
     private stateService: OeStateService,
-    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     private toastr: ToastrService
   ) {}
 
@@ -71,8 +68,10 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     if (this.fromBlock && this.toBlock && this.strikeTime) {
       this.strike = {
         block: this.toBlock.height,
-        strikeMediantime: this.strikeTime,
+        mediantime: this.strikeTime,
         creationTime: undefined,
+        spanSize: 0,
+        guessesCount: 0,
       };
       this.fetchStrikeDetails();
       return;
@@ -110,8 +109,10 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
             this.toBlock = getEmptyBlockHeader(strikeHeight) as Block;
             this.strike = {
               block: strikeHeight,
-              strikeMediantime: strikeTime,
+              mediantime: strikeTime,
               creationTime: undefined,
+              spanSize: 0,
+              guessesCount: 0,
             };
             this.isLoadingBlock = false;
             this.checkExistingGuess();
@@ -127,11 +128,12 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
           if (!fromBlockHeight) {
             fromBlockHeight = Math.max(0, strikeHeight - APP_CONFIGURATION.SPAN_SIZE);
           }
-          // Creating temporary strike
           this.strike = {
             block: strikeHeight,
-            strikeMediantime: strikeTime,
+            mediantime: strikeTime,
             creationTime: undefined,
+            spanSize: 0,
+            guessesCount: 0,
           };
 
           this.isLoadingBlock = true;
@@ -139,21 +141,21 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
           return combineLatest([
             this.oeEnergyApiService
               .$getBlocksByHeights([fromBlockHeight, strikeHeight]),
-            this.oeBlocktimeApiService
+            this.blockrateTimeStrikeService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
           ]).pipe(
-            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockSpanTimeStrike> | number])
           );
         })
       )
       .subscribe(
         (result: any) => {
           if (!result) return;
-          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic>];
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockSpanTimeStrike>];
           const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           if (typeof toBlock === BlockTypes.NUMBER) {
@@ -165,14 +167,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
             this.toBlock = toBlock;
           }
           if (strikesDetails?.results?.length) {
-            const strikesResult = strikesDetails.results;
-            this.strike = {
-              ...strikesResult[0].strike,
-              block: strikesResult[0].strike.block,
-              creationTime: strikesResult[0].strike.creationTime,
-              strikeMediantime: strikesResult[0].strike.strikeMediantime,
-              observedResult: strikesResult[0].strike.observedResult,
-            };
+            this.strike = strikesDetails.results[0];
           }
 
           this.isLoadingBlock = false;
@@ -187,22 +182,15 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
 
   private fetchStrikeDetails(): void {
     this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
+    this.blockrateTimeStrikeService
       .$strikesWithFilter({
         strikeMediantimeEQ: this.strikeTime,
         blockHeightEQ: this.toBlock.height,
       })
       .pipe(catchError(() => of(null)))
-      .subscribe((strikesDetails: PaginationResponse<BlockTimeStrikePublic>) => {
+      .subscribe((strikesDetails: PaginationResponse<BlockSpanTimeStrike>) => {
         if (strikesDetails?.results?.length) {
-          const result = strikesDetails.results[0];
-          this.strike = {
-            ...result.strike,
-            block: result.strike.block,
-            creationTime: result.strike.creationTime,
-            strikeMediantime: result.strike.strikeMediantime,
-            observedResult: result.strike.observedResult,
-          };
+          this.strike = strikesDetails.results[0];
         }
         this.isLoadingBlock = false;
         this.checkExistingGuess();
@@ -223,9 +211,9 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
     }
 
     if (type === 'striketime') {
-      return !this.fromBlock.mediantime || !this.strike.strikeMediantime
+      return !this.fromBlock.mediantime || !this.strike.mediantime
         ? '?'
-        : (this.strike.strikeMediantime - this.fromBlock.mediantime).toString();
+        : (this.strike.mediantime - this.fromBlock.mediantime).toString();
     }
 
     if (type === 'hashes') {
@@ -277,8 +265,8 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
   handleSelectedGuess(selected: 'slow' | 'fast'): void {
     // this.isSelected = true;
     this.selectedGuess = selected;
-    this.oeBlocktimeApiService
-      .$strikeGuess(this.strike.block, this.strike.strikeMediantime, selected)
+    this.blockrateTimeStrikeService
+      .$strikeGuess(this.strike.block, this.strike.mediantime, selected)
       .subscribe(
         (response) => {
           this.disabled = true;
@@ -310,8 +298,8 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
 
   checkExistingGuess(): void {
     this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
-      .$strikeGuessPerson(this.strike.block, this.strike.strikeMediantime)
+    this.blockrateTimeStrikeService
+      .$strikeGuessPerson(this.strike.block, this.strike.mediantime)
       .subscribe(
         (response) => {
           this.isLoadingBlock = false;
@@ -349,7 +337,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
       return;
     }
 
-    return this.strike.observedBlockMediantime > this.strike.strikeMediantime;
+    return this.strike.observedBlockMediantime > this.strike.mediantime;
   }
 
   goToBlockRateDetails(event: Event): string {
@@ -377,7 +365,7 @@ export class BlockrateStrikeSummaryV2Component implements OnInit {
 
     const queryParams: any = {
       strikeHeight: this.strike.block,
-      strikeTime: this.strike.strikeMediantime,
+      strikeTime: this.strike.mediantime,
       startblock: this.fromBlock.height,
     };
 

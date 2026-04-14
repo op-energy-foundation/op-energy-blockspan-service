@@ -5,13 +5,11 @@ import {
   OnInit,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import {
   Block,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
 } from '../../interfaces/oe-energy.interface';
 import { OeStateService } from '../../services/state.service';
 import { of, switchMap, take } from 'rxjs';
@@ -24,21 +22,21 @@ import { getNextDifficultyAdjustment } from '../../utils/helper';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PreviewComponent implements OnInit {
-  latestStrike: BlockTimeStrikePublic;
+  latestStrike: BlockSpanTimeStrike;
   isLoading: boolean = true;
   latestBlock: Block;
   epochBlock: Block;
 
   constructor(
     private router: Router,
-    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     private oeEnergyApiService: OeEnergyApiService,
     public stateService: OeStateService,
     private cdr: ChangeDetectorRef
   ) {}
 
   fetchLatestStrike(pageNumber: number = 1): void {
-    this.oeBlocktimeApiService
+    this.blockrateTimeStrikeService
       .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
         class: 'guessable',
         linesPerPage: 1,
@@ -169,14 +167,14 @@ export class PreviewComponent implements OnInit {
       return `/hashstrikes/blockrate-strike-details?strikeHeight=${endBlock}&strikeTime=${strikeTime}&startblock=${startBlock}`;
     }
 
-    return `/hashstrikes/blockrate-strike-details?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
+    return `/hashstrikes/blockrate-strike-details?strikeHeight=${this.latestStrike?.block}&strikeTime=${this.latestStrike?.mediantime}&startblock=${this.latestBlock?.height}`;
   }
 
   blockrateStrikeSummaryV2(type: 'past' | 'future' = 'future'): string {
     if (type === 'past') {
       return `/hashstrikes/blockrate-strike-summary?strikeHeight=844447&strikeTime=1716298890&startblock=844433`;
     }
-    return `/hashstrikes/blockrate-strike-summary?strikeHeight=${this.latestStrike?.strike?.block}&strikeTime=${this.latestStrike?.strike?.strikeMediantime}&startblock=${this.latestBlock?.height}`;
+    return `/hashstrikes/blockrate-strike-summary?strikeHeight=${this.latestStrike?.block}&strikeTime=${this.latestStrike?.mediantime}&startblock=${this.latestBlock?.height}`;
   }
 
   blockspanSummaryLink(type: 'past' | 'future' = 'future'): string {
@@ -184,17 +182,17 @@ export class PreviewComponent implements OnInit {
       return `/hashstrikes/blockrate-summary?startblock=849237&endblock=849251&format=widget`;
     }
 
-    return `/hashstrikes/blockrate-summary?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}&format=widget`;
+    return `/hashstrikes/blockrate-summary?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.block}&format=widget`;
   }
 
   hashrateSummaryLink(type: 'past' | 'future' = 'future'): string {
     if (type === 'past') {
       return `/hashstrikes/hashrate-summary?startblock=849237&endblock=849251`;
     }
-    return `/hashstrikes/hashrate-summary?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+    return `/hashstrikes/hashrate-summary?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.block}`;
   }
 
   endBlockNWithStrikeSummary(): string {
-    return `/hashstrikes/blockrate-summary-endblockmatches?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.strike?.block}`;
+    return `/hashstrikes/blockrate-summary-endblockmatches?startblock=${this.latestBlock?.height}&endblock=${this.latestStrike?.block}`;
   }
 }

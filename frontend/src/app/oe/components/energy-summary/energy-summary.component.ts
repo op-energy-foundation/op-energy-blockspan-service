@@ -5,15 +5,13 @@ import { of, Subscription } from 'rxjs';
 import { APP_CONFIGURATION, BlockTypes } from '../../types/constant';
 import {
   Block,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   PaginationResponse,
   StrikesFilter,
   TimeStrike,
 } from '../../interfaces/oe-energy.interface';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { navigator } from '../../utils/helper';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
@@ -41,12 +39,12 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
   subscription: Subscription;
   blocksSubscription: Subscription;
   filter: StrikesFilter = {};
-  strikesData = [] as BlockTimeStrikePublic[];
+  strikesData = [] as BlockSpanTimeStrike[];
 
   constructor(
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
-    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     private router: Router,
     private stateService: OeStateService,
     private toastr: ToastrService
@@ -146,7 +144,7 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
 
   fetchOutcomeKnownStrikes(pageNumber: number = 1): void {
     this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
+    this.blockrateTimeStrikeService
       .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
         strikeBlockHeightEQ: this.toBlockHeight,
         linesPerPage: 15,
@@ -162,7 +160,7 @@ export class EnergySummaryComponent implements OnInit, OnDestroy {
     this.isLoadingBlock = false;
   }
 
-  private handleData(data: PaginationResponse<BlockTimeStrikePublic>): void {
+  private handleData(data: PaginationResponse<BlockSpanTimeStrike>): void {
     if (!data.results || !Array.isArray(data.results)) {
       this.strikesData = [];
       this.isLoadingBlock = false;

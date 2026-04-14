@@ -1,18 +1,15 @@
 import {
   Block,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap, catchError, take, map } from 'rxjs/operators';
 import { combineLatest, of, Subscription } from 'rxjs';
-import { TimeStrike } from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -28,7 +25,7 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   blockHeight: number;
   nextBlockHeight: number;
   fromBlockHash: string;
-  strike: TimeStrike;
+  strike: BlockSpanTimeStrike;
   toBlockHash: string;
   isLoadingBlock = true;
   latestBlock: Block;
@@ -37,7 +34,6 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   showPreviousBlocklink = true;
   showNextBlocklink = true;
   subscription: Subscription;
-  timeStrikes: TimeStrike[] = [];
 
   get span(): number {
     return this.toBlock.height - this.fromBlock.height;
@@ -52,13 +48,13 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
   }
 
   get strikeDetailLink(): string {
-    return `/hashstrikes/blockrate-strike-detail?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
+    return `/hashstrikes/blockrate-strike-detail?strikeHeight=${this.strike.block}&strikeTime=${this.strike.mediantime}&blockspanStart=${this.fromBlock.height}`;
   }
 
   constructor(
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
-    private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     private stateService: OeStateService,
     private toastr: ToastrService
   ) {}
@@ -90,9 +86,11 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
           }
           // Creating temporary strike
           this.strike = {
-            blockHeight: strikeHeight,
-            strikeMediantime: strikeTime,
+            block: strikeHeight,
+            mediantime: strikeTime,
             creationTime: undefined,
+            spanSize: 0,
+            guessesCount: 0,
           };
 
           // this.fromBlockHeight = fromBlockHeight;
@@ -124,20 +122,20 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
           return combineLatest([
             this.oeEnergyApiService
               .$getBlocksByHeights([fromBlockHeight, strikeHeight]),
-            this.oeBlocktimeApiService
+            this.blockrateTimeStrikeService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
           ]).pipe(
-            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockSpanTimeStrike> | number])
           );
         })
       )
       .subscribe(
         (result: any) => {
-          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic> | number];
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockSpanTimeStrike> | number];
           const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           if (typeof toBlock === BlockTypes.NUMBER) {
@@ -166,9 +164,11 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
           }
 
           this.strike = {
-            blockHeight: strikesResult[0].strike.block,
-            creationTime: strikesResult[0].strike.creationTime,
-            strikeMediantime: strikesResult[0].strike.strikeMediantime,
+            block: strikesResult[0].block,
+            mediantime: strikesResult[0].mediantime,
+            creationTime: strikesResult[0].creationTime,
+            spanSize: strikesResult[0].spanSize,
+            guessesCount: strikesResult[0].guessesCount,
           };
           this.setNextAndPreviousBlockLink();
 
@@ -183,23 +183,6 @@ export class StrikeSummaryComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-  }
-
-  getTimeStrikes(): void {
-    this.oeEnergyApiService
-      .$listTimeStrikesByBlockHeight(this.toBlock.height)
-      .subscribe((timeStrikes: TimeStrike[]) => {
-        this.timeStrikes = timeStrikes.map((strike) => ({
-          ...strike,
-          elapsedTime: strike.strikeMediantime - this.fromBlock.mediantime,
-        }));
-        // Manually add a strike that is higher energy just to show what happens when it doesn't boil
-        const highEnergyStrike = {
-          ...this.timeStrikes[0],
-          nLockTime: this.toBlock.mediantime - 30,
-        };
-        this.timeStrikes.unshift(highEnergyStrike);
-      });
   }
 
   setNextAndPreviousBlockLink(): void {

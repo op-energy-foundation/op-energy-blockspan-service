@@ -1,14 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  BlockTimeStrike,
+  BlockSpanTimeStrike,
   BlockTimeStrikePublic,
 } from '../../../interfaces/oe-energy.interface';
 import { GENESIS_K, Logos } from '../../../types/constant';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../../services/blockratetimestrike.service';
 import { OeStateService } from '../../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import { BaseBlockComponent } from '../../common/base-block/BaseBlockComponent';
@@ -21,7 +19,7 @@ import { BaseBlockComponent } from '../../common/base-block/BaseBlockComponent';
 export class HashrateSummaryComponent  extends BaseBlockComponent implements OnInit {
 
   logos = Logos;
-    strike: BlockTimeStrike = {} as BlockTimeStrike;
+    strike: BlockSpanTimeStrike = {} as BlockSpanTimeStrike;
     disabled: boolean = false;
     isSelected: boolean = false;
     selectedGuess: string;
@@ -34,13 +32,13 @@ export class HashrateSummaryComponent  extends BaseBlockComponent implements OnI
       private route: ActivatedRoute,
       oeEnergyApiService: OeEnergyApiService,
       stateService: OeStateService,
-      oeBlocktimeApiService: OeBlocktimeApiService,
+      blockrateTimeStrikeService: BlockrateTimeStrikeService,
       toastr: ToastrService
     ) {
       super(
         router,
         oeEnergyApiService,
-        oeBlocktimeApiService,
+        blockrateTimeStrikeService,
         stateService,
         toastr
       );

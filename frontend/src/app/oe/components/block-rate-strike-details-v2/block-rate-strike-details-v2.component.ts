@@ -1,15 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  BlockTimeStrike,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { Logos } from '../../types/constant';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import { BaseBlockComponent } from '../common/base-block/BaseBlockComponent';
@@ -36,13 +33,13 @@ export class BlockRateStrikeDetailsV2Component
     private route: ActivatedRoute,
     oeEnergyApiService: OeEnergyApiService,
     stateService: OeStateService,
-    oeBlocktimeApiService: OeBlocktimeApiService,
+    blockrateTimeStrikeService: BlockrateTimeStrikeService,
     toastr: ToastrService
   ) {
     super(
       router,
       oeEnergyApiService,
-      oeBlocktimeApiService,
+      blockrateTimeStrikeService,
       stateService,
       toastr
     );
@@ -70,7 +67,7 @@ export class BlockRateStrikeDetailsV2Component
       ([fromBlock, toBlock, strikesDetails]: [
         any,
         any,
-        PaginationResponse<BlockTimeStrikePublic>
+        PaginationResponse<BlockSpanTimeStrike>
       ]) => {
         this.fromBlock = fromBlock;
         this.toBlock = toBlock;
@@ -80,13 +77,7 @@ export class BlockRateStrikeDetailsV2Component
           return;
         }
 
-        this.strike = {
-          ...strikesDetails.results[0].strike,
-          block: strikesDetails.results[0].strike.block,
-          creationTime: strikesDetails.results[0].strike.creationTime,
-          strikeMediantime: strikesDetails.results[0].strike.strikeMediantime,
-          observedResult: strikesDetails.results[0].strike.observedResult,
-        };
+        this.strike = strikesDetails.results[0];
 
         this.isLoadingBlock = false;
         this.checkExistingGuess();
@@ -128,8 +119,8 @@ export class BlockRateStrikeDetailsV2Component
   handleSelectedGuess(selected: 'slow' | 'fast'): void {
     // this.isSelected = true;
     this.selectedGuess = selected;
-    this.oeBlocktimeApiService
-      .$strikeGuess(this.strike.block, this.strike.strikeMediantime, selected)
+    this.blockrateTimeStrikeService
+      .$strikeGuess(this.strike.block, this.strike.mediantime, selected)
       .subscribe(
         (response) => {
           this.disabled = true;
@@ -146,8 +137,8 @@ export class BlockRateStrikeDetailsV2Component
 
   checkExistingGuess(): void {
     this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
-      .$strikeGuessPerson(this.strike.block, this.strike.strikeMediantime)
+    this.blockrateTimeStrikeService
+      .$strikeGuessPerson(this.strike.block, this.strike.mediantime)
       .subscribe(
         (response) => {
           this.isLoadingBlock = false;
@@ -183,6 +174,6 @@ export class BlockRateStrikeDetailsV2Component
       return;
     }
 
-    return this.strike.observedBlockMediantime > this.strike.strikeMediantime;
+    return this.strike.observedBlockMediantime > this.strike.mediantime;
   }
 }

@@ -3,11 +3,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
   OeBlocktimeApiService,
 } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import {
   Block,
+  BlockSpanTimeStrike,
   BlockTimeStrike,
   BlockTimeStrikeGuessPublic,
-  BlockTimeStrikePublic,
   PaginationResponse,
   StrikeDetails,
   StrikesFilter,
@@ -33,7 +34,7 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
   headers: TableColumn[] = TABLE_HEADERS;
   currentPage: number = 1;
   totalPages: number = 1;
-  tableData: BlockTimeStrike[] = [];
+  tableData: BlockSpanTimeStrike[] = [];
   filter: any = {
     class: 'outcomeKnown',
   }; // This will be used for API calls
@@ -53,7 +54,7 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
   linesPerPage = 15;
   format: FormatType = FormatType.TABLE;
   widgetData: {
-    strike: BlockTimeStrike;
+    strike: BlockSpanTimeStrike;
     fromBlock?: Block;
     toBlock?: Block;
     fromBlockHeight?: number;
@@ -67,6 +68,7 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
 
   constructor(
     private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     private stateService: OeStateService,
     private route: ActivatedRoute,
     private toastr: ToastrService,
@@ -137,7 +139,7 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
       queryParams: { ...this.urlFilter, page: this.currentPage },
       queryParamsHandling: 'merge',
     });
-    this.oeBlocktimeApiService
+    this.blockrateTimeStrikeService
       .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
         ...this.filter,
         linesPerPage: this.linesPerPage,
@@ -148,7 +150,7 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
       });
   }
 
-  private handleData(data: PaginationResponse<BlockTimeStrikePublic>): void {
+  private handleData(data: PaginationResponse<BlockSpanTimeStrike>): void {
     if (!data.results || !Array.isArray(data.results)) {
       this.tableData = [];
       this.isLoading = false;
@@ -166,16 +168,16 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
       this.widgetData = data.results.map((result) => {
         if (result.mBlockSpan) {
           return {
-            strike: result.strike,
+            strike: result,
             fromBlock: result.mBlockSpan.startBlock as Block,
             toBlock: result.mBlockSpan.endBlock as Block,
             preloaded: true,
           };
         }
-        const fromHeight = result.strike.block - this.spanSize;
-        const toHeight = result.strike.block;
+        const fromHeight = result.block - this.spanSize;
+        const toHeight = result.block;
         return {
-          strike: result.strike,
+          strike: result,
           fromBlock: getEmptyBlockHeader(fromHeight) as Block,
           toBlock: getEmptyBlockHeader(toHeight) as Block,
           preloaded: true,
@@ -187,15 +189,13 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
     } else {
       this.isLoading = false;
       this.tableData = data.results.map((result) => {
-        const strike = result.strike;
         const queryParams = {
-          strikeHeight: strike.block,
-          strikeTime: strike.strikeMediantime,
-          startblock: Math.min(this.currentTip, strike.block - APP_CONFIGURATION.SPAN_SIZE),
+          strikeHeight: result.block,
+          strikeTime: result.mediantime,
+          startblock: Math.min(this.currentTip, result.block - APP_CONFIGURATION.SPAN_SIZE),
         };
         return {
-          ...strike,
-          guessesCount: result.guessesCount,
+          ...result,
           queryParams,
           routerLink: '/hashstrikes/blockrate-strike-summary',
         };
@@ -226,7 +226,7 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
         });
 
         this.widgetData = this.widgetData.map((item) => {
-          const key = `${item.strike.block}:${item.strike.strikeMediantime}`;
+          const key = `${item.strike.block}:${item.strike.mediantime}`;
           return { ...item, existingGuess: guessMap.get(key) };
         });
       });
@@ -247,11 +247,10 @@ export class StrikesRangeComponent implements OnInit, OnDestroy {
     });
   }
 
-  onChildRowClick(item: StrikeDetails): void {
-    // Construct the query parameters
+  onChildRowClick(item: BlockSpanTimeStrike): void {
     const queryParams = {
       strikeHeight: item.block,
-      strikeTime: item.strikeMediantime,
+      strikeTime: item.mediantime,
       startblock: Math.min(this.currentTip, item.block - APP_CONFIGURATION.SPAN_SIZE),
     };
 

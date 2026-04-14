@@ -40,7 +40,7 @@
                         [attr.href]="'/hashstrikes/blockrate-strike-details'"
                         [queryParams]="{
                             strikeHeight: strike.block,
-                            strikeTime: strike.strikeMediantime,
+                            strikeTime: strike.mediantime,
                             startblock: fromBlock.height
                         }">
                         {{getStrikeRate()}}
