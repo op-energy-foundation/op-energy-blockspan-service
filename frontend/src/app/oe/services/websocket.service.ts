@@ -25,7 +25,7 @@ export class WebsocketService {
     this.webSocketProtocol +
     '//' +
     document.location.host.replace(/^https?:\/\//i, '') +
-    '/api/v1/ws';
+    '/api/v2/blockspans/ws';
   private websocketSubject: WebSocketSubject<WebsocketResponse>;
   private goneOffline = false;
   private lastWant: string | null = null;
