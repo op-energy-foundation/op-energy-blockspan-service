@@ -56,7 +56,7 @@ export class BlockrateTimeStrikeService {
     filter: any | {},
     spanSize?: number
   ): Observable<PaginationResponse<BlockSpanTimeStrike>> {
-    return this.$strikesWithFilter(filter, pageNo, spanSize);
+    return this.$strikesWithFilter({ ...filter, class: 'outcomeKnown' }, pageNo, spanSize);
   }
 
   $strike(
