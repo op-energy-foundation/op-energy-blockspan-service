@@ -24,12 +24,14 @@ export class AuthInterceptor implements HttpInterceptor {
     request: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    if (
-      !request.url.includes('api/v1') ||
+    const isApiV1 = request.url.includes('api/v1');
+    const isApiV2 = request.url.includes('api/v2');
+    const isAuthExempt =
       request.url.includes('/api/v1/account/register') ||
-      request.url.includes('/api/v1/account/login')
-    ) {
-      // For URLs that do not contain 'api/v1', just forward the request without modification
+      request.url.includes('/api/v1/account/login') ||
+      request.url.includes('/api/v2/account/login');
+
+    if ((!isApiV1 && !isApiV2) || isAuthExempt) {
       return next.handle(request).pipe(
         catchError((error) => {
           // Global error handling can be done here

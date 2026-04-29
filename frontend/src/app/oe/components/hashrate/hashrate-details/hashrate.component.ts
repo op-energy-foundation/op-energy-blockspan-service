@@ -13,15 +13,12 @@ import {
 import { OeStateService } from '../../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import {
-  catchError,
-  combineLatest,
   of,
   Subscription,
   switchMap,
   take,
 } from 'rxjs';
 import {
-  getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
 } from '../../../utils/helper';
@@ -101,15 +98,7 @@ export class HashrateComponent implements OnInit {
           this.isLoadingBlock = true;
 
           return this.oeEnergyApiService
-            .$getBlocksByHeights([fromBlockHeight, toBlockHeight])
-            .pipe(
-              catchError(() =>
-                of([
-                  getEmptyBlockHeader(fromBlockHeight),
-                  getEmptyBlockHeader(toBlockHeight),
-                ])
-              )
-            );
+            .$getBlocksByHeights([fromBlockHeight, toBlockHeight]);
         })
       )
       .subscribe(([fromBlock, toBlock]: [Block, Block]) => {

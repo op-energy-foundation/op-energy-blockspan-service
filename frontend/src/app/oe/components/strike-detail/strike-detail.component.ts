@@ -1,25 +1,20 @@
 import {
   Block,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   BlockTimeStrikeGuessPublic,
   PaginationResponse,
 } from '../../interfaces/oe-energy.interface';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Location } from '@angular/common';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap } from '@angular/router';
 import { Subscription, of, combineLatest } from 'rxjs';
 import { switchMap, catchError, map, take } from 'rxjs/operators';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
-import {
-  TimeStrike,
-} from 'src/app/oe/interfaces/oe-energy.interface';
 import { BlockTypes } from '../../types/constant';
-import { getEmptyBlockHeader } from '../../utils/helper';
 import {
   OeBlocktimeApiService,
   OeEnergyApiService,
 } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { OeStateService } from '../../services/state.service';
 
 @Component({
@@ -35,7 +30,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   nextBlockHeight: number;
   fromBlockHeight: number;
   toBlockHeight: number;
-  strike: TimeStrike;
+  strike: BlockSpanTimeStrike;
   isLoadingBlock = true;
   latestBlock: Block;
   latestBlocks: Block[] = [];
@@ -52,7 +47,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   curruntPage: number = 0;
 
   get strikeElapsedTime(): number {
-    return this.strike.strikeMediantime - this.fromBlock.mediantime;
+    return this.strike.mediantime - this.fromBlock.mediantime;
   }
 
   get span(): number {
@@ -70,16 +65,16 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   get canGuess(): boolean {
     return (
       this.stateService.latestBlockHeight > 0 &&
-      this.strike.blockHeight > this.stateService.latestBlockHeight
+      this.strike.block > this.stateService.latestBlockHeight
     );
   }
 
   get spanWithStrike(): number {
-    return this.strike.blockHeight - this.fromBlock.height;
+    return this.strike.block - this.fromBlock.height;
   }
 
   get timeDiffWithStrike(): number {
-    return this.strike.strikeMediantime - this.fromBlock.mediantime;
+    return this.strike.mediantime - this.fromBlock.mediantime;
   }
 
   get energyDiffWithStrike(): number {
@@ -99,7 +94,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   get strikeType(): 'Energy' | 'Strike' | 'Strike_Boiling' {
-    return this.strike.strikeMediantime > this.toBlock.mediantime
+    return this.strike.mediantime > this.toBlock.mediantime
       ? 'Strike_Boiling'
       : 'Strike';
   }
@@ -109,6 +104,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private oeEnergyApiService: OeEnergyApiService,
     private oeBlocktimeApiService: OeBlocktimeApiService,
+    private blockrateTimeStrikeService: BlockrateTimeStrikeService,
     public stateService: OeStateService,
     private oeEnergyStateService: OeStateService
   ) {}
@@ -151,11 +147,12 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
               this.latestBlock.mediantime +
               (strikeHeight - this.latestBlock.height) * 600;
           }
-          // Creating temporary strike
           this.strike = {
-            blockHeight: strikeHeight,
-            strikeMediantime: strikeTime,
+            block: strikeHeight,
+            mediantime: strikeTime,
             creationTime: undefined,
+            spanSize: 0,
+            guessesCount: 0,
           };
 
           this.fromBlockHeight = fromBlockHeight;
@@ -185,22 +182,21 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
           return combineLatest([
             this.oeEnergyApiService
-              .$getBlocksByHeights([fromBlockHeight, strikeHeight])
-              .pipe(catchError(() => of([getEmptyBlockHeader(fromBlockHeight), getEmptyBlockHeader(strikeHeight)]))),
-            this.oeBlocktimeApiService
+              .$getBlocksByHeights([fromBlockHeight, strikeHeight]),
+            this.blockrateTimeStrikeService
               .$strikesWithFilter({
                 strikeMediantimeEQ: strikeTime,
                 blockHeightEQ: strikeHeight,
               })
               .pipe(catchError(() => of(strikeHeight))),
           ]).pipe(
-            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockTimeStrikePublic> | number])
+            map(([blocks, strikes]) => [blocks, strikes] as [Block[], PaginationResponse<BlockSpanTimeStrike> | number])
           );
         })
       )
       .subscribe(
         async (result: any) => {
-          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockTimeStrikePublic> | number];
+          const [blocks, strikesDetails] = result as [Block[], PaginationResponse<BlockSpanTimeStrike> | number];
           const [fromBlock, toBlock] = blocks;
           this.fromBlock = fromBlock;
           this.toBlock =
@@ -225,16 +221,11 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
             return;
           }
 
-          this.strike = {
-            blockHeight: strikesResult[0].strike.block,
-            creationTime: strikesResult[0].strike.creationTime,
-            strikeMediantime: strikesResult[0].strike.strikeMediantime,
-          };
+          this.strike = strikesResult[0];
 
-          // Fetching guessing data
           const strikesFilter = {
-            strikeMediantimeEQ: this.strike.strikeMediantime,
-            blockHeightEQ: this.strike.blockHeight,
+            strikeMediantimeEQ: this.strike.mediantime,
+            blockHeightEQ: this.strike.block,
           };
           if (this.stateService.latestReceivedBlockHeight > toBlock.height) {
             await this.fetchPastGuessData(this.curruntPage, strikesFilter);
@@ -286,22 +277,16 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
 
   guess(guess: 'slow' | 'fast') {
     this.currentActiveGuess = guess;
-    let subscription = this.oeEnergyStateService.$accountToken.subscribe(
-      (accountToken) => {
-        this.oeBlocktimeApiService
-          .$createStrikeGuess(
-            accountToken,
-            this.strike.blockHeight,
-            this.strike.strikeMediantime,
-            guess
-          )
-          .subscribe((slowFastGuess: BlockTimeStrikeGuessPublic) => {
-            this.slowFastGuesses = [...this.slowFastGuesses, slowFastGuess];
-            this.toastr.success('Guessed successfully!', 'Success!');
-          });
-      }
-    );
-    subscription.unsubscribe();
+    this.blockrateTimeStrikeService
+      .$strikeGuess(
+        this.strike.block,
+        this.strike.mediantime,
+        guess
+      )
+      .subscribe((slowFastGuess: BlockTimeStrikeGuessPublic) => {
+        this.slowFastGuesses = [...this.slowFastGuesses, slowFastGuess];
+        this.toastr.success('Guessed successfully!', 'Success!');
+      });
   }
 
   energyDetailLink() {
@@ -309,7 +294,7 @@ export class StrikeDetailComponent implements OnInit, OnDestroy {
   }
 
   strikeSummaryLink() {
-    return `/hashstrikes/blockrate-strike-summary?strikeHeight=${this.strike.blockHeight}&strikeTime=${this.strike.strikeMediantime}&blockspanStart=${this.fromBlock.height}`;
+    return `/hashstrikes/blockrate-strike-summary?strikeHeight=${this.strike.block}&strikeTime=${this.strike.mediantime}&blockspanStart=${this.fromBlock.height}`;
   }
 
   public fetchFutureGuessData(pageNumber: number, filter: any = {}): void {

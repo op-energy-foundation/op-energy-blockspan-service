@@ -1,5 +1,59 @@
 .past-strike-list {
     .strike-table {
+        .strikes-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 10px;
+
+          .results-info {
+            margin: 0;
+            flex: 1;
+          }
+
+          .format-toggle {
+            display: flex;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+
+            .toggle-btn {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 6px 14px;
+              border: none;
+              background: rgba(255, 255, 255, 0.05);
+              color: rgba(255, 255, 255, 0.5);
+              font-size: 13px;
+              cursor: pointer;
+              transition: all 0.2s ease;
+
+              &:first-child {
+                border-right: 1px solid rgba(255, 255, 255, 0.15);
+              }
+
+              &:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.8);
+              }
+
+              &.active {
+                background: rgba(80, 140, 255, 0.25);
+                color: #7eb8ff;
+              }
+
+              svg {
+                width: 14px;
+                height: 14px;
+              }
+            }
+          }
+        }
+
         .content {
           word-wrap: break-word;
           background-color: #24273e;

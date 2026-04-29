@@ -77,6 +77,20 @@ export interface BlockSpan {
   endBlockHeight: number;
 }
 
+// V2 API response type - lightweight blockspan summary without full headers
+export interface BlockSpanSummary {
+  startBlockHeight: number;
+  endBlockHeight: number;
+  nbdr: number;
+  hashrate: string;
+}
+
+// V2 API Either response wrapper - Haskell Either serializes as {Left: ...} or {Right: ...}
+export interface EitherBlockSpansResponse {
+  Left?: BlockSpanSummary[];
+  Right?: BlockSpanHeaders[];
+}
+
 export interface BlockHeader {
   height: number;
   version: number;
@@ -185,6 +199,7 @@ export interface TableColumn {
 export interface BlockTimeStrikePublic {
   guessesCount : number;
   strike : BlockTimeStrike;
+  mBlockSpan?: BlockSpanHeadersNbdrHashRate;
 }
 
 export type PaginationResponse<T> = {
@@ -192,6 +207,30 @@ export type PaginationResponse<T> = {
   count: number;
   results: T[];
 };
+
+export interface BlockSpanTimeStrike {
+  block: number;
+  mediantime: number;
+  creationTime: number;
+  spanSize: number;
+  guessesCount: number;
+  mBlockSpan?: BlockSpanHeadersNbdrHashRate;
+  observedResult?: 'slow' | 'fast';
+  observedBlockMediantime?: number;
+  observedBlockHash?: string;
+  observedBlockHeight?: number;
+}
+
+export interface BlockSpanTimeStrikeGuess {
+  strike: BlockSpanTimeStrike;
+  creationTime: number;
+  guess: 'slow' | 'fast';
+}
+
+export interface BlockSpanTimeStrikeGuessesSummary {
+  fastCount: number;
+  slowCount: number;
+}
 
 export interface StrikesFilter {
   strikeBlockHeightGTE?: number;

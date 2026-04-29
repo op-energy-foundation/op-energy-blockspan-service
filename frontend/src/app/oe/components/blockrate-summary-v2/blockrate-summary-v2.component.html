@@ -40,13 +40,13 @@
                         <app-blockrate-strike-summary-v2
                             [fromBlock]="fromBlock"
                             [toBlock]="toBlock"
-                            [strike]="strike.strike">
+                            [strike]="strike">
                         </app-blockrate-strike-summary-v2>
                         <!-- Planning to reuse below commented code in another component -->
                         <!-- <app-guessing-game
                             [fromBlock]="fromBlock"
                             [toBlock]="toBlock"
-                            [strike]="strike.strike">
+                            [strike]="strike">
                         </app-guessing-game> -->
                         <!-- <div class="logo">
                             <span class="logo-container">{{ logos.CONTRACT }}</span>
@@ -55,7 +55,7 @@
                     </div>
                 </div>
             </ng-container>
-            <div class="strike-list" *ngIf="!format || format === 'line'">
+            <div class="strike-list" *ngIf="!format || format === 'table'">
                 <div class="strike-table m-5 text-center">
                     <div class="content">
                         <app-data-table [headers]="headers" [data]="tableData" (rowClicked)="onChildRowClick($event)">

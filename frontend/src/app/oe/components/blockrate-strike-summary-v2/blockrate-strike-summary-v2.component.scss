@@ -149,6 +149,14 @@
           }
         }
 
+        .guessing-container--background {
+          z-index: -1;
+        }
+
+        .guessing-container--foreground {
+          z-index: 1;
+        }
+
         .guessing-container {
           padding-left: 3rem;
 

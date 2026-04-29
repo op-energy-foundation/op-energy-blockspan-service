@@ -10,19 +10,15 @@ import {
   map,
 } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../../services/blockratetimestrike.service';
 import { OeStateService } from '../../../services/state.service';
 import {
   Block,
-  BlockTimeStrike,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   PaginationResponse,
 } from '../../../interfaces/oe-energy.interface';
 import {
-  getEmptyBlockHeader,
   getHexValue,
   toScientificNotation,
   calculateTimeDifference,
@@ -38,13 +34,13 @@ export abstract class BaseBlockComponent {
   subscription: Subscription;
   calculateTimeDifference = calculateTimeDifference;
   convertToUTC = convertToUTC;
-  strike: BlockTimeStrike = {} as BlockTimeStrike;
-  format: FormatType = FormatType.LINE;
+  strike: BlockSpanTimeStrike = {} as BlockSpanTimeStrike;
+  format: FormatType = FormatType.TABLE;
 
   constructor(
     protected router: Router,
     protected oeEnergyApiService: OeEnergyApiService,
-    protected oeBlocktimeApiService: OeBlocktimeApiService,
+    protected blockrateTimeStrikeService: BlockrateTimeStrikeService,
     protected stateService: OeStateService,
     protected toastr: ToastrService
   ) {}
@@ -54,7 +50,7 @@ export abstract class BaseBlockComponent {
     fromBlockHeight: number,
     strikeHeight?: number,
     strikeTime?: number
-  ): Observable<(Block | PaginationResponse<BlockTimeStrikePublic> | null)[]> {
+  ): Observable<(Block | PaginationResponse<BlockSpanTimeStrike> | null)[]> {
     this.isLoadingBlock = true;
 
     // Collect all block heights for batch fetching
@@ -63,16 +59,12 @@ export abstract class BaseBlockComponent {
       heights.push(strikeHeight);
     }
 
-    // Fetch all blocks in a single call (or multiple calls if V1 mode)
     const blocksObservable = this.oeEnergyApiService
-      .$getBlocksByHeights(heights)
-      .pipe(
-        catchError(() => of(heights.map(h => getEmptyBlockHeader(h))))
-      );
+      .$getBlocksByHeights(heights);
 
     // If strike filter is needed, combine blocks with strike data
     if (strikeTime !== undefined && strikeHeight !== undefined) {
-      const strikeObservable = this.oeBlocktimeApiService
+      const strikeObservable = this.blockrateTimeStrikeService
         .$strikesWithFilter({
           strikeMediantimeEQ: strikeTime,
           blockHeightEQ: strikeHeight,
@@ -96,7 +88,7 @@ export abstract class BaseBlockComponent {
       endblock: this.latestBlock?.height || undefined,
       strikeHeight: 1200000,
       strikeTime: undefined,
-      format: FormatType.LINE
+      format: FormatType.TABLE
     };
     const params: { [key: string]: any } = { ...defaultParams };
     route.queryParamMap.pipe(take(1)).subscribe((paramMap: ParamMap) => {
@@ -187,9 +179,9 @@ export abstract class BaseBlockComponent {
     }
 
     if (type === 'striketime') {
-      return !this.fromBlock.mediantime || !this.strike.strikeMediantime
+      return !this.fromBlock.mediantime || !this.strike.mediantime
         ? '?'
-        : (this.strike.strikeMediantime - this.fromBlock.mediantime).toString();
+        : (this.strike.mediantime - this.fromBlock.mediantime).toString();
     }
 
     if (type === 'hashes') {

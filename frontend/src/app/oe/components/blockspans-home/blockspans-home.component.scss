@@ -32,19 +32,13 @@
   -ms-user-select: none; /* IE10+/Edge */
   user-select: none; /* Standard */
 
-  app-tetris-blockspan-water,
   app-tetris-blockspan-navigator,
-  app-tetris-add-strike,
   app-energy {
     position: absolute;
     top: 0px;
     transition: 2s;
     width: 250px;
     height: 300px;
-  }
-
-  app-tetris-add-strike {
-    left: -100px;
   }
 
   app-tetris-blockspan-navigator {

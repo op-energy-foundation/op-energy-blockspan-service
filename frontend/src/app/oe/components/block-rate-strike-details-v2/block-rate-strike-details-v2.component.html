@@ -1,6 +1,6 @@
 <div class="blockrate-strike-container">
     <div class="oe-strike-blockspan-container">
-        <app-blockspan-bhs [result]="getJudgementResult()"> </app-blockspan-bhs>
+        <app-blockspan-bhs *ngIf="fromBlock && toBlock" [result]="getJudgementResult()" [fromBlock]="fromBlock" [toBlock]="toBlock"> </app-blockspan-bhs>
     </div>
     <div class="observed-strike-detail">
         <div class="observed-strike-detail--top" *ngIf="!isLoadingBlock">

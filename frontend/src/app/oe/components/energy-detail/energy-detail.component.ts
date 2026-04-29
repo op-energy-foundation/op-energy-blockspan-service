@@ -1,16 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { switchMap, catchError, take } from 'rxjs/operators';
-import { combineLatest, Observable, of, Subscription } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
+import { Observable, of, Subscription } from 'rxjs';
 import {
   Block,
   EnergyNbdrStatistics,
-  TimeStrike,
 } from 'src/app/oe/interfaces/oe-energy.interface';
 import { ToastrService } from 'ngx-toastr';
 import { OeEnergyApiService } from '../../services/oe-energy.service';
 import { BlockTypes } from '../../types/constant';
-import { OeStateService } from '../../services/state.service';
 import { navigator } from '../../utils/helper';
 
 @Component({
@@ -43,9 +41,6 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
   blocksSubscription: Subscription;
   networkChangedSubscription: Subscription;
 
-  timeStrikes: TimeStrike[] = [];
-  showStrikes: boolean;
-
   average: string = null;
   stddev: string = null;
 
@@ -65,7 +60,6 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private oeEnergyApiService: OeEnergyApiService,
     private toastr: ToastrService,
-    private stateService: OeStateService,
     public router: Router
   ) {}
 
@@ -141,9 +135,6 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
         this.isLoadingBlock = false;
         this.isLoadingTransactions = true;
 
-        this.stateService.$accountToken.pipe(take(1)).subscribe((res) => {
-          this.getTimeStrikes();
-        });
       })),
       (error) => {
         this.error = error;
@@ -153,17 +144,6 @@ export class EnergyDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
-  }
-
-  getTimeStrikes() {
-    this.oeEnergyApiService
-      .$listTimeStrikesByBlockHeight(this.toBlock.height)
-      .subscribe((timeStrikes: TimeStrike[]) => {
-        this.timeStrikes = timeStrikes.map((strike) => ({
-          ...strike,
-          elapsedTime: strike.strikeMediantime - this.fromBlock.mediantime,
-        }));
-      });
   }
 
   setNextAndPreviousBlockLink() {

@@ -1,17 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  BlockTimeStrike,
-  BlockTimeStrikePublic,
+  BlockSpanTimeStrike,
   PaginationResponse,
-  StrikeDetails,
   TableColumn,
 } from '../../interfaces/oe-energy.interface';
-import { FormatType, Logos } from '../../types/constant';
+import { APP_CONFIGURATION, FormatType, Logos } from '../../types/constant';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  OeBlocktimeApiService,
-  OeEnergyApiService,
-} from '../../services/oe-energy.service';
+import { OeEnergyApiService } from '../../services/oe-energy.service';
+import { BlockrateTimeStrikeService } from '../../services/blockratetimestrike.service';
 import { OeStateService } from '../../services/state.service';
 import { ToastrService } from 'ngx-toastr';
 import { BaseBlockComponent } from '../common/base-block/BaseBlockComponent';
@@ -27,14 +23,14 @@ export class BlockrateSummaryV2Component
   implements OnInit
 {
   logos = Logos;
-  strike: BlockTimeStrike = {} as BlockTimeStrike;
+  strike: BlockSpanTimeStrike = {} as BlockSpanTimeStrike;
   disabled: boolean = false;
   isSelected: boolean = false;
   selectedGuess: string;
   strikeKnown = false;
   color = 'red';
-  strikesData: BlockTimeStrikePublic[] = [];
-  tableData: BlockTimeStrike[] = [];
+  strikesData: BlockSpanTimeStrike[] = [];
+  tableData: BlockSpanTimeStrike[] = [];
   headers: TableColumn[] = TABLE_HEADERS;
   
 
@@ -43,13 +39,13 @@ export class BlockrateSummaryV2Component
     private route: ActivatedRoute,
     oeEnergyApiService: OeEnergyApiService,
     stateService: OeStateService,
-    oeBlocktimeApiService: OeBlocktimeApiService,
+    blockrateTimeStrikeService: BlockrateTimeStrikeService,
     toastr: ToastrService
   ) {
     super(
       router,
       oeEnergyApiService,
-      oeBlocktimeApiService,
+      blockrateTimeStrikeService,
       stateService,
       toastr
     );
@@ -119,12 +115,12 @@ export class BlockrateSummaryV2Component
       return;
     }
 
-    return this.strike.observedBlockMediantime > this.strike.strikeMediantime;
+    return this.strike.observedBlockMediantime > this.strike.mediantime;
   }
 
   fetchOutcomeNotKnownStrikes(pageNumber: number = 1): void {
     this.isLoadingBlock = true;
-    this.oeBlocktimeApiService
+    this.blockrateTimeStrikeService
       .$outcomeKnownStrikesWithFilter(pageNumber - 1, {
         strikeBlockHeightEQ: this.toBlock.height,
         linesPerPage: 15,
@@ -136,7 +132,7 @@ export class BlockrateSummaryV2Component
       });
   }
 
-  private handleData(data: PaginationResponse<BlockTimeStrikePublic>): void {
+  private handleData(data: PaginationResponse<BlockSpanTimeStrike>): void {
     if (!data.results || !Array.isArray(data.results)) {
       this.strikesData = [];
       this.isLoadingBlock = false;
@@ -150,10 +146,10 @@ export class BlockrateSummaryV2Component
       this.isLoadingBlock = false;
       return;
     }
-    if (this.format === FormatType.LINE) {
+    if (this.format === FormatType.TABLE) {
       this.tableData = data.results.map((result) => {
         return {
-          ...result.strike,
+          ...result,
           guessesCount: result.guessesCount,
         };
       });
@@ -163,12 +159,12 @@ export class BlockrateSummaryV2Component
     this.isLoadingBlock = false;
   }
 
-  onChildRowClick(item: StrikeDetails): void {
+  onChildRowClick(item: BlockSpanTimeStrike): void {
     // Construct the query parameters
     const queryParams = {
       strikeHeight: item.block,
-      strikeTime: item.strikeMediantime,
-      startblock: item.block - 24,
+      strikeTime: item.mediantime,
+      startblock: item.block - APP_CONFIGURATION.SPAN_SIZE,
     };
 
     // Use the Router service to navigate with query parameters
