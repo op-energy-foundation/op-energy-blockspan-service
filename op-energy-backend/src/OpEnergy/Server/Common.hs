@@ -67,14 +67,16 @@ runExceptPrefixTF
   -> ExceptT Failure m r
   -> m (Either Failure r)
 runExceptPrefixTF prefix payload = do
-  ret <- runExceptT payload
-  return <! either
-    (\reason -> Left <! case reason of
-      Internal v-> Internal <! prefix <> ": " <> v
-      BadRequest v -> BadRequest <! prefix <> ": " <> v
-    )
-    Right
-    ret
+  !ret <- runExceptT payload
+  case ret of
+    Right some -> return (Right some)
+    Left some -> return <! case some of
+      Internal v->
+        let newPrefix = prefix <> ": " <> v
+        in Left <! Internal newPrefix
+      BadRequest v ->
+        let newPrefix = prefix <> ": " <> v
+        in Left <! BadRequest newPrefix
 
 --
 -- | this functions's goal is to handle possible exception into @Either@ type
@@ -122,5 +124,5 @@ breakT
     (Either l lr)
     m
     r
-breakT = throwE . Right
+breakT !v= throwE <! Right v
 
