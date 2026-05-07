@@ -41,7 +41,9 @@ executable op-energy-backend
     default-language: Haskell2010
     default-extensions:
                     OverloadedStrings
-    ghc-options:    -O2 -threaded -rtsopts "-with-rtsopts=-T -N"
+                  , StrictData
+                  , Strict
+    ghc-options:    -O2 -threaded -rtsopts "-with-rtsopts=-T -N -c -s"
 
 library
     hs-source-dirs: src
