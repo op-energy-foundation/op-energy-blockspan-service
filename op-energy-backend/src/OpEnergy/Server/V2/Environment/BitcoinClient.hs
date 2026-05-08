@@ -4,6 +4,7 @@ module OpEnergy.Server.V2.Environment.BitcoinClient
   ( getBlockchainInfo
   , getBlockStats
   , getBlock
+  , getBlockByHash
   , getBlockHash
   ) where
 
@@ -62,3 +63,12 @@ getBlockHash args =
   ptr <- asks Env.bitcoinClient
   lift <| BitcoinClient.getBlockHash ptr args
 
+getBlockByHash
+  :: Monad m
+  => API.BlockHash
+  -> AppM transactionROM transactionM m (Either Failure API.BlockHeader)
+getBlockByHash args =
+    let name = "getBlockByHash"
+    in profile name <| do
+  ptr <- asks Env.bitcoinClient
+  lift <| BitcoinClient.getBlockByHash ptr args
