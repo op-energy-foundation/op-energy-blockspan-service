@@ -29,7 +29,7 @@ spec = describe "Ping" $ do
   tip <- runIO <| QC.generate <| QC.choose (0,10000)
   blockchain <- runIO <| Bitcoin.generateBlockChain Bitcoin.genesisMediantime 0
     (verifyNatural tip)
-  (_, env) <- runIO <| Env.init blockchain
+  (_, env) <- runIO <| Env.init "Ping" blockchain
   it "should never fail" <| property <| \(_some::Int) -> monadicIO <| do
     eresponse <- run <| runAppM "test" env <| runExceptT <| do
       someResponse <- lift <| HandleRequest.handleRequest <| Request.Ping (Call0 Nothing)
