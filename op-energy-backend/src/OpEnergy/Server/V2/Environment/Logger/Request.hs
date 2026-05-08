@@ -18,5 +18,6 @@ data Request
   | LogDebug (Cast Text)
 
   | LogInput (Cast Text)
+  deriving (Show)
 
 

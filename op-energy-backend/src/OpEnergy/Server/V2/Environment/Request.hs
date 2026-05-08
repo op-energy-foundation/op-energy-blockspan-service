@@ -18,5 +18,6 @@ data Request
   | Logger Logger.Request
   | BitcoinClient BitcoinClient.Request
   | DataSource DataSource.Request
+  deriving (Show)
 
 

@@ -18,7 +18,11 @@ data Request = Request
 
   | GetBlock (Call API.BlockHash API.BlockInfo)
 
+  | GetBlockByHash (Call API.BlockHash API.BlockHeader)
+
   | GetBlockHash (Call API.BlockHeight API.BlockHash)
+
+  deriving (Show)
 
 
 
