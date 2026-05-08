@@ -10,4 +10,5 @@ import           OpEnergy.Server.V2.Core.Call
 
 data Request
   = Profile (Cast Text)
+  deriving (Show)
 

@@ -12,6 +12,7 @@ import           OpEnergy.Server.V2.Core.Call
 data Request
   = GetCurrentTime (Call0 UTCTime)
   | GetPOSIXTime (Call0 POSIXTime)
+  deriving (Show)
 
 --
 --  { getCurrentTime :: m UTCTime
