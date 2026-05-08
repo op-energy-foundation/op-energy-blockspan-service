@@ -5,19 +5,29 @@ module OpEnergy.Server.V2.Environment.BitcoinClient.Test
   , init
   , generateBlockChain
   , genesisMediantime
+  , addReorganizations
+  , getBlockHeaderByHash
+  , adjustAndGetCurrentTipByCurrentTime
   ) where
 
 import           Control.Concurrent.STM.TVar(TVar)
 import qualified Control.Concurrent.STM.TVar as TVar
 import qualified Control.Concurrent.STM as STM
-import           Control.Monad(foldM, void)
+import           Control.Monad(foldM, void, when, foldM)
 import           Control.Monad.Trans(lift)
 import           Control.Monad.Trans.Except
-                   ( runExceptT, ExceptT(..), throwE)
+                   ( ExceptT(..), throwE, withExceptT, runExceptT)
 import           Data.Vector(Vector, (!?))
 import qualified Data.Vector as V
+import qualified Data.Vector.Mutable as VM
+import           Data.Map.Strict(Map)
+import qualified Data.Map.Strict as Map
+import           Data.Text(Text)
+import qualified Data.Text as Text
+import qualified Data.List as List
 import           Prelude hiding (init)
 import           Data.Word(Word32)
+import           Data.Text.Show(tshow)
 import           Numeric
 import           Flow
 
@@ -32,30 +42,39 @@ import           Data.OpEnergy.API.V1.Natural
 import qualified Data.OpEnergy.API.V1.Block as Block
 import qualified Data.OpEnergy.API.V1.Hash as Hash
 
-import           OpEnergy.Server.Common(catchBreakT, breakT, exceptTMaybeT)
+import           OpEnergy.Server.Common
+                   ( catchBreakT, breakT, exceptTMaybeT, runExceptPrefixTF)
 import           OpEnergy.Server.V2.Core.Call
 import qualified OpEnergy.Server.V2.Environment.BitcoinClient.Class as Class
 import qualified OpEnergy.Server.V2.Environment.BitcoinClient.Request as Request
 import qualified OpEnergy.Server.V2.Environment.Request as Env
 import qualified OpEnergy.Server.V2.Environment.Time.Class as Time
+import qualified OpEnergy.Server.V2.Environment.Profiler.Class as Profiler
 
 data State = State
   { blockChain :: Vector Block.BlockHeader
-  , mtipBlockV :: TVar (Maybe Int)
+  , mtipBlockV :: TVar (Maybe Int, Map Block.BlockHash Int)
   , time :: Time.TimeM IO
+  , profiler :: Profiler.Profiler IO
+  , callstack :: Text
   }
 
+-- | generates new block chain of random blocks. Block heights are sequental
+-- and each next block refers to a hash of the previous block. Mediantime and
+-- timestamp of each next block is greater than appropriate values of the
+-- current block
 generateBlockChain
   :: Word32
   -> Natural Int
   -> Natural Int
   -> IO (Vector Block.BlockHeader)
-generateBlockChain _startTime startHeight endHeight
-  | endHeight <= startHeight = return V.empty
 generateBlockChain startTime startHeight endHeight = do
   initialBlock <-
     if startHeight == 0
-      then return genesisBlock
+      then return <! genesisBlock
+        { Block.blockHeaderTimestamp = startTime
+        , Block.blockHeaderMediantime = startTime
+        }
       else do
         block <- QC.generate QC.arbitrary
         medianTimeOffset <- QC.generate <! QC.choose (0,200)
@@ -105,41 +124,61 @@ genesisMediantime :: Word32
 genesisMediantime = 1231006505
 
 init
-  :: Vector Block.BlockHeader
+  :: Text
+  -> Vector Block.BlockHeader
   -> Time.TimeM IO
   -> (Env.Request-> IO ())
+  -> Profiler.Profiler IO
   -> IO (State, Class.BitcoinClient IO)
-init blockChain time logAction = do
-  mtipIdx <- TVar.newTVarIO Nothing
-
+init context blockChain time logAction profiler = do
+  mtipIdx <- TVar.newTVarIO (Nothing, Map.empty)
   let
       state = State
         { blockChain = blockChain
         , mtipBlockV = mtipIdx
         , time = time
+        , profiler = profiler
+        , callstack = context
         }
   return
     ( state
     , Class.BitcoinClient
-      { Class.getBlockchainInfo = do
+      { Class.getBlockchainInfo =
         logAction1
           ( Env.BitcoinClient <. Request.GetBlockchainInfo <. Call0 <. Just)
-          ( getBlockchainInfo state )
+          ( runExceptPrefixTF "getBlockchainInfo" <! do
+            void <! ExceptT <! adjustAndGetCurrentTipByCurrentTime state
+            ExceptT <! getBlockchainInfo state
+          )
 
-      , Class.getBlockStats = \arg-> do
+      , Class.getBlockStats = \arg->
         logAction1
           ( Env.BitcoinClient <. Request.GetBlockStats <. Call (Just arg) <. Just)
-          ( getBlockStats state arg)
+          <! runExceptPrefixTF "getBlockStats" <! do
+            void <! ExceptT <! adjustAndGetCurrentTipByCurrentTime state
+            ExceptT <! getBlockStats state arg
 
-      , Class.getBlock = \arg-> do
+      , Class.getBlock = \arg->
         logAction1
           ( Env.BitcoinClient <. Request.GetBlock <. Call (Just arg) <. Just)
-          ( getBlock state arg)
+          <! runExceptPrefixTF "getBlock" <! do
+            void <! ExceptT <! adjustAndGetCurrentTipByCurrentTime state
+            ExceptT <! getBlock state arg
 
-      , Class.getBlockHash = \arg-> do
+      , Class.getBlockHash = \arg->
         logAction1
           ( Env.BitcoinClient <. Request.GetBlockHash <. Call (Just arg) <. Just)
-          ( getBlockHash state arg)
+          <! runExceptPrefixTF "getBlockHash" <! do
+            void <! ExceptT <! adjustAndGetCurrentTipByCurrentTime state
+            ExceptT <! getBlockHash state arg
+
+      , Class.getBlockByHash = \arg->
+        logAction1
+          ( Env.BitcoinClient <. Request.GetBlockByHash <. Call (Just arg) <. Just)
+          <! runExceptPrefixTF "getBlock" <! do
+            void <! ExceptT <! adjustAndGetCurrentTipByCurrentTime state
+            ExceptT <! getBlockHeaderByHash state arg
+
       }
     )
   where
@@ -152,14 +191,36 @@ init blockChain time logAction = do
       logAction <! toReq ret
       return ret
 
+
+foldMI
+  :: Monad m
+  => (acc -> Int-> m acc)
+  -> acc
+  -> Int
+  -> m acc
+foldMI foo !acc !n
+  | n < 1 = foo acc 0
+foldMI foo !acc !n = do
+  newAcc <- foo acc n
+  foldMI foo newAcc newN
+  where
+  newN = n - 1
+
 adjustAndGetCurrentTipByCurrentTime
   :: State
   -> IO (Either Failure Block.BlockHeader)
-adjustAndGetCurrentTipByCurrentTime state = runExceptT <! do
-  mtipBlockIdx <- lift <! TVar.readTVarIO (mtipBlockV state)
+adjustAndGetCurrentTipByCurrentTime state0 =
+    let name = "adjustAndGetCurrentTipByCurrentTime"
+        state = state0
+          { callstack = (callstack state0) <> "." <> name
+          }
+        newCallstack = callstack state
+    in Profiler.profile profilerI newCallstack <! runExceptPrefixTF name <! do
+  (mtipBlockIdx, hashIdx) <- lift <! TVar.readTVarIO (mtipBlockV state)
   let
       blockchain = blockChain state
       startIdx = maybe 0 (+1) mtipBlockIdx
+      lastIdx = V.length blockchain - 1
       mtipIdxAndBlock = do
         idx <- mtipBlockIdx
         block <- blockchain !? idx
@@ -167,43 +228,90 @@ adjustAndGetCurrentTipByCurrentTime state = runExceptT <! do
   posixTime <- ExceptT <! Time.getPOSIXTime (time state)
   let
       currentTime = floor posixTime
-  (_, _, mBlockIdxAndBlock) <- catchBreakT <! foldM
-    searchForLatestBlockAndBreak
-    (blockchain, currentTime, mtipIdxAndBlock)
-    [ startIdx .. (V.length (blockChain state) - 1)]
+      foldMCallstack = newCallstack <> ".foldM"
+  ( _, _, mBlockIdxAndBlock, newHashIdx) <- ExceptT
+    <! Profiler.profile profilerI foldMCallstack <! runExceptT
+    <! catchBreakT <! foldM
+      searchForLatestBlockAndBreak
+      (blockchain, currentTime, mtipIdxAndBlock, hashIdx)
+      [ startIdx .. lastIdx]
   (newTipIdx, newTip) <- exceptTMaybeT (Internal "tip not exist yet2")
     <! return mBlockIdxAndBlock
-  lift <! STM.atomically <! TVar.writeTVar (mtipBlockV state) (Just newTipIdx)
+  lift <! STM.atomically
+    <! TVar.writeTVar (mtipBlockV state) (Just newTipIdx, newHashIdx)
   return newTip
   where
+  profilerI = profiler state0
   searchForLatestBlockAndBreak
     :: Monad m
-    => (Vector Block.BlockHeader, Word32, Maybe (Int, Block.BlockHeader))
+    => ( Vector Block.BlockHeader
+       , Word32
+       , Maybe (Int, Block.BlockHeader)
+       , Map Block.BlockHash Int
+       )
     -> Int
     -> ExceptT
-       (Either Failure (Vector Block.BlockHeader, Word32, Maybe (Int, Block.BlockHeader)))
+       ( Either
+         Failure
+         ( Vector Block.BlockHeader
+         , Word32
+         , Maybe (Int, Block.BlockHeader)
+         , Map Block.BlockHash Int
+         )
+       )
        m
-       (Vector Block.BlockHeader, Word32, Maybe (Int, Block.BlockHeader))
+       ( Vector Block.BlockHeader
+       , Word32
+       , Maybe (Int, Block.BlockHeader)
+       , Map Block.BlockHash Int
+       )
   searchForLatestBlockAndBreak
-      acc@(blockchain, currentTime, mpreviousMatchingBlockIdx)
+      acc@(!blockchain, !currentTime, !mpreviousMatchingBlockIdx, !hashIdx)
       idx = do
     let
         mcurrentBlock = blockchain !? idx
     currentBlock <- case mcurrentBlock of
       Nothing -> breakT acc
       Just some -> return some
+    let
+        newHashIdx = Map.insert (Block.blockHeaderHash currentBlock) idx hashIdx
     case ( Block.blockHeaderTimestamp currentBlock > currentTime
          , mpreviousMatchingBlockIdx
          ) of
-      ( True, Nothing) -> throwE <! Left <! Internal "no tip exist yet"
-      ( True, ret@(Just _)) -> breakT (blockchain, currentTime, ret)
-      ( False, _ ) -> return (blockchain, currentTime, Just (idx, currentBlock))
+      ( True, Nothing) -> throwE <! Left <! Internal <! Text.unlines
+        [ "no tip exist yet: "
+        , "idx: " <> tshow idx
+        , "block: " <> tshow (Block.blockHeaderHeight currentBlock)
+        , "block time stamp: " <> tshow (Block.blockHeaderTimestamp currentBlock)
+        , ", currentTime: " <> tshow currentTime
+        ]
+      ( True, ret@(Just _)) -> breakT (blockchain, currentTime, ret, newHashIdx)
+      ( False, _ ) -> return ( blockchain
+                             , currentTime
+                             , Just (idx, currentBlock)
+                             , newHashIdx
+                             )
 
 getBlockchainInfo
   :: State
   -> IO (Either Failure API.BlockchainInfo)
-getBlockchainInfo state = runExceptT $ do
-  tipBlock <- ExceptT <! adjustAndGetCurrentTipByCurrentTime state
+getBlockchainInfo state0 =
+    let
+        name = "getBlockchainInfo"
+        state = state0
+          { callstack = (callstack state0) <> "." <> name
+          }
+        newCallstack = callstack state
+        profilerI = profiler state
+        blockchain = blockChain state
+    in Profiler.profile profilerI newCallstack <! runExceptPrefixTF name <! do
+  (mtipBlockIdx, _) <- lift <! TVar.readTVarIO (mtipBlockV state)
+  tipBlockIdx <- exceptTMaybeT (Internal "no tip discovered yet")
+    <! return mtipBlockIdx
+  let
+      mtipBlock = blockchain !? tipBlockIdx
+  tipBlock <- exceptTMaybeT (Internal "tip block is missing, unexpected")
+    <! return mtipBlock
   return <! API.BlockchainInfo
     { API.chain = "main"
     , API.blocks = Block.blockHeaderHeight tipBlock
@@ -244,7 +352,15 @@ getBlockHash
   :: State
   -> Block.BlockHeight
   -> IO (Either Failure Block.BlockHash)
-getBlockHash state height = runExceptT <! do
+getBlockHash state0 height =
+    let
+      name = "getBlockHash"
+      newCallstack = (callstack state0) <> "." <> name
+      state = state0
+        { callstack = newCallstack
+        }
+      profilerI = profiler state0
+    in Profiler.profile profilerI newCallstack <! runExceptPrefixTF name <! do
   foundBlock <- ExceptT <! getBlockHeaderByHeight state height
   return <! Block.blockHeaderHash foundBlock
 
@@ -252,98 +368,259 @@ getBlockStats
   :: State
   -> Block.BlockHeight
   -> IO (Either Failure BlockStats.BlockStats)
-getBlockStats state height = runExceptT <! do
+getBlockStats state0 height =
+    let
+        name = "getBlockStats"
+        state = state0
+          { callstack = (callstack state0) <> "." <> name
+          }
+        profilerI = profiler state0
+        newCallstack = callstack state
+    in Profiler.profile profilerI newCallstack <! runExceptPrefixTF name <! do
   foundBlock <- ExceptT <! getBlockHeaderByHeight state height
   lift
     ( BlockStats.BlockStats
-    <$> QC.generate QC.arbitrary -- { avgfee :: Word64 -- ^ ./src/amount.h:typedef int64_t CAmount
-    <*> QC.generate QC.arbitrary -- , avgfeerate :: Word64
-    <*> QC.generate QC.arbitrary -- , avgtxsize :: Word64
+    <$> return 123 -- QC.generate QC.arbitrary -- { avgfee :: Word64 -- ^ ./src/amount.h:typedef int64_t CAmount
+    <*> return 123 -- QC.generate QC.arbitrary -- , avgfeerate :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , avgtxsize :: Word64
     <*> pure ( Block.blockHeaderHash foundBlock) -- , blockhash :: BlockHash
-    <*> QC.generate QC.arbitrary -- , feerate_percentiles :: [Word64]
+    <*> return [123] -- QC.generate QC.arbitrary -- , feerate_percentiles :: [Word64]
     <*> pure height -- , height :: BlockHeight
-    <*> QC.generate QC.arbitrary -- , ins :: Word64
-    <*> QC.generate QC.arbitrary -- , maxfee :: Word64
-    <*> QC.generate QC.arbitrary -- , maxfeerate :: Word64
-    <*> QC.generate QC.arbitrary -- , maxtxsize :: Word64
-    <*> QC.generate QC.arbitrary -- , medianfee :: Word64
-    <*> QC.generate QC.arbitrary -- , mediantxsize :: Word64
-    <*> QC.generate QC.arbitrary -- , minfee :: Word64
-    <*> QC.generate QC.arbitrary -- , minfeerate :: Word64
-    <*> QC.generate QC.arbitrary -- , mintxsize :: Word64
-    <*> QC.generate QC.arbitrary -- , outs :: Word64
-    <*> QC.generate QC.arbitrary -- , subsidy :: Word64
-    <*> QC.generate QC.arbitrary -- , swtotal_size :: Word64
-    <*> QC.generate QC.arbitrary -- , swtotal_weight :: Word64
-    <*> QC.generate QC.arbitrary -- , swtxs :: Word64 -- ^ ./src/rpc/blockchain.cpp:    int64_t swtxs
-    <*> QC.generate QC.arbitrary -- , total_out :: Word64
-    <*> QC.generate QC.arbitrary -- , total_size :: Word64
-    <*> QC.generate QC.arbitrary -- , total_weight :: Word64
-    <*> QC.generate QC.arbitrary -- , totalfee :: Word64
-    <*> QC.generate QC.arbitrary -- , utxo_increase :: Int64
-    <*> QC.generate QC.arbitrary -- , utxo_size_inc :: Int64
+    <*> return 123 -- QC.generate QC.arbitrary -- , ins :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , maxfee :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , maxfeerate :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , maxtxsize :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , medianfee :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , mediantxsize :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , minfee :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , minfeerate :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , mintxsize :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , outs :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , subsidy :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , swtotal_size :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , swtotal_weight :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , swtxs :: Word64 -- ^ ./src/rpc/blockchain.cpp:    int64_t swtxs
+    <*> return 123 -- QC.generate QC.arbitrary -- , total_out :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , total_size :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , total_weight :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , totalfee :: Word64
+    <*> return 123 -- QC.generate QC.arbitrary -- , utxo_increase :: Int64
+    <*> return 123 -- QC.generate QC.arbitrary -- , utxo_size_inc :: Int64
     )
 
 getBlockHeaderByHash
   :: State
   -> Block.BlockHash
   -> IO (Either Failure Block.BlockHeader)
-getBlockHeaderByHash state hash = runExceptT <! do
-  void <! ExceptT <! adjustAndGetCurrentTipByCurrentTime state
-  mfoundBlock <- catchBreakT <! foldM
-    (\acc block->
-      if Block.blockHeaderHash block == hash
-        then breakT <! Just block
-        else return acc
-    )
-    Nothing
-    <! blockChain state
-  exceptTMaybeT (BadRequest "block with given hash not found")
-    <! return mfoundBlock
+getBlockHeaderByHash state0 hash =
+    let
+        name = "getBlockHeaderByHash"
+        state = state0
+          { callstack = (callstack state0) <> "." <> name
+          }
+        profilerI = profiler state0
+        newCallstack = callstack state
+    in Profiler.profile profilerI newCallstack <! runExceptPrefixTF name <! do
+  ( _, hashIdx) <- lift <! TVar.readTVarIO (mtipBlockV state)
+  idx <- exceptTMaybeT (BadRequest "no block with given hash")
+    <! return <! Map.lookup hash hashIdx
+  let
+      blockchain = blockChain state
+  exceptTMaybeT (Internal "hash map has hash, but block chain has no such block")
+    <! return <! blockchain !? idx
 
 getBlockHeaderByHeight
   :: State
   -> Block.BlockHeight
   -> IO (Either Failure Block.BlockHeader)
-getBlockHeaderByHeight state heightUnchecked = runExceptT <! do
-  tipBlock <- ExceptT <! adjustAndGetCurrentTipByCurrentTime state
+getBlockHeaderByHeight state0 heightUnchecked =
+    let
+        name = "getBlockHeaderByHeight"
+        newCallstack = (callstack state0) <> "." <> name
+        state = state0
+          { callstack = newCallstack
+          }
+        profilerI = profiler state0
+        blockchain = blockChain state
+    in Profiler.profile profilerI newCallstack <! runExceptPrefixTF name <! do
+  (mtipBlockIdx, _) <- lift <! TVar.readTVarIO (mtipBlockV state)
+  tipBlockIdx <- exceptTMaybeT (Internal "no tip discovered yet")
+    <! return mtipBlockIdx
+  let
+      mtipBlock = blockchain !? tipBlockIdx
+  tipBlock <- exceptTMaybeT (Internal "tip block is missing, unexpected")
+    <! return mtipBlock
+  (mtipBlockIdx, _) <- lift <! TVar.readTVarIO (mtipBlockV state)
+  tipBlockIdx <- exceptTMaybeT (Internal "no tip discovered yet")
+    <! return mtipBlockIdx
   height <-
     if Block.blockHeaderHeight tipBlock < heightUnchecked
     then throwE (BadRequest "requested block height is not exist")
     else return heightUnchecked
-  mfoundBlock <- catchBreakT <! foldM
-    (\acc block->
-      if Block.blockHeaderHeight block == height
-        then breakT <! Just block
-        else return acc
-    )
-    Nothing
-    <! blockChain state
-  exceptTMaybeT (BadRequest "block with given hash not found")
+  let
+      foldMICallstack = newCallstack <> ".foldMI"
+  (mfoundBlock, _, _, _) <- ExceptT
+    <! Profiler.profile profilerI foldMICallstack <! runExceptT
+    <! catchBreakT <! foldMI
+      searchHashWithinBlockchain
+      (Nothing, state, height, tipBlock)
+      tipBlockIdx
+  exceptTMaybeT (BadRequest "block with given height not found")
     <! return mfoundBlock
+  where
+  searchHashWithinBlockchain (!acc, !state0, !height, !block) _ =
+    let
+        name = "searchHashWithinBlockchain"
+        _profilerI = profiler state0
+        !newCallstack = (callstack state0) <> "." <> name
+        state = state0
+          { callstack = newCallstack
+          }
+    in do
+      if Block.blockHeaderHeight block == height
+        then breakT (Just block, state0, height, block)
+        else do
+          prevBlockHash <- exceptTMaybeT
+            (Left <! Internal "block with given hash not found in block chain")
+            <! return <! Block.blockHeaderPreviousblockhash block
+          nextBlock <- withExceptT Left <! ExceptT
+            <! getBlockHeaderByHash state prevBlockHash
+          return (acc, state0, height, nextBlock)
 
 getBlock
   :: State
   -> Block.BlockHash
   -> IO (Either Failure BlockInfo.BlockInfo)
-getBlock state hash = runExceptT <! do
+getBlock state0 hash =
+    let
+        name = "getBlock"
+        state = state0
+          { callstack = (callstack state0) <> "." <> name
+          }
+        profilerI = profiler state0
+        newCallstack = callstack state
+    in Profiler.profile profilerI newCallstack <! runExceptPrefixTF name <! do
   foundBlock <- ExceptT <! getBlockHeaderByHash state hash
   lift <! BlockInfo.BlockInfo
     <$> pure (Block.blockHeaderHash foundBlock) -- hash :: BlockHash
-    <*> QC.generate QC.arbitrary -- confirmations :: Natural Int
+    <*> return 123 -- QC.generate QC.arbitrary -- confirmations :: Natural Int
     <*> pure (Block.blockHeaderHeight foundBlock) -- height :: BlockHeight
-    <*> QC.generate QC.arbitrary -- version :: Int32
-    <*> QC.generate QC.arbitrary -- merkleroot :: Hash
+    <*> pure (Block.blockHeaderVersion foundBlock) -- version :: Int32
+    <*> pure (Block.blockHeaderMerkle_root foundBlock) -- merkleroot :: Hash
     <*> pure (Block.blockHeaderTimestamp foundBlock) -- time :: Word32
     <*> pure (Block.blockHeaderMediantime foundBlock) -- mediantime :: Word32
-    <*> QC.generate QC.arbitrary -- nonce :: Word32
-    <*> QC.generate QC.arbitrary -- bits :: Bits
-    <*> QC.generate QC.arbitrary -- difficulty :: Double
-    <*> QC.generate QC.arbitrary -- chainwork :: Natural Integer
-    <*> QC.generate QC.arbitrary -- nTx :: Word64
+    <*> pure (Block.blockHeaderNonce foundBlock) -- nonce :: Word32
+    <*> pure (Block.blockHeaderBits foundBlock) -- bits :: Bits
+    <*> pure (Block.blockHeaderDifficulty foundBlock) -- difficulty :: Double
+    <*> pure (Block.blockHeaderChainwork foundBlock) -- chainwork :: Natural Integer
+    <*> pure (Block.blockHeaderTx_count foundBlock) -- nTx :: Word64
     <*> pure (Block.blockHeaderPreviousblockhash foundBlock) -- previousblockhash :: Maybe BlockHash
-    <*> QC.generate QC.arbitrary -- nextblockhash :: Maybe BlockHash
-    <*> QC.generate QC.arbitrary -- strippedsize :: Word64
-    <*> QC.generate QC.arbitrary -- size :: Word64
-    <*> QC.generate QC.arbitrary -- weight :: Word64
+    <*> return Nothing -- QC.generate QC.arbitrary -- nextblockhash :: Maybe BlockHash
+    <*> return 123 -- QC.generate QC.arbitrary -- strippedsize :: Word64
+    <*> pure (Block.blockHeaderSize foundBlock) -- size :: Word64
+    <*> pure (Block.blockHeaderWeight foundBlock) -- weight :: Word64
+
+addReorganizations
+  :: [Int]
+  -> Vector Block.BlockHeader
+  -> IO (Either Failure (Vector Block.BlockHeader, Vector Block.BlockHeader))
+addReorganizations reorgOffsets plainBlockChain =
+    let name = "addReorganizations"
+    in runExceptPrefixTF name <! do
+  when (reorgChunkSize < minimumSizeOfReorg) <!
+    throwE <! Internal "reorgChunkSize < minimumSizeOfReorg"
+  (chunks, reorganizedBlocks, unprocessed, _) <- foldM mkChainChunk
+    ([], V.empty, plainBlockChain, 0) reorgOffsets
+  return (V.concat <! List.reverse (unprocessed:chunks), reorganizedBlocks)
+  where
+    blockChainSize = V.length plainBlockChain
+    reorgCounts = List.length reorgOffsets
+    reorgChunkSize = blockChainSize `div` reorgCounts
+    maxReorgOffset = List.foldl' max (List.head reorgOffsets) (List.tail reorgOffsets)
+    minimumSizeOfReorg = maxReorgOffset + 1
+    mkChainChunk !(acc, reorginizedBlocksAcc, blockChainToProcess, startIdx) !offset = do
+      (chunkWithHeadNewBlockAndTail, newBlocks) <- getChunkWithHeadNewBlockAndTail
+      return
+        ( chunkWithHeadNewBlockAndTail:acc
+        , V.concat [reorginizedBlocksAcc, newBlocks]
+        , rest
+        , startIdx + reorgChunkSize
+        )
+      where
+        (initialChunk,rest) = V.splitAt reorgChunkSize blockChainToProcess
+        (chainPrefix, lastElementInChain) = V.splitAt (reorgChunkSize - 1) initialChunk
+        getChunkWithHeadNewBlockAndTail = do
+          lastBlockInChain <- exceptTMaybeT (Internal "lastElementInChain !? 0")
+            <! return <! lastElementInChain !? 0
+          offsetOfBlockToReplace <- let
+              rawUnchecked = V.length chainPrefix - offset
+            in if rawUnchecked < 1
+              then throwE
+                <! Internal
+                <! ( "rawUnchecked < 1: "
+                   <> tshow (V.length chainPrefix)
+                   <> ", "
+                   <> tshow offset
+                   <> ", "
+                   <> tshow reorgChunkSize
+                   )
+              else return rawUnchecked
+          blockToReplace <- exceptTMaybeT (Internal "chainPrefix !? offsetOfBlockToReplace")
+            <! return <! chainPrefix !? offsetOfBlockToReplace
+          blockPrefixToBlockToReplace <-
+            exceptTMaybeT (Internal "chainPrefix !? (offsetOfBlockToReplace - 1)")
+              <! return <! chainPrefix !? (offsetOfBlockToReplace - 1)
+          let
+              newBranchStartTime = Block.blockHeaderTimestamp lastBlockInChain + 10
+              newBranchStartHeight = Block.blockHeaderHeight blockToReplace
+              newBranchEndHeight = Block.blockHeaderHeight blockToReplace
+                + verifyNatural offset
+          randomBranch <- lift <! V.take offset
+            <$> generateBlockChain newBranchStartTime
+              newBranchStartHeight newBranchEndHeight
+          let
+              newBranchConnectedToInitialBranch = V.modify
+                ( connectBranchTo blockPrefixToBlockToReplace
+                  ( Block.blockHeaderTimestamp lastBlockInChain
+                    - fromIntegral (offset + 1) * 10
+                  )
+                )
+                randomBranch
+          theLastBlockOfTheNewBranch <- exceptTMaybeT
+            (Internal "newBranchConnectedToInitialBranch !? (offset - 1)")
+              <! return <! newBranchConnectedToInitialBranch !? (offset - 1)
+          let
+             newLastBlockInChunk = lastBlockInChain
+               { Block.blockHeaderPreviousblockhash = Just
+                 <! Block.blockHeaderHash theLastBlockOfTheNewBranch
+               }
+          return
+            ( V.concat
+              [ chainPrefix
+              , newBranchConnectedToInitialBranch
+              , V.singleton newLastBlockInChunk
+              ]
+            , V.concat
+              [ newBranchConnectedToInitialBranch
+              , V.singleton newLastBlockInChunk
+              ]
+            )
+        connectBranchTo block newBranchStartTime v = do
+          theFirstBlock <- VM.read v 0
+          VM.write v 0 <! theFirstBlock
+            { Block.blockHeaderPreviousblockhash = Just
+              <! Block.blockHeaderHash block
+            }
+          void <! foldM syncTimestampsToBeJustALittleNewerThanOriginalBlocks
+            newBranchStartTime
+            [ 0 .. vSz - 1 ]
+          where
+          vSz = VM.length v
+          syncTimestampsToBeJustALittleNewerThanOriginalBlocks blockStartTime idx = do
+                newBlock <- VM.read v idx
+                VM.write v idx <! newBlock
+                  { Block.blockHeaderTimestamp =
+                    blockStartTime + 10
+                  }
+                return <! blockStartTime + 10
 

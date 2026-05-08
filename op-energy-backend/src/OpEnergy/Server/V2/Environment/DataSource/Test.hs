@@ -28,7 +28,7 @@ import qualified OpEnergy.Server.V2.Environment.DataSource.Class as Class
 
 data State = State
   { blocksV :: TVar (Map BlockHeight BlockHeader)
-  , hashesV :: TVar (Map BlockHash BlockHeight)
+  , hashesV :: TVar (Map BlockHash BlockHeader)
   }
 
 init
@@ -64,6 +64,12 @@ init logAction logActionSTM = do
         )
         <! mgetBlockHeaderByHeightRO state arg
 
+      , Class.mgetBlockHeaderByHashRO = \arg-> logActionSTM1
+        ( Env.DataSource <. Request.ReadRequest <. Request.MGetBlockHeaderByHashRO <. Call (Just arg)
+        <. Just <. Right
+        )
+        <! mgetBlockHeaderByHashRO state arg
+
       }
     )
   where
@@ -85,7 +91,7 @@ storeBlockHeader
   -> STM ()
 storeBlockHeader state header = do
   TVar.modifyTVar (blocksV state) <! Map.insert height header
-  TVar.modifyTVar (hashesV state) <! Map.insert hash height
+  TVar.modifyTVar (hashesV state) <! Map.insert hash header
   where
   height = blockHeaderHeight header
   hash = blockHeaderHash header
@@ -97,5 +103,13 @@ mgetBlockHeaderByHeightRO
 mgetBlockHeaderByHeightRO state height = runMaybeT <! do
   blocks <- lift <! TVar.readTVar (blocksV state)
   MaybeT <! pure <! Map.lookup height blocks
+
+mgetBlockHeaderByHashRO
+  :: State
+  -> BlockHash
+  -> STM (Maybe BlockHeader)
+mgetBlockHeaderByHashRO state hash = runMaybeT <! do
+  hashes <- lift <! TVar.readTVar (hashesV state)
+  MaybeT <! pure <! Map.lookup hash hashes
 
 
