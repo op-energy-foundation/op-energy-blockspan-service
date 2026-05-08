@@ -28,8 +28,10 @@ profile header action = do
   env <- ask
   ptr <- asks Env.profiler
   callstack <- asks Env.callstack
-  lift $ Class.profile ptr header $ do
-    runAppM (callstack <> "." <> header) env action
+  let
+      newCallstack = callstack <> "." <> header
+  lift $ Class.profile ptr newCallstack $ do
+    runAppM newCallstack env action
 
 profileReq
   :: Monad m
