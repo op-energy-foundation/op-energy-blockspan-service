@@ -33,7 +33,7 @@ spec = describe "scheduler.iteration" $ do
     tip <- run <| QC.generate <| QC.choose (0,10000)
     blockchain <- run <| Bitcoin.generateBlockChain Bitcoin.genesisMediantime 0
       (verifyNatural tip)
-    (envState, env) <- lift <| Env.init blockchain
+    (envState, env) <- lift <| Env.init "scheduler.iteration" blockchain
     run <| Time.setTimeNS (Env.timeState envState)
       (fromIntegral Bitcoin.genesisMediantime * 1_000_000_000)
     shouldContinue <- run <| runAppM "test" env <| do
@@ -45,7 +45,7 @@ spec = describe "scheduler.iteration" $ do
     tip <- run <| QC.generate <| QC.choose (0,10000)
     blockchain <- run <| Bitcoin.generateBlockChain Bitcoin.genesisMediantime 0
       (verifyNatural tip)
-    (_, env) <- lift <| Env.init blockchain
+    (_, env) <- lift <| Env.init "scheduler.iteration" blockchain
     void <| lift <| STM.atomically
       <| TVar.writeTVar (Env.shutdownRequestedV env) True
     shouldContinue <- run <| runAppM "test" env <| do
@@ -54,7 +54,7 @@ spec = describe "scheduler.iteration" $ do
 
   it "should exit on when bitcoin node client fails"
       <| property <| \(_some::Int) -> monadicIO <| do
-    (_, env) <- lift <| Env.init V.empty
+    (_, env) <- lift <| Env.init "scheduler.iteration" V.empty
     shouldContinue <- run <| runAppM "test" env <| do
       Scheduler.iteration
     assert ( not shouldContinue )
@@ -63,7 +63,7 @@ spec = describe "scheduler.iteration" $ do
       <| property <| \(_some::Int) -> monadicIO <| do
     blockchain <- run <| Bitcoin.generateBlockChain Bitcoin.genesisMediantime 0
       1
-    (envState, env) <- lift <| Env.init blockchain
+    (envState, env) <- lift <| Env.init "scheduler.iteration" blockchain
     let
         setTimeOfDiscoveryOfTheGenesisBlock = do
           let
