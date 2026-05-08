@@ -3,16 +3,18 @@ module OpEnergy.Server.V2.Core.SchedulerThread
   , iteration
   ) where
 
+import qualified Data.Text as Text
 import           Data.Word(Word64)
 import           Control.Monad.Reader(asks)
 import           Control.Monad( when, foldM)
 import           Control.Monad.Trans( lift)
-import           Control.Monad.Trans.Except(ExceptT(..))
+import           Control.Monad.Trans.Except(ExceptT(..), withExceptT)
 import qualified Control.Concurrent.STM.TVar as TVar
 import           Data.Maybe( fromJust)
 import           Flow
 
 import           Data.OpEnergy.API.V1.Positive(fromPositive)
+import           Data.OpEnergy.API.V1.Natural( verifyNatural)
 import           Data.OpEnergy.API.V1.Block(BlockHeight, BlockHeader(..))
 import qualified Data.Bitcoin.BlockInfo as BlockInfo
 import qualified Data.Bitcoin.BlockStats as BlockStats
@@ -95,6 +97,7 @@ syncBlockHeaders =
         -- cache newest header
   return ()
   where
+
     -- | queries bitcoin node and compares with latest witnessed block
     mgetHeightToStartSyncFromTo
       :: Monad m
@@ -103,46 +106,199 @@ syncBlockHeaders =
     mgetHeightToStartSyncFromTo =
         let name = "mgetHeightToStartSyncFromTo"
         in profile name <! runExceptPrefixTF name <! do
-      config <- asks Env.config
-      mcurrentConfirmedTipV <- asks Env.mcurrentTipV
-      mcurrentConfirmedTip <- lift <! atomically
-        <! TVar.readTVar mcurrentConfirmedTipV
-      blockchainInfo <- ExceptT <! getBlockchainInfo
-      let newUnconfirmedHeightTip = Bitcoin.blocks blockchainInfo
-      lift <! logDebug <! "current unconfirmed height tip is: "
-        <> tshow newUnconfirmedHeightTip
+      blockchainInfo <- ExceptT getBlockchainInfo
+      configBlocksToConfirm <- asks <! Config.configBlocksToConfirm <. Env.config
+      newUnconfirmedTipBlock <- ExceptT <! getBlockByHash
+        <! Bitcoin.bestblockhash blockchainInfo
       catchBreakT <! do
-        case mcurrentConfirmedTip of
-          Just currentConfirmedTip
-            | blockHeaderHeight currentConfirmedTip
-              + Config.configBlocksToConfirm config
-              >= newUnconfirmedHeightTip ->
-              let newConfirmedBlockNotFoundYet = breakT Nothing
-              in newConfirmedBlockNotFoundYet
-          _ ->
-            let continue = return ()
-            in continue
-        when ( newUnconfirmedHeightTip < Config.configBlocksToConfirm config) <!
-          let thereIsNoConfirmedBlockFoundYet = breakT Nothing
-          in thereIsNoConfirmedBlockFoundYet
-        let confirmedHeightFrom =
-              case mcurrentConfirmedTip of
-                Nothing -> 0 -- no previously confirmed tip, start with 0
-                Just currentConfirmedTip ->
-                  blockHeaderHeight currentConfirmedTip + 1 -- start with the
-                    -- next unconfirmed tip
-            confirmedHeightTo = newUnconfirmedHeightTip
-              - Config.configBlocksToConfirm config
-        return <! Just (confirmedHeightFrom, confirmedHeightTo)
+        unconfirmedTipTheSame <- withExceptT Left <! ExceptT <! isUnconfirmedTipTheSame
+          newUnconfirmedTipBlock
+        when unconfirmedTipTheSame nothingShouldBeDone
+        lift <! logDebug <! Text.unlines
+          [ "new unconfirmed (height, hash) tip is: "
+            <> tshow ( blockHeaderHeight newUnconfirmedTipBlock
+                     , blockHeaderHash newUnconfirmedTipBlock
+                     )
+          , "configBlocksToConfirm: " <> tshow configBlocksToConfirm
+          ]
+        let
+            isNewUnconfirmedTipBelowConfirmationTreshold =
+              blockHeaderHeight newUnconfirmedTipBlock < configBlocksToConfirm
+        when isNewUnconfirmedTipBelowConfirmationTreshold nothingShouldBeDone
+        (eitherDiscoveredUnconfirmedTipReorganizedOrCurrentChainContinues
+          :: Either (BlockHeader, BlockHeader) (BlockHeight, BlockHeight)
+          ) <- withExceptT Left <! ExceptT
+            <! checkEitherOldChainStalledOrContinues newUnconfirmedTipBlock
+        case eitherDiscoveredUnconfirmedTipReorganizedOrCurrentChainContinues of
+          Right (confirmedHeightFrom, confirmedHeightTo) -> do
+            lift <! logInfo
+              <! "observing new range of blocks within current branch: "
+              <> tshow (confirmedHeightFrom, confirmedHeightTo)
+            return <! Just (confirmedHeightFrom, confirmedHeightTo)
+          Left (confirmedTipFromOldBranch, confirmedTipFromNewBranch) -> do
+            lift <! logInfo <! Text.unlines
+              [ "observing new branch, old confirmed block is now considered \
+                \in a stale branch"
+              , "old branch: " <> tshow confirmedTipFromOldBranch
+              , "new branch: " <> tshow confirmedTipFromNewBranch
+              ]
+            rootBlockOfBothBranches <- withExceptT Left <! ExceptT
+              <! searchCommonRootBlock
+                confirmedTipFromOldBranch
+                confirmedTipFromNewBranch
+            let
+                theFirstNewHeight = blockHeaderHeight rootBlockOfBothBranches + 1
+            return <! Just
+              ( theFirstNewHeight
+              , blockHeaderHeight confirmedTipFromNewBranch
+              )
+      where
+      nothingShouldBeDone = breakT Nothing
 
+    checkEitherOldChainStalledOrContinues
+      :: (Monad m)
+      => BlockHeader
+      -> (AppM transactionROM transactionM m)
+         ( Either
+           Failure
+           ( Either
+             (BlockHeader, BlockHeader)
+             (BlockHeight, BlockHeight)
+           )
+         )
+    checkEitherOldChainStalledOrContinues newUnconfirmedTipBlock =
+        let name = "checkEitherOldChainStalledOrContinues"
+        in runExceptPrefixTF name <! catchBreakT <! do
+      configBlocksToConfirm <- asks <! Config.configBlocksToConfirm <. Env.config
+      let
+          confirmedBlockHeightOfNEWBranch = blockHeaderHeight newUnconfirmedTipBlock
+            - configBlocksToConfirm
+      mCurrentConfirmedTipV <- asks Env.mWitnessedUnconfirmedTipV
+      mCurrentConfirmedTip <- lift <! atomically <! TVar.readTVar mCurrentConfirmedTipV
+      currentConfirmedTip <- case mCurrentConfirmedTip of
+        Nothing-> breakT <! Right
+          ( verifyNatural 0
+          , confirmedBlockHeightOfNEWBranch
+          )
+        Just some -> return some
+      let
+          newBranchConfirmedBlockHeightIsBelowCurrentConfirmedBlockHeight =
+            blockHeaderHeight currentConfirmedTip > confirmedBlockHeightOfNEWBranch
+      when newBranchConfirmedBlockHeightIsBelowCurrentConfirmedBlockHeight <! do
+        confirmedTipOfTheNewBranch <- withExceptT Left <! ExceptT <! foldMDownChain
+          (walkToHeight confirmedBlockHeightOfNEWBranch)
+          newUnconfirmedTipBlock
+        let
+            oldBranchIsStalled = breakT <! Left
+              ( currentConfirmedTip
+              , confirmedTipOfTheNewBranch
+              )
+        oldBranchIsStalled
+      return <! Right (blockHeaderHeight currentConfirmedTip, confirmedBlockHeightOfNEWBranch)
+
+    searchCommonRootBlock
+      :: Monad m
+      => BlockHeader
+      -> BlockHeader
+      -> AppM transactonROM transactionM m (Either Failure BlockHeader)
+    searchCommonRootBlock confirmedTipFromOldBranch confirmedTipFromNewBranch =
+        let name = "searchCommonRootBlock"
+        in runExceptPrefixTF name <! do
+      let
+          (shortestBranch, longestBranch) =
+            if blockHeaderHeight confirmedTipFromOldBranch
+               <= blockHeaderHeight confirmedTipFromNewBranch
+              then (confirmedTipFromOldBranch, confirmedTipFromNewBranch)
+              else (confirmedTipFromNewBranch, confirmedTipFromOldBranch)
+      longestBranchsShortestHeight <- ExceptT <! foldMDownChain
+        (walkToHeight (blockHeaderHeight shortestBranch)) longestBranch
+      let
+          bothBranchsAreTheSame =
+            blockHeaderPreviousblockhash longestBranchsShortestHeight
+            == blockHeaderPreviousblockhash shortestBranch
+      case () of
+        _ | bothBranchsAreTheSame -> return shortestBranch
+        _ | otherwise -> do
+          ExceptT <! foldMDownChain searchForCommonBlock
+            (shortestBranch, longestBranchsShortestHeight)
+
+    foldMDownChain
+      :: (Monad m)
+      => (acc -> AppM transactionROM tranasactionM m (Either Failure (Either acc result)))
+      -> acc
+      -> AppM transactionROM tranasactionM m (Either Failure result)
+    foldMDownChain foo acc = loop acc
+      where
+      loop acc = do
+        eContinueOrResult <- foo acc
+        case eContinueOrResult of
+          Left some -> return <! Left some
+          Right (Left nextBlock) -> loop nextBlock
+          Right (Right some) -> return <! Right some
+
+
+    walkToHeight
+      :: Monad m
+      => BlockHeight
+      -> BlockHeader
+      -> AppM transactionROM transactionM m
+        ( Either Failure (Either BlockHeader BlockHeader))
+    walkToHeight targetHeight accBlock
+      | isCurrentBlockIsTheTarget = return <! Right <! Right accBlock
+      where
+        isCurrentBlockIsTheTarget = blockHeaderHeight accBlock == targetHeight
+    walkToHeight _targetHeight accBlock =
+        let name = "walkToHeight"
+        in runExceptPrefixTF name <! do
+      previousBlockHash <- exceptTMaybeT ( Internal "no target height found")
+        <! return <! blockHeaderPreviousblockhash accBlock
+      previousBlock <- ExceptT
+        <! getBlockByHash previousBlockHash
+      return <! Left previousBlock
+
+    searchForCommonBlock
+      :: Monad m
+      => (BlockHeader, BlockHeader)
+      -> AppM transactionROM transactionM m
+         (Either Failure (Either (BlockHeader, BlockHeader) BlockHeader))
+    searchForCommonBlock (shortestBranchBlock, largestBranchBlock)
+      | isCommonRootFound = return <! Right <! Right shortestBranchBlock
+      where
+        isCommonRootFound =
+          blockHeaderHeight shortestBranchBlock == blockHeaderHeight largestBranchBlock
+          && blockHeaderHash shortestBranchBlock == blockHeaderHash largestBranchBlock
+    searchForCommonBlock (shortestBranchBlock, largestBranchBlock) =
+        let name = "searchForCommonBlock"
+        in runExceptPrefixTF name <! do
+      shortestBranchPrevBlockHash <- exceptTMaybeT (Internal "shortest branch is empty")
+        <! return <! blockHeaderPreviousblockhash shortestBranchBlock
+      largestBranchPrevBlockHash <- exceptTMaybeT (Internal "longest branch is empty")
+        <! return <! blockHeaderPreviousblockhash largestBranchBlock
+      shortestBranchPrevBlock <- ExceptT <! getBlockByHash shortestBranchPrevBlockHash
+      largestBranchPrevBlock <- ExceptT <! getBlockByHash largestBranchPrevBlockHash
+      return <! Left (shortestBranchPrevBlock, largestBranchPrevBlock)
+
+
+    isUnconfirmedTipTheSame newUnconfirmedTipBlock =
+        let name = "isUnconfirmedTipTheSame"
+        in runExceptPrefixTF name <! catchBreakT <! do
+      mWitnessedUnconfirmedTipV <- asks Env.mWitnessedUnconfirmedTipV
+      mWitnessedUnconfirmedTip <- lift <! atomically
+        <! TVar.readTVar mWitnessedUnconfirmedTipV
+      witnessedUnconfirmedTip <- case mWitnessedUnconfirmedTip of
+        Nothing -> breakT False
+        Just some -> return some
+      return
+        <! blockHeaderHeight witnessedUnconfirmedTip
+           == blockHeaderHeight newUnconfirmedTipBlock
+        && blockHeaderHash witnessedUnconfirmedTip
+           == blockHeaderHash newUnconfirmedTipBlock
 
     updateLatestConfirmedHeightTip header =
         let name = "updateLatestConfirmedHeightTip"
         in profile name <! runExceptPrefixTF name <! do
-      mcurrentTipV <- lift <! asks Env.mcurrentTipV
-      lift <! atomically <! TVar.writeTVar mcurrentTipV (Just header)
-
-
+      mCurrentConfirmedTipV <- lift <! asks Env.mCurrentConfirmedTipV
+      lift <! atomically <! TVar.writeTVar mCurrentConfirmedTipV (Just header)
 
     performSyncFromTo
       :: ( Monad m
@@ -155,13 +311,11 @@ syncBlockHeaders =
     performSyncFromTo confirmedHeightFrom confirmedHeightTo =
         let name = "performSyncFromTo"
         in profile name <! runExceptPrefixTF name <! do
-      -- Cache.ensureCapacity confirmedHeightTo
       mlastBH <- foldM  ( \_ height -> do -- fold over all blocks returning the last block header
           lift <! logDebug <! "height " <> tshow height
           (bi, blockReward, chainReward) <- ExceptT <! getBlockInfos height
           let bh = blockHeaderFromBlockInfos bi blockReward chainReward
           ExceptT <! persistBlockHeader bh
-          -- Cache.maybeInsert bh
           return <! Just bh
         )
         Nothing
