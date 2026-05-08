@@ -179,7 +179,7 @@ test-suite op-energy-backend-test
                     , OpEnergy.Server.V2.Core.HandleRequest.GenericHandleRequestSpec
                     , OpEnergy.Server.V2.Core.HandleRequest.Ping.PingSpec
                     , OpEnergy.Server.V2.Core.SchedulerThread.SchedulerThreadCanExitSpec
-                    , OpEnergy.Server.V2.Core.SchedulerThread.Iteration.ConfirmationSpec
+                    , OpEnergy.Server.V2.Core.SchedulerThread.Iteration.Confirmation.ConfirmationSpec
                     , OpEnergy.Server.V2.Core.SchedulerThread.Iteration.Confirmation.ReorganizationsSpec
 
     -- LANGUAGE extensions used by modules in this package.
