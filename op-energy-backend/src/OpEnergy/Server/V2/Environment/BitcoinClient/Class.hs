@@ -27,5 +27,9 @@ data Monad m => BitcoinClient m = BitcoinClient
     :: API.BlockHeight
     -> m (Either Failure API.BlockHash)
 
+  , getBlockByHash
+    :: API.BlockHash
+    -> m (Either Failure API.BlockHeader)
+
   }
 
