@@ -6,6 +6,7 @@ module OpEnergy.Server.V2.Environment.DataSource.Class
 
 import           Data.OpEnergy.API.V1.Block
                    ( BlockHeight
+                   , BlockHash
                    , BlockHeader
                    )
 import           OpEnergy.Server.V2.Core.Call(Failure)
@@ -31,6 +32,11 @@ data DataSource transactionROM transactionM m = DataSource
   , mgetBlockHeaderByHeightRO
     :: Monad transactionROM
     => BlockHeight
+    -> transactionROM (Maybe BlockHeader)
+
+  , mgetBlockHeaderByHashRO
+    :: Monad transactionROM
+    => BlockHash
     -> transactionROM (Maybe BlockHeader)
 
   }
