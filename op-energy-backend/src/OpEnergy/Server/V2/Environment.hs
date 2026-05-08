@@ -20,7 +20,9 @@ import qualified OpEnergy.Server.V2.Environment.BitcoinClient.Class as BitcoinCl
 data Environment transactionROM transactionM m = Environment
   { callstack :: Text
 
-  , mcurrentTipV :: TVar (Maybe BlockHeader)
+  , mCurrentConfirmedTipV :: TVar (Maybe BlockHeader)
+
+  , mWitnessedUnconfirmedTipV :: TVar (Maybe BlockHeader)
 
   , shutdownRequestedV :: TVar Bool
 
