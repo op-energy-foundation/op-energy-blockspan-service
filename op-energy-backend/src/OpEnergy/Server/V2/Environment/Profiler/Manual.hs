@@ -6,7 +6,6 @@ module OpEnergy.Server.V2.Environment.Profiler.Manual
   ) where
 
 import           Prelude hiding (init)
-import           Data.Text(Text)
 import           Flow
 
 import qualified OpEnergy.Server.V2.Environment.Profiler.Class as Class
@@ -20,8 +19,9 @@ data State = State
 
 init
   :: ( Env.Request-> IO ())
+  -> Class.Profiler IO
   -> IO (State, Class.Profiler IO)
-init logAction = do
+init logAction lowLayer = do
   let
       state = State
         {
@@ -31,15 +31,9 @@ init logAction = do
     , Class.Profiler
       { Class.profile = \callstack foo -> do
         logAction (Env.Profiler <| Request.Profile <| Cast <| Just callstack)
-        profile state callstack foo
+        Class.profile lowLayer callstack foo
       }
     )
 
-profile
-  :: State
-  -> Text
-  -> IO r
-  -> IO r
-profile _ _ foo = foo
 
 

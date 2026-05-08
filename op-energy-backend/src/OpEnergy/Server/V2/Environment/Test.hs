@@ -2,9 +2,11 @@ module OpEnergy.Server.V2.Environment.Test
   ( State(..)
   , init
   , initConfig
+  , initConfigProfilerProdState
   ) where
 
 import           Prelude hiding (init)
+import           Data.Text(Text)
 import           Control.Concurrent.STM(STM)
 import qualified Control.Concurrent.STM as STM
 import           Control.Concurrent.STM.TVar (TVar)
@@ -20,6 +22,7 @@ import qualified OpEnergy.Server.V2.Environment as Env
 import qualified OpEnergy.Server.V2.Environment.Time.Manual as Time
 import qualified OpEnergy.Server.V2.Environment.Request as EnvRequest
 import qualified OpEnergy.Server.V2.Environment.Profiler.Manual as Profiler
+import qualified OpEnergy.Server.V2.Environment.Profiler.Dummy as ProdProfiler
 import qualified OpEnergy.Server.V2.Environment.Logger.Test as Logger
 import qualified OpEnergy.Server.V2.Environment.BitcoinClient.Test as BitcoinClient
 import qualified OpEnergy.Server.V2.Environment.DataSource.Test as DataSource
@@ -32,31 +35,40 @@ data State = State
   , requestLogV :: TVar (Seq EnvRequest.Request)
   , bitcoinClientState :: BitcoinClient.State
   , dataSourceState :: DataSource.State
+  , prodProfilerState :: ProdProfiler.State
   }
 
-initConfig
-  :: (Config.Config-> Config.Config)
+initConfigProfilerProdState
+  :: Text
+  -> (Config.Config-> Config.Config)
+  -> Maybe ProdProfiler.State
   -> Vector Block.BlockHeader
   -> IO (State, Env.Environment STM STM IO)
-initConfig configUpdate blockchain = do
+initConfigProfilerProdState context configUpdate mProdState blockchain = do
   logV::(TVar (Seq EnvRequest.Request)) <- TVar.newTVarIO Seq.empty
   shutdownRequestedV <- TVar.newTVarIO False
-  mcurrentTipV <- TVar.newTVarIO Nothing
+  mCurrentConfirmedTipV <- TVar.newTVarIO Nothing
+  mWitnessedUnconfirmedTipV <- TVar.newTVarIO Nothing
   let
       logRequestSTM :: EnvRequest.Request-> STM ()
-      logRequestSTM req = do
-        TVar.modifyTVar logV <| \reqLog -> reqLog :|> req
+      logRequestSTM !req = do
+        TVar.modifyTVar logV <! \reqLog ->
+          let
+              !newLog = reqLog :|> req
+          in newLog
       logRequest :: EnvRequest.Request-> IO ()
-      logRequest req = do
-        STM.atomically <| do
+      logRequest !req = do
+        STM.atomically <! do
           logRequestSTM req
   (timeStateInstance, timeSrv) <- Time.init logRequest
-  (_, profilerInstance) <- Profiler.init logRequest
+  (prodProfilerState, prodProfiler) <- ProdProfiler.init mProdState
+  (_, profilerInstance) <- Profiler.init logRequest prodProfiler
   (_, loggerInstance) <- Logger.init logRequest
   (dataSourceState, dataSourceInstance) <- DataSource.init logRequest
     logRequestSTM
   stm <- STMM.init
-  (bitcoinClientInstance, bitcoinClient) <- BitcoinClient.init blockchain timeSrv logRequest
+  (bitcoinClientInstance, bitcoinClient) <- BitcoinClient.init context blockchain
+    timeSrv logRequest profilerInstance
   (_, io ) <- IOM.init logRequest
   let
       state = State
@@ -64,14 +76,16 @@ initConfig configUpdate blockchain = do
         , requestLogV = logV
         , bitcoinClientState = bitcoinClientInstance
         , dataSourceState = dataSourceState
+        , prodProfilerState = prodProfilerState
         }
   return
     ( state
     , Env.Environment
       { Env.config = configUpdate Config.defaultConfig
-      , Env.callstack = "test"
+      , Env.callstack = context
       , Env.shutdownRequestedV = shutdownRequestedV
-      , Env.mcurrentTipV = mcurrentTipV
+      , Env.mCurrentConfirmedTipV = mCurrentConfirmedTipV
+      , Env.mWitnessedUnconfirmedTipV = mWitnessedUnconfirmedTipV
 
       , Env.io = io
 
@@ -85,9 +99,17 @@ initConfig configUpdate blockchain = do
     )
 
 init
-  :: Vector Block.BlockHeader
+  :: Text
+  -> Vector Block.BlockHeader
   -> IO (State, Env.Environment STM STM IO)
-init = initConfig id
+init context = initConfig context id
 
 
 
+initConfig
+  :: Text
+  -> (Config.Config-> Config.Config)
+  -> Vector Block.BlockHeader
+  -> IO (State, Env.Environment STM STM IO)
+initConfig context configUpdate blockchain =
+  initConfigProfilerProdState context configUpdate Nothing blockchain
