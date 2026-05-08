@@ -59,6 +59,8 @@ library
                    , OpEnergy.Server.V2.Environment.Profiler.Class
                    , OpEnergy.Server.V2.Environment.Profiler.Request
                    , OpEnergy.Server.V2.Environment.Profiler.Manual
+                   , OpEnergy.Server.V2.Environment.Profiler.Production
+                   , OpEnergy.Server.V2.Environment.Profiler.Dummy
                    , OpEnergy.Server.V2.Environment.Logger
                    , OpEnergy.Server.V2.Environment.Logger.Class
                    , OpEnergy.Server.V2.Environment.Logger.Request
@@ -85,6 +87,7 @@ library
                    , OpEnergy.Server.V2.Core.HandleRequest
                    , OpEnergy.Server.V2.Core.HandleRequest.Ping
                    , OpEnergy.Server.V2.Core.HandleRequest.GetBlockHeaderByHeight
+                   , OpEnergy.Server.V2.Core.HandleRequest.GetBlockHeaderByHash
                    -- , OpEnergy.Server.V2.HTTP.BlockHeaderService
                    -- , OpEnergy.Server.V2.HTTP.WebsocketService
 
@@ -160,6 +163,8 @@ library
                     , ScopedTypeVariables
                     , BangPatterns
                     , NumericUnderscores
+                    , StrictData
+                    , Strict
 
 test-suite op-energy-backend-test
     -- Import common warning flags.
@@ -175,6 +180,7 @@ test-suite op-energy-backend-test
                     , OpEnergy.Server.V2.Core.HandleRequest.Ping.PingSpec
                     , OpEnergy.Server.V2.Core.SchedulerThread.SchedulerThreadCanExitSpec
                     , OpEnergy.Server.V2.Core.SchedulerThread.Iteration.ConfirmationSpec
+                    , OpEnergy.Server.V2.Core.SchedulerThread.Iteration.Confirmation.ReorganizationsSpec
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -206,7 +212,7 @@ test-suite op-energy-backend-test
                  , flow
                  , vector
 
-    ghc-options: -Wall -Werror -rtsopts -threaded
+    ghc-options: -O2 -Wall -Werror -threaded -rtsopts "-with-rtsopts=-T -N -c -s"
     default-extensions:
                       OverloadedStrings
                     , ScopedTypeVariables
