@@ -14,6 +14,7 @@ let
     $$
     ;
     ALTER USER ${cfg.db_user} WITH PASSWORD '${cfg.db_psk}';
+    GRANT ALL PRIVILEGES ON DATABASE ${cfg.db_name} TO ${cfg.db_user};
   '';
 
   eachInstance = config.services.op-energy-backend;
@@ -110,18 +111,10 @@ in
       ) eachInstance
       );
       ensureUsers = ( lib.mapAttrsToList (name: cfg:
-        { name = "${cfg.db_user}";
-          ensurePermissions = {
-            "DATABASE ${cfg.db_name}" = "ALL PRIVILEGES";
-          };
-        }
+        { name = "${cfg.db_user}"; }
       ) eachInstance
       ) ++ ( lib.mapAttrsToList (name: cfg:
-        { name = "${cfg.db_user}";
-          ensurePermissions = {
-            "DATABASE ${cfg.account_db_name}" = "ALL PRIVILEGES";
-          };
-        }
+        { name = "${cfg.db_user}"; }
       ) eachInstance
       );
     };
