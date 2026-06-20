@@ -26,12 +26,6 @@ let
         example = "mempool";
         description = "Database name of the instance";
       };
-      account_db_name = lib.mkOption {
-        default = null;
-        type = lib.types.str;
-        example = "mempoolacc";
-        description = "Account database name of the instance";
-      };
       db_user = lib.mkOption {
         default = null;
         type = lib.types.str;
@@ -106,14 +100,8 @@ in
       ensureDatabases = (lib.mapAttrsToList (name: cfg:
         "${cfg.db_name}"
       ) eachInstance
-      ) ++ (lib.mapAttrsToList (name: cfg:
-        "${cfg.account_db_name}"
-      ) eachInstance
       );
       ensureUsers = ( lib.mapAttrsToList (name: cfg:
-        { name = "${cfg.db_user}"; }
-      ) eachInstance
-      ) ++ ( lib.mapAttrsToList (name: cfg:
         { name = "${cfg.db_user}"; }
       ) eachInstance
       );
@@ -139,11 +127,6 @@ in
           if [ ! "$(sudo -u postgres psql -l -x --csv | grep 'Name,${cfg.db_name}' --count)" == "1" ]; then
             ( echo 'CREATE DATABASE ${cfg.db_name};'
               echo '\c ${cfg.db_name};'
-            ) | sudo -u postgres psql
-          fi
-          if [ ! "$(sudo -u postgres psql -l -x --csv | grep 'Name,${cfg.account_db_name}' --count)" == "1" ]; then
-            ( echo 'CREATE DATABASE ${cfg.account_db_name};'
-              echo '\c ${cfg.account_db_name};'
             ) | sudo -u postgres psql
           fi
           cat "${initial_script cfg}" | sudo -u postgres psql
