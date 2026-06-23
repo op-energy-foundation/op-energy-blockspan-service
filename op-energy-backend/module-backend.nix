@@ -4,17 +4,17 @@ let
   op-energy-overlay = (import ../overlay.nix) { GIT_COMMIT_HASH = GIT_COMMIT_HASH; };
   initial_script = cfg:
     pkgs.writeText "initial_script.sql" ''
-    do
-    $$
+    do $$
     begin
       if not exists (select * from pg_user where usename = '${cfg.db_user}') then
         CREATE USER ${cfg.db_user} WITH PASSWORD '${cfg.db_psk}';
       end if;
+      ALTER USER ${cfg.db_user} WITH PASSWORD '${cfg.db_psk}';
+      GRANT ALL PRIVILEGES ON DATABASE ${cfg.db_name} TO ${cfg.db_user};
+      ALTER DATABASE ${cfg.db_name} OWNER TO ${cfg.db_user};
     end
     $$
     ;
-    ALTER USER ${cfg.db_user} WITH PASSWORD '${cfg.db_psk}';
-    GRANT ALL PRIVILEGES ON DATABASE ${cfg.db_name} TO ${cfg.db_user};
   '';
 
   eachInstance = config.services.op-energy-backend;
@@ -25,6 +25,12 @@ let
         type = lib.types.str;
         example = "mempool";
         description = "Database name of the instance";
+      };
+      account_db_name = lib.mkOption {
+        default = null;
+        type = lib.types.str;
+        example = "";
+        description = "Deprecated";
       };
       db_user = lib.mkOption {
         default = null;
