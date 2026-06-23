@@ -138,11 +138,11 @@ in
       in {
         wantedBy = [ "multi-user.target" ];
         after = [
-          "network-setup.service"
+          "network-online.target"
           "postgresql.service"
         ];
         requires = [
-          "network-setup.service"
+          "network-online.target"
           "postgresql.service"
           ];
         serviceConfig = {
