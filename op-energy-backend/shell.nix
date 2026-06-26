@@ -10,6 +10,7 @@ let
       = pkgs.op-energy-backend.env.nativeBuildInputs
       ++ pkgs.op-energy-backend.buildInputs
       ++ [ pkgs.haskellPackages.swagger2 pkgs.haskellPackages.servant pkgs.haskellPackages.servant-swagger
+           pkgs.haskell-language-server
          ]
       ++ [ pkgs.haskellPackages.ghci pkgs.haskellPackages.ghcid pkgs.haskellPackages.cabal-install ];
   };

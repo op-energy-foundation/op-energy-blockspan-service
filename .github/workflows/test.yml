@@ -18,7 +18,12 @@ jobs:
         extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
     - run: git clone ssh://git@github.com/op-energy-foundation/op-energy-dev-instance.git ../op-energy-dev-instance --recursive
     # current repo's use case is to be submodule in 80% of cases, so we need to copy content of op-energy repo into a proper submodule location
-    - run: rm -rf ../op-energy-dev-instance/overlays/op-energy/oe-blockspan-service/* && cp -r $(pwd)/* ../op-energy-dev-instance/overlays/op-energy/oe-blockspan-service/
+    - run: |
+        [ -e ../op-energy-dev-instance/overlays/op-energy-blockspan-service ] && {
+          rm -rf ../op-energy-dev-instance/overlays/op-energy-blockspan-service/* && cp -r $(pwd)/* ../op-energy-dev-instance/overlays/op-energy-blockspan-service/
+        } || {
+          rm -rf ../op-energy-dev-instance/overlays/op-energy/oe-blockspan-service/* && cp -r $(pwd)/* ../op-energy-dev-instance/overlays/op-energy/oe-blockspan-service/
+        }
     - run: echo \"ci-host\" > ../op-energy-dev-instance/local_hostname.nix
     # ci-tests.nix should be on the same level as op-energy-development
     - run: cp ci-tests.nix ../
