@@ -104,7 +104,7 @@ data BlockchainInfo = BlockchainInfo
   , pruneheight:: Maybe (Natural Int)
   , automatic_pruning:: Maybe Bool
   , prune_target_size:: Maybe Word64
-  , warnings:: Text
+  , warnings:: [Text]
   }
   deriving (Eq, Show, Generic)
 instance ToJSON BlockchainInfo
