@@ -97,6 +97,8 @@ library
                     , stm, stm-chans
                     , transformers
                     , warp
+                    , wai
+                    , http-types
                     , monad-logger
                     , prometheus-client
                     , wai-middleware-prometheus

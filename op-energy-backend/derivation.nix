@@ -6,6 +6,8 @@
 , bytestring
 , lens
 , warp
+, wai
+, http-types
 , scientific
 , persistent, persistent-template, persistent-postgresql, monad-logger
 , resource-pool
@@ -49,6 +51,8 @@ mkDerivation {
     stm stm-chans
     transformers
     warp
+    wai
+    http-types
     monad-logger
     prometheus-client
     prometheus-metrics-ghc
