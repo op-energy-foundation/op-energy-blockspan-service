@@ -1,7 +1,7 @@
 { GIT_COMMIT_HASH }:
 let
   # Pin nixpkgs, see pinning tutorial for more details
-  nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/archive/0f8f64b54ed07966b83db2f20c888d5e035012ef.tar.gz";
+  nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/archive/8c50a710ddca43d7a530fb805ad55bde8d0141c5.tar.gz";
   pkgs = import nixpkgs {};
 
   # Single source of truth for all tests
@@ -26,9 +26,8 @@ let
     GIT_COMMIT_HASH              = GIT_COMMIT_HASH;
   };
 
-in pkgs.nixosTest ({
-  # NixOS tests are run inside a virtual machine, and here we specify system of the machine.
-  system = "x86_64-linux";
+in pkgs.testers.nixosTest ({
+  name = "ci-test";
 
   nodes = {
     server = args@{ config, pkgs, ... }: let
