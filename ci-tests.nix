@@ -33,12 +33,10 @@ in pkgs.testers.nixosTest ({
     server = args@{ config, pkgs, ... }: let
       sources = pkgs.copyPathToStore ./op-energy-dev-instance;
       op-energy-host = import ./op-energy-dev-instance/host.nix env;
-      local_settings = import ./op-energy-dev-instance/local_settings_ci-host.nix env;
     in {
       imports = [
         sharedModule
         op-energy-host
-        local_settings
       ];
       networking.firewall.allowedTCPPorts = [ 8999 ];
       networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
