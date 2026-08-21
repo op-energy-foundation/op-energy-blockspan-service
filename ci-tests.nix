@@ -69,7 +69,7 @@ in pkgs.testers.nixosTest ({
 
     # just needs to succed
     raw = client.succeed(
-            "${pkgs.curl}/bin/curl http://server:${toString apiPort}/api/v1/oe/git-hash"
+            "${pkgs.curl}/bin/curl http://ci-host:${toString apiPort}/api/v1/oe/git-hash"
         )
     print( raw)
   '';
