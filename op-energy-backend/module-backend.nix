@@ -20,6 +20,12 @@ let
   eachInstance = config.services.op-energy-backend;
   instanceOpts = args: {
     options = {
+      startup_delay = lib.mkOption {
+        type = lib.types.int;
+        default = 30;
+        example = 30;
+        description = "let service wait for dependent service to settle (primary bitcoind preps). Usually, you don't want to change it but CI tests can fail if service will start too early and crash due to bitcoind being not ready to serve";
+      };
       db_name = lib.mkOption {
         default = null;
         type = lib.types.str;
@@ -127,7 +133,7 @@ in
         path = with pkgs; [
           postgresql sudo
         ];
-        script = lib.foldl' (acc: i: acc + i) '''' ( lib.mapAttrsToList (name: cfg: ''
+        preStart = lib.foldl' (acc: i: acc + i) '''' ( lib.mapAttrsToList (name: cfg: ''
           # create database if not exist. we can't use services.mysql.ensureDatabase/initialDatase here the latter
           # will not use schema and the former will only affects the very first start of mariadb service, which is not idemponent
           if [ ! "$(sudo -u postgres psql -l -x --csv | grep 'Name,${cfg.db_name}' --count)" == "1" ]; then
@@ -137,6 +143,7 @@ in
           fi
           cat "${initial_script cfg}" | sudo -u postgres psql
         '') eachInstance);
+        script = "exit 0";
       };
     } // ( lib.mapAttrs' (name: cfg: lib.nameValuePair "op-energy-backend-${name}" (
       let
@@ -146,10 +153,12 @@ in
         after = [
           "network-online.target"
           "postgresql.service"
+          "postgresql-op-energy-users.service"
         ];
         requires = [
           "network-online.target"
           "postgresql.service"
+          "postgresql-op-energy-users.service"
           ];
         serviceConfig = {
           Type = "simple";
@@ -162,6 +171,7 @@ in
         ];
         script = ''
           set -ex
+          sleep ${toString cfg.startup_delay}s
           OPENERGY_BACKEND_CONFIG_FILE="${openergy_config}" op-energy-backend +RTS -c -N -s
         '';
       })) eachInstance);
