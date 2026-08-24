@@ -15,6 +15,7 @@ let
   op-energy = {
     op-energy-api = pkgs.op-energy-api;
     op-energy-backend = pkgs.op-energy-backend;
+    op-energy-blockspans-service-nginx-vhost-config = pkgs.op-energy-blockspans-service-nginx-vhost-config;
   };
 in
 op-energy
