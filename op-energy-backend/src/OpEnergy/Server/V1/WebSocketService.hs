@@ -51,12 +51,16 @@ webSocketConnection conn = do
   where
     checkIteration state _ witnessedHeightV timeoutCounterV = do
       let State{ currentTip = currentTipV
+               , unconfirmedTip = unconfirmedTipV
                , config = Config { configWebsocketKeepAliveSecs = configWebsocketKeepAliveSecs
                                  , configBlocksToConfirm = configBlocksToConfirm
                                  }
                } = state
       mwitnessedHeight <- readIORef witnessedHeightV
-      mcurrentTip <- STM.atomically $ TVar.readTVar currentTipV
+      (mcurrentTip, mUnconfirmedTip) <- STM.atomically $ do
+        ct <- TVar.readTVar currentTipV
+        ut <- TVar.readTVar unconfirmedTipV
+        return (ct, ut)
       case (mwitnessedHeight, mcurrentTip) of
         ( _, Nothing) -> do -- haven't witnessed current tip and there is no tip loaded yet. decrease timeout
           decreaseTimeoutOrSendPing state
@@ -64,7 +68,7 @@ webSocketConnection conn = do
           let
               confirmedTipBlockHeight = blockHeaderHeight currentTip
               unconfirmedTipBlockHeight = confirmedTipBlockHeight + configBlocksToConfirm
-          sendTextData conn $ MessageNewestBlockHeader currentTip unconfirmedTipBlockHeight
+          sendTextData conn $ MessageNewestBlockHeader currentTip unconfirmedTipBlockHeight mUnconfirmedTip
           writeIORef timeoutCounterV (naturalFromPositive configWebsocketKeepAliveSecs)
           writeIORef witnessedHeightV $! Just $! confirmedTipBlockHeight
         ( Just witnessedHeight, Just currentTip)
@@ -73,7 +77,7 @@ webSocketConnection conn = do
               let
                   confirmedTipBlockHeight = blockHeaderHeight currentTip
                   unconfirmedTipBlockHeight = confirmedTipBlockHeight + configBlocksToConfirm
-              sendTextData conn $ MessageNewestBlockHeader currentTip unconfirmedTipBlockHeight
+              sendTextData conn $ MessageNewestBlockHeader currentTip unconfirmedTipBlockHeight mUnconfirmedTip
               writeIORef timeoutCounterV (naturalFromPositive configWebsocketKeepAliveSecs)
               writeIORef witnessedHeightV $! Just $! confirmedTipBlockHeight
       where
@@ -111,9 +115,11 @@ webSocketConnection conn = do
 getMempoolInfo :: AppT IO MempoolInfo
 getMempoolInfo = do
   State{ currentTip = currentTipV
+       , unconfirmedTip = unconfirmedTipV
        , config = Config{ configBlocksToConfirm = configBlocksToConfirm}
        } <- ask
   mtip <- liftIO $ TVar.readTVarIO currentTipV
+  mUnconfirmedTip <- liftIO $ TVar.readTVarIO unconfirmedTipV
   case mtip of
     Nothing -> do -- this is the unexpected case as we don't allow connections without existing connection to btc node
       error "getMempoolInfo: there is no confirmed tip yet"
@@ -123,4 +129,5 @@ getMempoolInfo = do
       return $ MempoolInfo
         { newestConfirmedBlock = tip
         , latestUnconfirmedBlockHeight = unconfirmedTipBlockHeight
+        , latestUnconfirmedBlock = mUnconfirmedTip
         }

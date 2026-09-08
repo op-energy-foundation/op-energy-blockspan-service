@@ -40,6 +40,8 @@ data State = State
   -- ^ BlockHeaders' cache
   , currentTip :: TVar (Maybe BlockHeader)
   -- ^ defines the newest witnessed confirmed block
+  , unconfirmedTip :: TVar (Maybe BlockHeader)
+  -- ^ defines the newest witnessed unconfirmed (tip) block
   , logFunc :: LogFunc
   , logLevel :: TVar LogLevel
   , metrics :: MetricsState
@@ -57,12 +59,14 @@ defaultState config metrics logFunc _blockHeadersDBPool = do
   _blockHeadersCache <- Cache.init config
   _blockHeadersHashCache <- liftIO $ TVar.newTVarIO Map.empty
   _currentTip <- liftIO $ TVar.newTVarIO Nothing
+  _unconfirmedTip <- liftIO $ TVar.newTVarIO Nothing
   logLevelV <- liftIO $ TVar.newTVarIO (configLogLevelMin config)
   return $ State
     { config = config
     , blockHeadersCache = _blockHeadersCache
     , blockHeadersDBPool = _blockHeadersDBPool
     , currentTip = _currentTip -- websockets' init data relies on whole BlockHeader
+    , unconfirmedTip = _unconfirmedTip
     , logFunc = logFunc
     , logLevel = logLevelV
     , metrics = metrics

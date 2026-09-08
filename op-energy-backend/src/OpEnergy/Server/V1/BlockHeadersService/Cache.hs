@@ -19,6 +19,7 @@ import           Control.Monad (forM_)
 import           Control.Monad.Logger (logDebug, logInfo)
 import           Control.Monad.Trans.Reader (ask)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
+import qualified Control.Exception.Safe as E
 import qualified Data.Text.Encoding as Text
 import           Data.Text.Show (tshow)
 import           Data.Vector(Vector)
@@ -172,17 +173,65 @@ syncBlockHeaders = do
     mstartSyncHeightFromTo <- mgetHeightToStartSyncFromTo
     case mstartSyncHeightFromTo of
       Nothing-> return () -- do nothing if sync is not needed
-      Just (startSyncHeightFrom, startSyncHeightTo) -> do
+      Just (startSyncHeightFrom, startSyncHeightTo, unconfirmedHeightTip) -> do
         newestConfirmedBlockHeader <- performSyncFromTo startSyncHeightFrom startSyncHeightTo
         runLogging $ $(logDebug) $ "new latest confirmed block height " <> tshow startSyncHeightTo
-        updateLatestConfirmedHeightTip newestConfirmedBlockHeader -- cache newest header
+        -- fetch the unconfirmed tip header, guarded so a transient RPC
+        -- failure does not crash the sync loop
+        mTipHeader <- fetchUnconfirmedTipHeader unconfirmedHeightTip
+        -- write both TVars atomically so readers never observe a
+        -- confirmed tip newer than the unconfirmed tip it is paired with
+        updateTips newestConfirmedBlockHeader mTipHeader
   where
-    updateLatestConfirmedHeightTip header = do
-      State{ currentTip = currentTipV } <- ask
-      liftIO $ STM.atomically $ TVar.writeTVar currentTipV (Just header)
+    -- | writes both currentTip and unconfirmedTip in a single STM
+    -- transaction so websocket readers see a consistent pair.
+    updateTips confirmedHeader mUnconfirmedHeader = do
+      State{ currentTip = currentTipV, unconfirmedTip = unconfirmedTipV } <- ask
+      liftIO $ STM.atomically $ do
+        TVar.writeTVar currentTipV (Just confirmedHeader)
+        case mUnconfirmedHeader of
+          Just h  -> TVar.writeTVar unconfirmedTipV (Just h)
+          Nothing -> return () -- keep previous value on RPC failure
 
-    -- | queries bitcoin node and compares with latest witnessed block
-    mgetHeightToStartSyncFromTo :: MonadIO m => AppT m (Maybe (BlockHeight, BlockHeight))
+    -- | fetches the full BlockHeader for the unconfirmed chain tip.
+    -- Guarded: a transient RPC failure returns Nothing and logs,
+    -- rather than crashing the sync loop.
+    fetchUnconfirmedTipHeader :: MonadIO m => BlockHeight -> AppT m (Maybe BlockHeader)
+    fetchUnconfirmedTipHeader tipHeight = do
+      State{ config = config } <- ask
+      let userPass = BasicAuthData (Text.encodeUtf8 $ configBTCUser config) (Text.encodeUtf8 $ configBTCPassword config)
+      liftIO $ E.handle (\(e :: E.SomeException) -> return Nothing) $ do
+        (bi, reward) <- Bitcoin.withBitcoin (configBTCURL config) $ do
+          Result _ hash <- getBlockHash userPass [tipHeight]
+          Result _ bi <- getBlock userPass [ hash ]
+          if tipHeight == 0
+            then return (bi, 5000000000)
+            else do
+              Result _ bs <- getBlockStats userPass [tipHeight]
+              return (bi, BlockStats.totalfee bs + BlockStats.subsidy bs)
+        return $! Just $! BlockHeader
+          { blockHeaderHash = BlockInfo.hash bi
+          , blockHeaderPreviousblockhash = BlockInfo.previousblockhash bi
+          , blockHeaderHeight = BlockInfo.height bi
+          , blockHeaderVersion = BlockInfo.version bi
+          , blockHeaderTimestamp = BlockInfo.time bi
+          , blockHeaderBits = BlockInfo.bits bi
+          , blockHeaderNonce = BlockInfo.nonce bi
+          , blockHeaderDifficulty = BlockInfo.difficulty bi
+          , blockHeaderMerkle_root = BlockInfo.merkleroot bi
+          , blockHeaderTx_count = BlockInfo.nTx bi
+          , blockHeaderSize = BlockInfo.size bi
+          , blockHeaderWeight = BlockInfo.weight bi
+          , blockHeaderChainwork = BlockInfo.chainwork bi
+          , blockHeaderMediantime = BlockInfo.mediantime bi
+          , blockHeaderReward = reward
+          , blockHeaderChainreward = 0 -- not computed for unconfirmed tip
+          }
+
+    -- | queries bitcoin node and compares with latest witnessed block.
+    -- Returns (confirmedFrom, confirmedTo, unconfirmedTipHeight) when
+    -- sync is needed.
+    mgetHeightToStartSyncFromTo :: MonadIO m => AppT m (Maybe (BlockHeight, BlockHeight, BlockHeight))
     mgetHeightToStartSyncFromTo = do
       State{ config = config, currentTip = currentTipV, metrics = MetricsState{ btcGetBlockchainInfoH = btcGetBlockchainInfoH}} <- ask
       mcurrentConfirmedTip <- liftIO $ TVar.readTVarIO currentTipV
@@ -202,7 +251,7 @@ syncBlockHeaders = do
                       Nothing -> 0 -- no previously confirmed tip, start with 0
                       Just currentConfirmedTip -> (blockHeaderHeight currentConfirmedTip + 1) -- start with the next unconfirmed tip
                   confirmedHeightTo = newUnconfirmedHeightTip - (configBlocksToConfirm config)
-              return $ Just (confirmedHeightFrom, confirmedHeightTo)
+              return $ Just (confirmedHeightFrom, confirmedHeightTo, newUnconfirmedHeightTip)
         some -> error ( "syncBlockHeaders: getBlockchainInfo error: " ++ show some)
 
     performSyncFromTo confirmedHeightFrom confirmedHeightTo = do
