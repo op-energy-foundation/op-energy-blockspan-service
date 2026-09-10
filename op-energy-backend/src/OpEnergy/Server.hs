@@ -12,8 +12,12 @@
 module OpEnergy.Server where
 
 import           System.IO as IO
+import           Data.Text (Text)
 import           Servant ( Application, Proxy(..), ServerT, serve, hoistServer, (:<|>)(..))
+import           Network.Wai (Middleware, Response, pathInfo, responseLBS)
 import           Network.Wai.Handler.Warp(run)
+import           Network.HTTP.Types (status410, hContentType)
+import qualified Prometheus as P
 import           Control.Monad.Trans.Reader (ask)
 import           Control.Concurrent (threadDelay)
 import           Control.Monad.IO.Class(liftIO, MonadIO)
@@ -57,12 +61,81 @@ initState config = do
   state <- defaultState config metrics logFunc pool
   return (state, prometheusA)
 
+-- | Deprecated v1 path prefixes that have a v2 equivalent. Requests to these
+-- paths are disabled (reply with HTTP 410 Gone) when configDisableDeprecatedV1Api
+-- is True, pointing the caller at the v2 endpoint. The v1 WebSocket (api/v1/ws)
+-- is included because the frontend has migrated to the v2 WebSocket
+-- (api/v2/blockspans/ws).
+deprecatedV1WithSuccessorPrefixes :: [[Text]]
+deprecatedV1WithSuccessorPrefixes =
+  [ ["api", "v1", "blockspans", "statistics"]
+  , ["api", "v1", "oe", "block"]
+  , ["api", "v1", "oe", "blockbyheight"]
+  , ["api", "v1", "oe", "blocksbyblockspan"]
+  , ["api", "v1", "oe", "blockswithnbdrbyblockspan"]
+  , ["api", "v1", "oe", "git-hash"]
+  , ["api", "v1", "ws"]
+  ]
+
+-- | Deprecated v1 path prefixes that have NO v2 equivalent. They are disabled
+-- (reply with HTTP 410 Gone) when configDisableDeprecatedV1Api is True because
+-- they are unused by the frontend; since there is no successor, the reply does
+-- not point at a v2 endpoint.
+deprecatedV1NoSuccessorPrefixes :: [[Text]]
+deprecatedV1NoSuccessorPrefixes =
+  [ ["api", "v1", "oe", "blockswithhashratebyblockspan"]
+  , ["api", "v1", "oe", "blockspanlist"]
+  ]
+
+-- | returns API version ("v1"/"v2") of a request path, if the request targets one
+apiVersionOfPath :: [Text] -> Maybe Text
+apiVersionOfPath (root : version : _)
+  | root == "api" && version == "v1" = Just "v1"
+  | root == "api" && version == "v2" = Just "v2"
+apiVersionOfPath _ = Nothing
+
+-- | True when the request path matches one of the given path prefixes
+matchesAnyPrefix :: [[Text]] -> [Text] -> Bool
+matchesAnyPrefix prefixes segments =
+  any (\prefix -> prefix == take (length prefix) segments) prefixes
+
+-- | returns the HTTP 410 Gone response for a disabled deprecated v1 path, or
+-- Nothing when the path is not a disabled v1 endpoint
+disabledV1GoneResponse :: [Text] -> Maybe Response
+disabledV1GoneResponse segments
+  | matchesAnyPrefix deprecatedV1WithSuccessorPrefixes segments =
+      Just $ goneResponse "This v1 endpoint is deprecated and has been disabled. Please use the corresponding v2 endpoint."
+  | matchesAnyPrefix deprecatedV1NoSuccessorPrefixes segments =
+      Just $ goneResponse "This v1 endpoint is deprecated and has been disabled."
+  | otherwise = Nothing
+  where
+    goneResponse msg = responseLBS status410
+      [(hContentType, "application/json;charset=utf-8")]
+      ("{\"error\":\"" <> msg <> "\"}")
+
+-- | WAI middleware handling the v1 -> v2 migration concerns:
+--   1. counts every /api/v1 and /api/v2 request into a prometheus counter,
+--      labeled by version, so that v1-vs-v2 traffic can be tracked
+--   2. replies with HTTP 410 Gone for deprecated v1 endpoints when they have
+--      been disabled via configDisableDeprecatedV1Api
+apiMigrationMiddleware :: State -> Middleware
+apiMigrationMiddleware s app req respond = do
+  let segments = pathInfo req
+      Config{ configDisableDeprecatedV1Api = disabled } = config s
+      MetricsState{ apiVersionRequests = apiVersionRequests } = metrics s
+  case apiVersionOfPath segments of
+    Just version -> P.withLabel apiVersionRequests version P.incCounter
+    Nothing -> return ()
+  case (disabled, disabledV1GoneResponse segments) of
+    (True, Just goneResponse) -> respond goneResponse
+    _ -> app req respond
+
 -- | Runs HTTP server on a port defined in config in the State datatype
 runServer :: (MonadIO m) => AppT m ()
 runServer = do
   s <- ask
   let port = configHTTPAPIPort (config s)
-  liftIO $ run port (app s)
+  liftIO $ run port (apiMigrationMiddleware s (app s))
   where
     app :: State-> Application
     app s = serve api $ hoistServer api (runAppT s) serverSwaggerBackend

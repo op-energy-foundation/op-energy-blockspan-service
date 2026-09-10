@@ -63,6 +63,12 @@ data Config = Config
     -- ^ defines minimum size of blockspan
   , configRecordsPerReply :: Positive Int
     -- ^ defines how many rows shoud be contained within 1 page of the reply/request
+  , configDisableDeprecatedV1Api :: Bool
+    -- ^ when True (the default), deprecated v1 endpoints that have a v2 equivalent
+    -- are disabled and reply with HTTP 410 Gone. v1 endpoints without a v2
+    -- equivalent are unaffected. Set DISABLE_DEPRECATED_V1_API=false in the config
+    -- to keep serving v1 (e.g. temporarily in an environment) without removing any
+    -- handler code.
   }
   deriving Show
 instance FromJSON Config where
@@ -88,6 +94,7 @@ instance FromJSON Config where
     <*> ( v .:? "CACHE_CHUNK_SIZE" .!= (configCacheChunkSize defaultConfig))
     <*> ( v .:? "BLOCKSPAN_MINIMUM_SIZE" .!= (configBlockspanMinimumSize defaultConfig))
     <*> ( v .:? "RECORDS_PER_REPLY" .!= (configRecordsPerReply defaultConfig))
+    <*> ( v .:? "DISABLE_DEPRECATED_V1_API" .!= (configDisableDeprecatedV1Api defaultConfig))
 
 defaultConfig:: Config
 defaultConfig = Config
@@ -112,6 +119,7 @@ defaultConfig = Config
   , configCacheChunkSize = 50000
   , configBlockspanMinimumSize = 6
   , configRecordsPerReply = 1000
+  , configDisableDeprecatedV1Api = True
   }
 
 getConfigFromEnvironment :: IO Config

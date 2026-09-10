@@ -55,6 +55,9 @@ data MetricsState = MetricsState
   , getBlocksWithNbdrByBlockSpan :: P.Histogram
   , getBlocksWithHashrateByBlockSpan :: P.Histogram
   , getSingleBlockspan :: P.Histogram
+    -- counts incoming HTTP API requests, labeled by API version ("v1"/"v2"),
+    -- so that v1-vs-v2 traffic can be tracked during the migration
+  , apiVersionRequests :: P.Vector P.Label1 P.Counter
     -- for dynamic routines
   , dynamicHistograms :: TVar (Map Text P.Histogram)
   }
@@ -90,6 +93,9 @@ initMetrics _config = do
   getBlocksWithNbdrByBlockSpan <- P.register $ P.histogram (P.Info "getBlocksWithNbdrByBlockSpan" "") microBuckets
   getBlocksWithHashrateByBlockSpan <- P.register $ P.histogram (P.Info "getBlocksWithHashrateByBlockSpan" "") microBuckets
   getSingleBlockspan <- P.register $ P.histogram (P.Info "getSingleBlockspan" "") microBuckets
+  apiVersionRequests <- P.register
+    $ P.vector "version"
+    $ P.counter (P.Info "api_requests_total" "number of HTTP API requests, labeled by API version")
   _ <- P.register P.ghcMetrics
   _ <- P.register P.procMetrics
   tmap <- liftIO $ STM.newTVarIO Map.empty
@@ -119,6 +125,7 @@ initMetrics _config = do
     , getBlocksWithNbdrByBlockSpan = getBlocksWithNbdrByBlockSpan
     , getBlocksWithHashrateByBlockSpan = getBlocksWithHashrateByBlockSpan
     , getSingleBlockspan = getSingleBlockspan
+    , apiVersionRequests = apiVersionRequests
     , dynamicHistograms = tmap
     }
 
