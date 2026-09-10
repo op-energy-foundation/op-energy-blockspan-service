@@ -2,12 +2,10 @@
  - exports BlockStats data type
  -}
 {-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE Trustworthy #-}
 
 module Data.Bitcoin.BlockStats where
 

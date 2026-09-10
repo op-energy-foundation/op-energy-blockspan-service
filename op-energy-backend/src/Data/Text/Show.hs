@@ -1,3 +1,4 @@
+{-# LANGUAGE Safe #-}
 {-- |
  - this module exports useful text function
  -}

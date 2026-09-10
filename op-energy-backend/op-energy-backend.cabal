@@ -39,13 +39,58 @@ executable op-energy-backend
                     , wai-middleware-prometheus
     hs-source-dirs:   app
     default-language: Haskell2010
-    extensions:       OverloadedStrings
-    ghc-options:    -O2 -threaded -rtsopts "-with-rtsopts=-T -N"
+    default-extensions:
+                    OverloadedStrings
+                  , StrictData
+                  , Strict
+    ghc-options:    -O2 -threaded -rtsopts "-with-rtsopts=-T -N -c -s"
 
 library
     hs-source-dirs: src
     exposed-modules: OpEnergy.Server.V1
                    , OpEnergy.Server.V2
+                   , OpEnergy.Server.V2.Environment
+                   , OpEnergy.Server.V2.Environment.Test
+                   , OpEnergy.Server.V2.Environment.Request
+                   , OpEnergy.Server.V2.Environment.STMM
+                   , OpEnergy.Server.V2.Environment.STMM.Class
+                   , OpEnergy.Server.V2.Environment.STMM.Production
+                   , OpEnergy.Server.V2.Environment.Profiler
+                   , OpEnergy.Server.V2.Environment.Profiler.Class
+                   , OpEnergy.Server.V2.Environment.Profiler.Request
+                   , OpEnergy.Server.V2.Environment.Profiler.Manual
+                   , OpEnergy.Server.V2.Environment.Profiler.Production
+                   , OpEnergy.Server.V2.Environment.Profiler.Dummy
+                   , OpEnergy.Server.V2.Environment.Logger
+                   , OpEnergy.Server.V2.Environment.Logger.Class
+                   , OpEnergy.Server.V2.Environment.Logger.Request
+                   , OpEnergy.Server.V2.Environment.Logger.Test
+                   , OpEnergy.Server.V2.Environment.DataSource.Class
+                   , OpEnergy.Server.V2.Environment.DataSource.Request
+                   , OpEnergy.Server.V2.Environment.DataSource.Test
+                   , OpEnergy.Server.V2.Environment.DataSource
+                   , OpEnergy.Server.V2.Environment.IOM
+                   , OpEnergy.Server.V2.Environment.IOM.Class
+                   , OpEnergy.Server.V2.Environment.IOM.Test
+                   , OpEnergy.Server.V2.Environment.IOM.Request
+                   , OpEnergy.Server.V2.Environment.Time.Class
+                   , OpEnergy.Server.V2.Environment.Time.Request
+                   , OpEnergy.Server.V2.Environment.Time.Manual
+                   , OpEnergy.Server.V2.Environment.BitcoinClient
+                   , OpEnergy.Server.V2.Environment.BitcoinClient.Class
+                   , OpEnergy.Server.V2.Environment.BitcoinClient.Test
+                   , OpEnergy.Server.V2.Environment.BitcoinClient.Request
+                   , OpEnergy.Server.V2.Core.App
+                   , OpEnergy.Server.V2.Core.Call
+                   , OpEnergy.Server.V2.Core.Request
+                   , OpEnergy.Server.V2.Core.SchedulerThread
+                   , OpEnergy.Server.V2.Core.HandleRequest
+                   , OpEnergy.Server.V2.Core.HandleRequest.Ping
+                   , OpEnergy.Server.V2.Core.HandleRequest.GetBlockHeaderByHeight
+                   , OpEnergy.Server.V2.Core.HandleRequest.GetBlockHeaderByHash
+                   -- , OpEnergy.Server.V2.HTTP.BlockHeaderService
+                   -- , OpEnergy.Server.V2.HTTP.WebsocketService
+
                    , OpEnergy.Server.GitCommitHash
                    , OpEnergy.Server
                    , OpEnergy.Server.Common
@@ -109,9 +154,68 @@ library
                     , resourcet
                     , persistent-pagination
                     , safe-exceptions
+                    , flow
+                    , QuickCheck
 
     ghc-options:    -O2 -Wall -Werror -Wno-unticked-promoted-constructors -fno-warn-name-shadowing -Wno-orphans
-    extensions:       OverloadedStrings
+    default-extensions:
+                      OverloadedStrings
                     , ScopedTypeVariables
                     , BangPatterns
+                    , NumericUnderscores
+                    , StrictData
+                    , Strict
+
+test-suite op-energy-backend-test
+    -- Import common warning flags.
+    -- import:           warnings
+
+    -- Base language which the package is written in.
+    default-language: Haskell2010
+
+    -- Modules included in this executable, other than Main.
+    other-modules:
+                      SpecHook
+                    , OpEnergy.Server.V2.Core.HandleRequest.GenericHandleRequestSpec
+                    , OpEnergy.Server.V2.Core.HandleRequest.Ping.PingSpec
+                    , OpEnergy.Server.V2.Core.SchedulerThread.SchedulerThreadCanExitSpec
+                    , OpEnergy.Server.V2.Core.SchedulerThread.Iteration.Confirmation.ConfirmationSpec
+                    , OpEnergy.Server.V2.Core.SchedulerThread.Iteration.Confirmation.ReorganizationsSpec
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+
+    -- The interface type and version of the test suite.
+    type:             exitcode-stdio-1.0
+
+    -- Directories containing source files.
+    hs-source-dirs:   test
+
+    -- The entrypoint to the test suite.
+    main-is:          Spec.hs
+
+    -- Test dependencies.
+    build-depends: base ^>=4.15.1.0
+                 , hspec
+                 , op-energy-backend
+                 , text
+                 , mtl
+                 , op-energy-api
+                 , stm
+                 , vector
+                 , time
+                 , containers
+                 , transformers
+                 , random
+                 , conduit
+                 , QuickCheck
+                 , flow
+                 , vector
+
+    ghc-options: -O2 -Wall -Werror -threaded -rtsopts "-with-rtsopts=-T -N -c -s"
+    default-extensions:
+                      OverloadedStrings
+                    , ScopedTypeVariables
+                    , BangPatterns
+                    , NumericUnderscores
 
