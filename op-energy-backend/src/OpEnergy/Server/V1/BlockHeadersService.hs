@@ -23,7 +23,6 @@ import           Control.Monad.Logger (logDebug, logInfo, logError, logWarn)
 import           Control.Monad.Trans.Reader (ask)
 import           Control.Monad.Trans.Except (runExceptT, ExceptT(..))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
-import qualified Control.Exception.Safe as E
 import           Data.Text( Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -40,6 +39,7 @@ import           OpEnergy.Server.V1.Config
 import           OpEnergy.Server.V1.Class (runLogging, AppT, AppM, State(..))
 import           OpEnergy.Server.V1.Metrics(MetricsState(..))
 import qualified OpEnergy.Server.V1.BlockHeadersService.Vector.Service as Cache
+import           OpEnergy.Server.Common( eitherException, runExceptPrefixT)
 import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
 import           Data.OpEnergy.API.V1.Error(throwJSON)
@@ -94,8 +94,6 @@ loadDBState :: (MonadIO m, MonadMonitor m) => AppT m ()
 loadDBState = do
   State{ blockHeadersDBPool = pool
        , currentTip = currentTipV
-       , unconfirmedTip = unconfirmedTipV
-       , config = config
        , metrics = MetricsState {loadDBStateH = loadDBStateH}
        } <- ask
   P.observeDuration loadDBStateH $ do
@@ -107,21 +105,6 @@ loadDBState = do
         runLogging $ $(logInfo) ("current confirmed height tip " <> tshow (blockHeaderHeight header))
         cacheBlockHeadersFromDB (blockHeaderHeight header)
         runLogging $ $(logInfo) "cached block headers"
-        -- fetch the unconfirmed tip so it is available from the first
-        -- websocket message, not only after the next block
-        let userPass = BasicAuthData (Text.encodeUtf8 $ configBTCUser config) (Text.encodeUtf8 $ configBTCPassword config)
-        liftIO $ E.handle (\(_ :: E.SomeException) ->
-          return ()
-          ) $ do
-            ebi <- Bitcoin.withBitcoin (configBTCURL config) (getBlockchainInfo userPass [])
-            case ebi of
-              (Result _ blockchainInfo) -> do
-                let tipHeight = Bitcoin.blocks blockchainInfo
-                mTipHeader <- fetchUnconfirmedTipHeader config tipHeight
-                case mTipHeader of
-                  Just tipHeader -> STM.atomically $ TVar.writeTVar unconfirmedTipV (Just tipHeader)
-                  Nothing -> return ()
-              _ -> return ()
 
 -- | this procedure ensures that BlockHeaders table is in sync with block chain,
 -- and keeps the unconfirmed tip header up to date for the websocket.
@@ -150,10 +133,10 @@ syncBlockHeaders = do
               Nothing -> True
               Just h  -> blockHeaderHeight h /= newUnconfirmedHeightTip
         when tipChanged $ do
-          mTipHeader <- liftIO $ fetchUnconfirmedTipHeader config newUnconfirmedHeightTip
-          case mTipHeader of
-            Just tipHeader -> liftIO $ STM.atomically $ TVar.writeTVar unconfirmedTipV (Just tipHeader)
-            Nothing -> runLogging $ $(logWarn) "failed to fetch unconfirmed tip header"
+          eTipHeader <- liftIO $ fetchUnconfirmedTipHeader config newUnconfirmedHeightTip
+          case eTipHeader of
+            Right tipHeader -> liftIO $ STM.atomically $ TVar.writeTVar unconfirmedTipV (Just tipHeader)
+            Left reason -> runLogging $ $(logWarn) reason
 
         -- sync confirmed blocks if needed
         mcurrentConfirmedTip <- liftIO $ TVar.readTVarIO currentTipV
@@ -296,11 +279,16 @@ cacheBlockHeadersFromDB end = do
 -- | fetches the full BlockHeader for the unconfirmed chain tip from
 -- bitcoind. Guarded: returns Nothing on any RPC failure rather than
 -- crashing the caller.
-fetchUnconfirmedTipHeader :: Config -> BlockHeight -> IO (Maybe BlockHeader)
-fetchUnconfirmedTipHeader config tipHeight = do
-  let userPass = BasicAuthData (Text.encodeUtf8 $ configBTCUser config) (Text.encodeUtf8 $ configBTCPassword config)
-  E.handle (\(_ :: E.SomeException) -> return Nothing) $ do
-    (bi, reward) <- Bitcoin.withBitcoin (configBTCURL config) $ do
+fetchUnconfirmedTipHeader :: Config -> BlockHeight -> IO (Either Text BlockHeader)
+fetchUnconfirmedTipHeader config tipHeight =
+    let
+      name = "fetchUnconfirmedTipHeader"
+    in runExceptPrefixT name $ do
+  let userPass = BasicAuthData
+                   (Text.encodeUtf8 $ configBTCUser config)
+                   (Text.encodeUtf8 $ configBTCPassword config)
+  (bi, reward) <- ExceptT $ eitherException $ do
+    Bitcoin.withBitcoin (configBTCURL config) $ do
       Result _ hash <- getBlockHash userPass [tipHeight]
       Result _ bi <- getBlock userPass [ hash ]
       if tipHeight == 0
@@ -308,21 +296,21 @@ fetchUnconfirmedTipHeader config tipHeight = do
         else do
           Result _ bs <- getBlockStats userPass [tipHeight]
           return (bi, BlockStats.totalfee bs + BlockStats.subsidy bs)
-    return $! Just $! BlockHeader
-      { blockHeaderHash = BlockInfo.hash bi
-      , blockHeaderPreviousblockhash = BlockInfo.previousblockhash bi
-      , blockHeaderHeight = BlockInfo.height bi
-      , blockHeaderVersion = BlockInfo.version bi
-      , blockHeaderTimestamp = BlockInfo.time bi
-      , blockHeaderBits = BlockInfo.bits bi
-      , blockHeaderNonce = BlockInfo.nonce bi
-      , blockHeaderDifficulty = BlockInfo.difficulty bi
-      , blockHeaderMerkle_root = BlockInfo.merkleroot bi
-      , blockHeaderTx_count = BlockInfo.nTx bi
-      , blockHeaderSize = BlockInfo.size bi
-      , blockHeaderWeight = BlockInfo.weight bi
-      , blockHeaderChainwork = BlockInfo.chainwork bi
-      , blockHeaderMediantime = BlockInfo.mediantime bi
-      , blockHeaderReward = reward
-      , blockHeaderChainreward = 0 -- not computed for unconfirmed tip
-      }
+  return $! BlockHeader
+    { blockHeaderHash = BlockInfo.hash bi
+    , blockHeaderPreviousblockhash = BlockInfo.previousblockhash bi
+    , blockHeaderHeight = BlockInfo.height bi
+    , blockHeaderVersion = BlockInfo.version bi
+    , blockHeaderTimestamp = BlockInfo.time bi
+    , blockHeaderBits = BlockInfo.bits bi
+    , blockHeaderNonce = BlockInfo.nonce bi
+    , blockHeaderDifficulty = BlockInfo.difficulty bi
+    , blockHeaderMerkle_root = BlockInfo.merkleroot bi
+    , blockHeaderTx_count = BlockInfo.nTx bi
+    , blockHeaderSize = BlockInfo.size bi
+    , blockHeaderWeight = BlockInfo.weight bi
+    , blockHeaderChainwork = BlockInfo.chainwork bi
+    , blockHeaderMediantime = BlockInfo.mediantime bi
+    , blockHeaderReward = reward
+    , blockHeaderChainreward = 0 -- not computed for unconfirmed tip
+    }
