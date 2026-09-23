@@ -17,14 +17,15 @@ import           Data.Maybe(fromJust)
 import           Data.Pool(Pool)
 import           Servant.API (BasicAuthData(..))
 import           Servant (err400 )
+import           Servant.Client(ClientEnv)
 import           Servant.Client.JsonRpc
-import           Control.Monad (foldM)
+import           Control.Monad (foldM, when)
 import           Control.Monad.Logger (logDebug, logInfo, logError)
+import           Control.Monad.Trans (lift)
 import           Control.Monad.Trans.Reader (ask)
-import           Control.Monad.Trans.Except (runExceptT, ExceptT(..))
+import           Control.Monad.Trans.Except ( ExceptT(..))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Text( Text)
-import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import           Data.Text.Show (tshow)
 import           Data.Word
@@ -36,9 +37,12 @@ import           Data.Bitcoin.BlockStats as BlockStats
 import           Data.Bitcoin.BlockInfo as BlockInfo
 import           Data.OpEnergy.API.V1.Block
 import           OpEnergy.Server.V1.Config
-import           OpEnergy.Server.V1.Class (runLogging, AppT, AppM, State(..))
+import           OpEnergy.Server.V1.Class (profile, runLogging, AppT, AppM, State(..))
 import           OpEnergy.Server.V1.Metrics(MetricsState(..))
 import qualified OpEnergy.Server.V1.BlockHeadersService.Vector.Service as Cache
+import           OpEnergy.Server.Common
+                   ( runExceptPrefixT, exceptTMaybeT
+                   )
 import           Prometheus(MonadMonitor)
 import qualified Prometheus as P
 import           Data.OpEnergy.API.V1.Error(throwJSON)
@@ -85,7 +89,10 @@ mgetBlockHeaderByHeight height = do
 mgetLastBlockHeader :: Pool SqlBackend-> IO (Maybe (Entity BlockHeader))
 mgetLastBlockHeader pool = flip runSqlPersistMPool pool $ selectFirst ([] :: [Filter BlockHeader]) [ Desc BlockHeaderHeight ]
 
--- | performs read from DB in order to set State.currentHeightTip
+-- | performs read from DB in order to set State.currentHeightTip,
+-- and fetches the unconfirmed chain tip from bitcoind so the
+-- websocket's @oe-latest-unconfirmed-block@ is populated from the
+-- first message.
 loadDBState :: (MonadIO m, MonadMonitor m) => AppT m ()
 loadDBState = do
   State{ blockHeadersDBPool = pool
@@ -102,56 +109,74 @@ loadDBState = do
         cacheBlockHeadersFromDB (blockHeaderHeight header)
         runLogging $ $(logInfo) "cached block headers"
 
--- | this procedure ensures that BlockHeaders table is in sync with block chain
+-- | this procedure ensures that BlockHeaders table is in sync with block chain,
+-- and keeps the unconfirmed tip header up to date for the websocket.
 syncBlockHeaders :: (MonadIO m, MonadMonitor m) => AppT m ()
-syncBlockHeaders = do
-  State{ metrics = MetricsState{ syncBlockHeadersH = syncBlockHeadersH}} <- ask
-  runLogging $ $(logDebug) "syncBlockHeaders"
-  P.observeDuration syncBlockHeadersH $ do
-    mstartSyncHeightFromTo <- mgetHeightToStartSyncFromTo
-    case mstartSyncHeightFromTo of
-      Nothing-> return () -- do nothing if sync is not needed
-      Just (startSyncHeightFrom, startSyncHeightTo) -> do
-        newestConfirmedBlockHeader <- performSyncFromTo startSyncHeightFrom startSyncHeightTo
-        runLogging $ $(logDebug) $ "new latest confirmed block height " <> tshow startSyncHeightTo
-        updateLatestConfirmedHeightTip newestConfirmedBlockHeader -- cache newest header
+syncBlockHeaders =
+    let
+      name = "syncBlockHeaders"
+    in profile name $ do
+  State{ config = config
+       , currentTip = currentTipV
+       , unconfirmedTip = unconfirmedTipV
+       } <- ask
+  eret <- runExceptPrefixT name $ do
+        let userPass = BasicAuthData (Text.encodeUtf8 $ configBTCUser config) (Text.encodeUtf8 $ configBTCPassword config)
+        clientEnv <- liftIO $! Bitcoin.mkEnv (configBTCURL config)
+        blockchainInfo <- ExceptT $! liftIO $! Bitcoin.withBitcoinEnv clientEnv $! do
+          Result _ blockchainInfo <- getBlockchainInfo userPass []
+          return blockchainInfo
+        let newUnconfirmedHeightTip = Bitcoin.blocks blockchainInfo
+
+        (mcurrentUnconfirmedTip, mcurrentConfirmedTip) <- liftIO $ STM.atomically $ (,)
+          <$> TVar.readTVar unconfirmedTipV
+          <*> TVar.readTVar currentTipV
+        let tipChanged = case mcurrentUnconfirmedTip of
+              Nothing -> True
+              Just h  -> blockHeaderHeight h /= newUnconfirmedHeightTip
+        when tipChanged $ do
+           lift $! runLogging $ $(logInfo) $! "new unconfirmed tip is " <> tshow newUnconfirmedHeightTip
+           tipHeader <- ExceptT $! liftIO $! fetchUnconfirmedTipHeader clientEnv config newUnconfirmedHeightTip
+           liftIO $ STM.atomically $ TVar.writeTVar unconfirmedTipV (Just tipHeader)
+           case mcurrentConfirmedTip of
+             Just currentConfirmedTip
+               | blockHeaderHeight currentConfirmedTip + configBlocksToConfirm config
+                   >= newUnconfirmedHeightTip ->
+                 liftIO $ STM.atomically $ TVar.writeTVar unconfirmedTipV (Just tipHeader)
+             _ | newUnconfirmedHeightTip < configBlocksToConfirm config ->
+                 liftIO $ STM.atomically $ TVar.writeTVar unconfirmedTipV (Just tipHeader)
+             _ -> do
+               let confirmedHeightFrom =
+                     case mcurrentConfirmedTip of
+                       Nothing -> 0
+                       Just currentConfirmedTip -> blockHeaderHeight currentConfirmedTip + 1
+                   confirmedHeightTo = newUnconfirmedHeightTip - configBlocksToConfirm config
+               newestConfirmedBlockHeader <- ExceptT $! performSyncFromTo clientEnv
+                 confirmedHeightFrom confirmedHeightTo
+               lift $! runLogging $ $(logDebug) $ "new latest confirmed block height " <> tshow confirmedHeightTo
+               liftIO $ STM.atomically $ do
+                 TVar.writeTVar unconfirmedTipV (Just tipHeader)
+                 TVar.writeTVar currentTipV (Just newestConfirmedBlockHeader)
+  case eret of
+    Right () -> return ()
+    Left reason-> runLogging $! $(logError) reason
   where
-    updateLatestConfirmedHeightTip header = do
-      State{ currentTip = currentTipV } <- ask
-      liftIO $ STM.atomically $ TVar.writeTVar currentTipV (Just header)
-
-    -- | queries bitcoin node and compares with latest witnessed block
-    mgetHeightToStartSyncFromTo :: MonadIO m => AppT m (Maybe (BlockHeight, BlockHeight))
-    mgetHeightToStartSyncFromTo = do
-      State{ config = config, currentTip = currentTipV, metrics = MetricsState{ btcGetBlockchainInfoH = btcGetBlockchainInfoH}} <- ask
-      mcurrentConfirmedTip <- liftIO $ TVar.readTVarIO currentTipV
-      let userPass = BasicAuthData (Text.encodeUtf8 $ configBTCUser config) (Text.encodeUtf8 $ configBTCPassword config)
-      eblockchainInfo <- liftIO $ P.observeDuration btcGetBlockchainInfoH $ Bitcoin.withBitcoin ( configBTCURL config) (getBlockchainInfo userPass [])
-      case eblockchainInfo of
-        (Result _ blockchainInfo ) -> do
-          let newUnconfirmedHeightTip = Bitcoin.blocks blockchainInfo
-          runLogging $ $(logDebug) ( "current unconfirmed height tip is " <> tshow newUnconfirmedHeightTip)
-          case mcurrentConfirmedTip of
-            Just currentConfirmedTip
-              | blockHeaderHeight currentConfirmedTip + (configBlocksToConfirm config) >= newUnconfirmedHeightTip -> return Nothing
-            _ | newUnconfirmedHeightTip < (configBlocksToConfirm config) -> return Nothing -- do nothing, if there are no confirmed blocks yet
-            _ -> do -- there are some confirmed blocks, that we are not aware of, need to sync DB
-              let confirmedHeightFrom =
-                    case mcurrentConfirmedTip of
-                      Nothing -> 0 -- no previously confirmed tip, start with 0
-                      Just currentConfirmedTip -> (blockHeaderHeight currentConfirmedTip + 1) -- start with the next unconfirmed tip
-                  confirmedHeightTo = newUnconfirmedHeightTip - (configBlocksToConfirm config)
-              return $ Just (confirmedHeightFrom, confirmedHeightTo)
-        some -> error ( "syncBlockHeaders: getBlockchainInfo error: " ++ show some)
-
-    performSyncFromTo confirmedHeightFrom confirmedHeightTo = do
-      Cache.ensureCapacity confirmedHeightTo
+    performSyncFromTo
+      :: (MonadIO m, MonadMonitor m)
+      => ClientEnv
+      -> BlockHeight
+      -> BlockHeight
+      -> AppT m (Either Text BlockHeader)
+    performSyncFromTo clientEnv confirmedHeightFrom confirmedHeightTo =
+        let name = "performSyncFromTo"
+        in profile name $ runExceptPrefixT name $ do
+      lift $! Cache.ensureCapacity confirmedHeightTo
       mlastBH <- foldM  ( \_ height -> do -- fold over all blocks returning the last block header
-          runLogging $ $(logDebug) $ "height " <> tshow height
-          (bi, blockReward, chainReward) <- getBlockInfos height
+          lift $! runLogging $ $(logDebug) $ "height " <> tshow height
+          (bi, blockReward, chainReward) <- ExceptT $! getBlockInfos clientEnv height
           let bh = blockHeaderFromBlockInfos bi blockReward chainReward
-          persistBlockHeader bh
-          Cache.maybeInsert bh
+          lift $! persistBlockHeader bh
+          lift $! Cache.maybeInsert bh
           return $! Just bh
         )
         Nothing
@@ -169,57 +194,46 @@ syncBlockHeaders = do
 
         getBlockInfos
           :: (MonadIO m, MonadMonitor m)
-          => BlockHeight
-          -> AppT m (BlockInfo, Word64, Word64)
-        getBlockInfos height = do
+          => ClientEnv
+          -> BlockHeight
+          -> AppT m (Either Text (BlockInfo, Word64, Word64))
+        getBlockInfos clientEnv height =
+            let name = "getBlockInfos"
+            in profile name $ runExceptPrefixT name $ do
           State{ config = config
                , metrics = MetricsState { btcGetBlockHashH = btcGetBlockHashH
                                         , btcGetBlockH = btcGetBlockH
                                         , btcGetBlockStatsH = btcGetBlockStatsH
                                         }
-               } <- ask
+               } <- lift ask
           let userPass = BasicAuthData (Text.encodeUtf8 $ configBTCUser config) (Text.encodeUtf8 $ configBTCPassword config)
-          eret <- runExceptT $ do
-            hash <- ExceptT $ do
-              response <- liftIO $ P.observeDuration btcGetBlockHashH
-                $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlockHash userPass [height]
-              case response of
-                Result _ hash -> return $! Right hash
-                _ -> return $! Left $! Text.pack $! show response
-            bi <- ExceptT $ do
-              response <- liftIO $ P.observeDuration btcGetBlockH
-                $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlock userPass [ hash ]
-              case response of
-                Result _ bi -> return $! Right bi
-                _ -> return $! Left $! "getBlock returned " <> Text.pack (show response)
-            blockReward <- ExceptT $ do
-              if height == 0
-                then return $! Right 5000000000 {- default subsidy-}
-                else do
-                  response <- liftIO $ P.observeDuration btcGetBlockStatsH
-                    $ Bitcoin.withBitcoin ( configBTCURL config) $ getBlockStats userPass [height]
-                  case response of
-                    Result _ bs -> return $! Right $! (BlockStats.totalfee bs + BlockStats.subsidy bs)
-                    _ -> return $! Left $! "getBlockStats returned: "
-                                        <> Text.pack (show response)
-            chainReward <- ExceptT $ do
-              let isPreviousBlockChainRewardNeeded = height > 0
-              if not isPreviousBlockChainRewardNeeded
-                then return $! Right blockReward
-                else do
-                  mprevBlock <- mgetBlockHeaderByHeight (height - 1)
-                  case mprevBlock of
-                    Just prevBlock -> return $! Right (blockHeaderChainreward prevBlock + blockReward)
-                    Nothing -> return $! Left $! "mgetBlockHeaderByHeight failed for height "
-                                              <> Text.pack (show (height - 1))
-            return (bi, blockReward, chainReward)
-          case eret of
-            Right ret -> return ret
-            Left reason -> do
-              let
-                  err = "getBlockInfos: " <> reason <> ", crashing to retry"
-              runLogging $ $(logError) err
-              error (Text.unpack err)
+          hash <- ExceptT $ fromResult $! liftIO $ P.observeDuration btcGetBlockHashH
+              $ Bitcoin.withBitcoinEnv clientEnv $ getBlockHash userPass [height]
+          bi <- ExceptT $ fromResult $! liftIO $ P.observeDuration btcGetBlockH
+              $ Bitcoin.withBitcoinEnv clientEnv $ getBlock userPass [ hash ]
+          blockReward <- do
+            if height == 0
+              then return 5000000000 {- default subsidy-}
+              else do
+                bs <- ExceptT $! fromResult $! liftIO $ P.observeDuration btcGetBlockStatsH
+                    $ Bitcoin.withBitcoinEnv clientEnv $ getBlockStats userPass [height]
+                return $! (BlockStats.totalfee bs + BlockStats.subsidy bs)
+          chainReward <- do
+            let isPreviousBlockChainRewardNeeded = height > 0
+            if not isPreviousBlockChainRewardNeeded
+              then return blockReward
+              else do
+                let prevBlockHeight = height - 1
+                prevBlock <- exceptTMaybeT ("mgetBlockHeaderByHeight failed for height " <> tshow prevBlockHeight)
+                  $ mgetBlockHeaderByHeight (height - 1)
+                return (blockHeaderChainreward prevBlock + blockReward)
+          return (bi, blockReward, chainReward)
+
+        fromResult func = do
+          rv <- func
+          case rv of
+            Right (Result _ v) -> return ( Right v)
+            some -> return $! Left $! tshow some
 
         blockHeaderFromBlockInfos bi reward chainreward = BlockHeader
           { blockHeaderHash = BlockInfo.hash bi
@@ -260,3 +274,41 @@ cacheBlockHeadersFromDB end = do
   runLogging $ $(logDebug) $! "inserting block headers into the cache"
   Cache.maybeInsertMany $ map (\(Entity _ header)-> header) headers
   runLogging $ $(logDebug) $! "done inserting"
+
+-- | fetches the full BlockHeader for the unconfirmed chain tip from
+-- bitcoind. Guarded: returns Nothing on any RPC failure rather than
+-- crashing the caller.
+fetchUnconfirmedTipHeader :: ClientEnv-> Config -> BlockHeight -> IO (Either Text BlockHeader)
+fetchUnconfirmedTipHeader clientEnv config tipHeight =
+    let
+      name = "fetchUnconfirmedTipHeader"
+    in runExceptPrefixT name $ do
+  let userPass = BasicAuthData
+                   (Text.encodeUtf8 $ configBTCUser config)
+                   (Text.encodeUtf8 $ configBTCPassword config)
+  (bi, reward) <- ExceptT $ Bitcoin.withBitcoinEnv clientEnv $ do
+      Result _ hash <- getBlockHash userPass [tipHeight]
+      Result _ bi <- getBlock userPass [ hash ]
+      if tipHeight == 0
+        then return (bi, 5000000000)
+        else do
+          Result _ bs <- getBlockStats userPass [tipHeight]
+          return (bi, BlockStats.totalfee bs + BlockStats.subsidy bs)
+  return $! BlockHeader
+    { blockHeaderHash = BlockInfo.hash bi
+    , blockHeaderPreviousblockhash = BlockInfo.previousblockhash bi
+    , blockHeaderHeight = BlockInfo.height bi
+    , blockHeaderVersion = BlockInfo.version bi
+    , blockHeaderTimestamp = BlockInfo.time bi
+    , blockHeaderBits = BlockInfo.bits bi
+    , blockHeaderNonce = BlockInfo.nonce bi
+    , blockHeaderDifficulty = BlockInfo.difficulty bi
+    , blockHeaderMerkle_root = BlockInfo.merkleroot bi
+    , blockHeaderTx_count = BlockInfo.nTx bi
+    , blockHeaderSize = BlockInfo.size bi
+    , blockHeaderWeight = BlockInfo.weight bi
+    , blockHeaderChainwork = BlockInfo.chainwork bi
+    , blockHeaderMediantime = BlockInfo.mediantime bi
+    , blockHeaderReward = reward
+    , blockHeaderChainreward = 0 -- not computed for unconfirmed tip
+    }

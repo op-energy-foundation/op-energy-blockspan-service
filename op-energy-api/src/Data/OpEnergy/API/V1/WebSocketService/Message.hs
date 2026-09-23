@@ -6,6 +6,7 @@ module Data.OpEnergy.API.V1.WebSocketService.Message where
 
 import           Data.Aeson as Aeson
 import           Data.Text(Text)
+import           Control.Monad.Trans(lift)
 import           Control.Monad.Trans.Maybe(runMaybeT, MaybeT(..))
 import           Network.WebSockets (DataMessage(..), WebSocketsData(..))
 
@@ -48,15 +49,22 @@ instance WebSocketsData WebsocketRequest where
       Just ret -> ret
       _ -> error "failed to parse Action from websockets data message"
 
+-- | initial message sent to websocket clients on connection
 data MempoolInfo = MempoolInfo
   { newestConfirmedBlock :: BlockHeader
+  -- ^ the newest confirmed block (tip minus configBlocksToConfirm)
   , latestUnconfirmedBlockHeight :: BlockHeight
+  -- ^ predicted height of the next unconfirmed block
+  , latestUnconfirmedBlock :: Maybe BlockHeader
+  -- ^ full block header for the actual chain tip (unconfirmed).
+  -- Nothing if the tip header has not been fetched yet.
   }
   deriving (Show)
 instance ToJSON MempoolInfo where
   toJSON mpi = object
     [ "oe-newest-confirmed-block" .= newestConfirmedBlock mpi -- the only field which should be interesting for OpEnergy frontend
     , "oe-latest-unconfirmed-block-height" .= latestUnconfirmedBlockHeight mpi
+    , "oe-latest-unconfirmed-block" .= latestUnconfirmedBlock mpi
     , "mempoolInfo" .= object
       [ "loaded" .= True
       , "size" .= (0:: Int)
@@ -68,9 +76,12 @@ instance ToJSON MempoolInfo where
     , "backendInfo" .= ("{ \"hostname\": \"test\", \"version\": \"test\", \"gitCommit\": \"test\"}":: Text)
     ]
 
--- | Message from backend
+-- | Message from backend to websocket clients
 data Message
-  = MessageNewestBlockHeader BlockHeader BlockHeight
+  = MessageNewestBlockHeader
+      BlockHeader        -- ^ newest confirmed block
+      BlockHeight        -- ^ unconfirmed tip height
+      (Maybe BlockHeader) -- ^ full unconfirmed tip block header
   | MessagePong
   deriving (Show)
 
@@ -93,7 +104,8 @@ instance FromJSON Message where
     mnewest <- runMaybeT $ do
       confirmedBlock <- MaybeT $ v .:? "oe-newest-confirmed-block"
       latestUnconfirmedBlockHeight <- MaybeT $ v .:? "oe-latest-unconfirmed-block-height"
-      return $! MessageNewestBlockHeader confirmedBlock latestUnconfirmedBlockHeight
+      mUnconfirmedBlock <- lift $ v .:? "oe-latest-unconfirmed-block"
+      return $! MessageNewestBlockHeader confirmedBlock latestUnconfirmedBlockHeight mUnconfirmedBlock
     case mnewest of
       Just newest -> return newest
       Nothing -> do
@@ -102,9 +114,10 @@ instance FromJSON Message where
           Just _ -> return MessagePong
           Nothing-> error "unable to parse Message"
 instance ToJSON Message where
-  toJSON (MessageNewestBlockHeader header unconfirmedBlockHeight) = object
+  toJSON (MessageNewestBlockHeader header unconfirmedBlockHeight mUnconfirmedBlock) = object
     [ "oe-newest-confirmed-block" .= toJSON header
     , "oe-latest-unconfirmed-block-height" .= unconfirmedBlockHeight
+    , "oe-latest-unconfirmed-block" .= mUnconfirmedBlock
     ]
   toJSON (MessagePong) = object
     [ "pong" .= True

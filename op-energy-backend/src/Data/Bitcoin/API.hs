@@ -13,6 +13,8 @@
 
 module Data.Bitcoin.API where
 
+import           Control.Monad.Trans.Except (withExceptT, ExceptT(..))
+
 import           Data.Proxy              (Proxy (..))
 import           Network.HTTP.Client     as Client(defaultManagerSettings, newManager, Manager, Request(..)
                                                   )
@@ -25,6 +27,7 @@ import           Servant.Client.JsonRpc  (JsonRpcResponse)
 import           Servant.API     ((:>), BasicAuth, BasicAuthData, Capture, ToHttpApiData(..))
 import           Servant.JsonRpc (JsonRpc, RawJsonRpc)
 import           Data.Text(Text)
+import qualified Data.Text as Text
 import           GHC.Generics(Generic)
 import           Data.Aeson
 import qualified Data.ByteString.Char8 as BS
@@ -37,6 +40,7 @@ import           Data.Bitcoin.BlockInfo
 import           Data.OpEnergy.API.V1.Positive
 import           Data.OpEnergy.API.V1.Natural
 import           Data.OpEnergy.API.V1.Block
+import           OpEnergy.Server.Common(runExceptPrefixT)
 
 type BTCAddress = Text
 
@@ -161,10 +165,20 @@ mkClientEnv mgr burl = env { makeClientRequest = newMakeClientRequest}
     env = Servant.Client.mkClientEnv mgr burl
     newMakeClientRequest burl req = ((makeClientRequest env) burl req) { Client.queryString = BS.empty}
 
+mkEnv :: BaseUrl-> IO ClientEnv
+mkEnv url  = do
+  Data.Bitcoin.API.mkClientEnv <$> newManager defaultManagerSettings <*> return url
+
+withBitcoinEnv :: ClientEnv-> ClientM a-> IO (Either Text a)
+withBitcoinEnv env payload =
+    let
+        name = "withBitcoinEnv"
+    in runExceptPrefixT name $
+  withExceptT (Text.pack . show) $! ExceptT $! runClientM payload env
 
 withBitcoin :: BaseUrl-> ClientM a-> IO a
 withBitcoin url payload = do
-  env <- Data.Bitcoin.API.mkClientEnv <$> newManager defaultManagerSettings <*> return url
+  env <- mkEnv url
   eresult <- flip runClientM env payload
   case eresult of
     Left some -> error $ "withBitcoin: error: " <> show some
