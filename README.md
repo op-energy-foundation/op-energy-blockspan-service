@@ -48,10 +48,7 @@ args@{ pkgs
 , OP_ENERGY_REPO_LOCATION ? /etc/nixos/.git/modules/overlays/op-energy/modules/oe-blockspan-service
 , OP_ENERGY_ACCOUNT_REPO_LOCATION ? /etc/nixos/.git/modules/overlays/op-energy
   # import psk from out-of-git file
-, bitcoind-mainnet-rpc-psk ? builtins.readFile ( "/etc/nixos/private/bitcoind-mainnet-rpc-psk.txt")
 , bitcoind-mainnet-rpc-pskhmac ? builtins.readFile ( "/etc/nixos/private/bitcoind-mainnet-rpc-pskhmac.txt")
-, op-energy-db-psk-mainnet ? builtins.readFile ( "/etc/nixos/private/op-energy-db-psk-mainnet.txt")
-, op-energy-db-salt-mainnet ? builtins.readFile ( "/etc/nixos/private/op-energy-db-salt-mainnet.txt")
 , ...
 }:
 
@@ -108,23 +105,21 @@ in
       in {
       db_user = "openergy";
       db_name = db;
-      db_psk = op-energy-db-psk-mainnet;
+      credentials_locations = [
+        DB_PASSWORD_SECRET = "/etc/nixos/private/OP_ENERGY_BLOCKSPANS_MAINNET_DB_PASSWORD_SECRET";
+        BTC_PASSWORD_SECRET = "/etc/nixos/private/OP_ENERGY_BLOCKSPANS_MAINNET_BTC_PASSWORD_SECRET";
+      ];
       config = ''
-        {
           "DB_PORT": 5432,
           "DB_HOST": "127.0.0.1",
           "DB_USER": "${db}",
           "DB_NAME": "${db}",
-          "DB_PASSWORD": "${op-energy-db-psk-mainnet}",
-          "SECRET_SALT": "${op-energy-db-salt-mainnet}",
           "API_HTTP_PORT": 8999,
           "BTC_URL": "http://127.0.0.1:8332", # in case of using another node, define it's address and credentials
           "BTC_USER": "op-energy", # and here
-          "BTC_PASSWORD": "${bitcoind-mainnet-rpc-psk}", # and here as well
           "BTC_POLL_RATE_SECS": 10,
           "PROMETHEUS_PORT": 7999,
-          "SCHEDULER_POLL_RATE_SECS": 10
-        }
+          "SCHEDULER_POLL_RATE_SECS": 10,
       '';
     };
   };

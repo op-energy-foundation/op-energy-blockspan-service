@@ -7,15 +7,22 @@ let
     do $$
     begin
       if not exists (select * from pg_user where usename = '${cfg.db_user}') then
-        CREATE USER ${cfg.db_user} WITH PASSWORD '${cfg.db_psk}';
+        CREATE USER ${cfg.db_user} WITH PASSWORD 'DB_PASSWORD_SECRET';
       end if;
-      ALTER USER ${cfg.db_user} WITH PASSWORD '${cfg.db_psk}';
+      ALTER USER ${cfg.db_user} WITH PASSWORD 'DB_PASSWORD_SECRET';
       GRANT ALL PRIVILEGES ON DATABASE ${cfg.db_name} TO ${cfg.db_user};
       ALTER DATABASE ${cfg.db_name} OWNER TO ${cfg.db_user};
     end
     $$
     ;
   '';
+  inject_credentials = cfg: file: pkgs.writeScriptBin "inject_credentials" ''
+    cat >> ${file} <<EOF
+      "DB_PASSWORD": "$(cat $CREDENTIALS_DIRECTORY/DB_PASSWORD_SECRET)",
+      "BTC_PASSWORD": "$(cat $CREDENTIALS_DIRECTORY/BTC_PASSWORD)"
+    }
+    EOF
+    '';
 
   eachInstance = config.services.op-energy-backend;
   instanceOpts = args: {
@@ -44,32 +51,36 @@ let
         example = "mempool";
         description = "Username to access instance's database";
       };
-      db_psk = lib.mkOption {
-        type = lib.types.str;
-        default = null;
-        example = "your-secret-from-out-of-git-store";
+      credentials_locations = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = {
+          BTC_PASSWORD_SECRET = "/etc/nixos/private/OP_ENERGY_BLOCKSPANS_MAINNET_BTC_PASSWORD_SECRET";
+          DB_PASSWORD_SECRET =  "/etc/nixos/private/OP_ENERGY_BLOCKSPANS_MAINNET_DB_PASSWORD_SECRET";
+        };
         description = ''
-          This value defines a password for database user, which will be used by op-energy backend instance to access database.
-        '';
+          A set of credentials (by it's name) and file path containing it.
+          File path is expected to be only readable by the root user.
+          In the usage example, content of the BTC_PASSWORD_SECRET and
+          DB_PASSWORD_SECRET files will be appended to the service's config file
+          '';
+        example = {
+          BTC_PASSWORD_SECRET = "/etc/nixos/private/BTC_PASSWORD_SECRET";
+          DB_PASSWORD_SECRET =  "/etc/nixos/private/DB_PASSWORD_SECRET";
+        };
       };
       config = lib.mkOption {
         type = lib.types.str;
         default = "";
         example = ''
-          {
             "DB_PORT": 5432,
             "DB_HOST": "127.0.0.1",
             "DB_USER": "openergy",
             "DB_NAME": "openergy",
-            "DB_PASSWORD": "password",
-            "SECRET_SALT": "salt",
             "API_HTTP_PORT": 8999,
             "BTC_URL": "http://127.0.0.1:8332",
             "BTC_USER": "op-energy",
-            "BTC_PASSWORD": "password1",
             "BTC_POLL_RATE_SECS": 10,
-            "SCHEDULER_POLL_RATE_SECS": 10
-          }
+            "SCHEDULER_POLL_RATE_SECS": 10,
         '';
       };
     };
@@ -83,19 +94,15 @@ in
     example = {
       mainnet = {
         config = ''
-          {
             "DB_PORT": 5432,
             "DB_HOST": "127.0.0.1",
             "DB_USER": "openergy",
             "DB_NAME": "openergy",
-            "DB_PASSWORD": "password",
-            "SECRET_SALT": "salt",
             "API_HTTP_PORT": 8999,
             "BTC_URL": "http://127.0.0.1:8332",
             "BTC_USER": "op-energy",
-            "BTC_PASSWORD": "password1",
             "BTC_POLL_RATE_SECS": 10,
-            "SCHEDULER_POLL_RATE_SECS": 10
+            "SCHEDULER_POLL_RATE_SECS": 10,
         '';
       };
     };
@@ -118,8 +125,8 @@ in
       ) eachInstance
       );
     };
-    systemd.services = {
-      postgresql-op-energy-users = {
+    systemd.services =
+      ( lib.mapAttrs' (name: cfg: lib.nameValuePair "postgresql-op-energy-users-${name}" {
         wantedBy = [ "multi-user.target" ];
         after = [
           "postgresql.service"
@@ -129,52 +136,108 @@ in
         ];
         serviceConfig = {
           Type = "simple";
+          LoadCredential =
+            # TODO: function: key:dir:file -> "key:dir/file"
+            [ "DB_PASSWORD_SECRET:${cfg.credentials_locations.DB_PASSWORD_SECRET}"
+            ];
+          User = "postgres";
+          Group = "postgres";
         };
         path = with pkgs; [
-          postgresql sudo
+          gnused postgresql
         ];
-        preStart = lib.foldl' (acc: i: acc + i) '''' ( lib.mapAttrsToList (name: cfg: ''
+        preStart = let
+          iteration = pkgs.writeScriptBin "iteration" ''
           # create database if not exist. we can't use services.mysql.ensureDatabase/initialDatase here the latter
           # will not use schema and the former will only affects the very first start of mariadb service, which is not idemponent
-          if [ ! "$(sudo -u postgres psql -l -x --csv | grep 'Name,${cfg.db_name}' --count)" == "1" ]; then
+          if [ ! "$( psql -l -x --csv | grep 'Name,${cfg.db_name}' --count)" == "1" ]; then
             ( echo 'CREATE DATABASE ${cfg.db_name};'
               echo '\c ${cfg.db_name};'
-            ) | sudo -u postgres psql
+            ) | psql
           fi
-          cat "${initial_script cfg}" | sudo -u postgres psql
-        '') eachInstance);
+          cat "${initial_script cfg}" \
+            | sed "s|DB_PASSWORD_SECRET|$(cat $CREDENTIALS_DIRECTORY/DB_PASSWORD_SECRET)|g" \
+            | psql 2>/dev/null
+        '';
+        in ''
+          COUNT=0
+          MAX_COUNT=10
+          while [ "$COUNT" -lt "$MAX_COUNT" ]; do
+            ${iteration}/bin/iteration && exit 0 || {
+              sleep 1s
+              COUNT=$(( $COUNT + 1 ))
+            }
+          done
+          echo "was not able to update DB user and passwords"
+          exit 1
+        '';
         script = "exit 0";
-      };
-    } // ( lib.mapAttrs' (name: cfg: lib.nameValuePair "op-energy-backend-${name}" (
+      }
+      ) eachInstance
+      ) // ( lib.mapAttrs' (name: cfg: lib.nameValuePair "op-energy-backend-${name}" (
       let
-        openergy_config = pkgs.writeText "op-energy-config.json" cfg.config; # this renders config and stores in /nix/store
+        openergy_config = pkgs.writeText "op-energy-config.json" ''
+        {
+          ${cfg.config}
+        ''; # this renders config and stores in /nix/store
       in {
         wantedBy = [ "multi-user.target" ];
         after = [
           "network-online.target"
           "postgresql.service"
-          "postgresql-op-energy-users.service"
+          "postgresql-op-energy-users-${name}.service"
         ];
         requires = [
           "network-online.target"
           "postgresql.service"
-          "postgresql-op-energy-users.service"
+          "postgresql-op-energy-users-${name}.service"
           ];
         serviceConfig = {
           Type = "simple";
           Restart = "always"; # we want to keep service always running, especially, now development instance is relying on ssh tunnel which can restart as well leading to op-energy restart as well
-          StartLimitIntervalSec = 0;
+          StartLimitIntervalSec = 5;
           StartLimitBurst = 0;
+          LoadCredential =
+            # TODO: function: key:dir:file -> "key:dir/file"
+            [ "BTC_PASSWORD_SECRET:${cfg.credentials_locations.BTC_PASSWORD_SECRET}"
+              "DB_PASSWORD_SECRET:${cfg.credentials_locations.DB_PASSWORD_SECRET}"
+            ];
+          User =  "blockspans-${name}";
+          Group = "blockspans-${name}";
         };
+
+
         path = with pkgs; [
           pkgs.op-energy-backend
         ];
         script = ''
           set -ex
+          mkdir -p ~/.blockspan-service || true
+          rm -f ~/.blockspan-service/config.json || true
+          cp ${openergy_config} ~/.blockspan-service/config.json
+          chmod u+w ~/.blockspan-service/config.json
+          chmod og-rwx ~/.blockspan-service/config.json
+          ${inject_credentials cfg "~/.blockspan-service/config.json"}/bin/inject_credentials
           sleep ${toString cfg.startup_delay}s
-          OPENERGY_BACKEND_CONFIG_FILE="${openergy_config}" op-energy-backend +RTS -c -N -s
+          OPENERGY_BACKEND_CONFIG_FILE=~/.blockspan-service/config.json \
+            op-energy-backend +RTS -c -N -s
         '';
       })) eachInstance);
+    users.users = lib.mapAttrs'
+      ( name: cfg: lib.nameValuePair "blockspans-${name}"
+        {
+          isNormalUser = true;
+          group = "blockspans-${name}";
+          createHome = true;
+        }
+      )
+      eachInstance;
+    users.groups = lib.mapAttrs'
+      (name: cfg: lib.nameValuePair "blockspans-${name}"
+        {
+        }
+      )
+      eachInstance;
     services.nginx = {
       enable = true;
       appendConfig = lib.mkDefault ''
