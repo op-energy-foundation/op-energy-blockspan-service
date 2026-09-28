@@ -23,6 +23,7 @@
 , GIT_COMMIT_HASH
 , persistent-pagination
 , safe-exceptions
+, flow
 , ...
 }:
 
@@ -56,6 +57,7 @@ mkDerivation {
     wai-middleware-prometheus
     persistent-pagination
     safe-exceptions
+    flow
   ];
   preBuild = ''
     sed -i 's/GIT_COMMIT_HASH/${GIT_COMMIT_HASH}/' src/OpEnergy/Server/GitCommitHash.hs

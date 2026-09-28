@@ -8,6 +8,7 @@
 {-# LANGUAGE EmptyDataDecls  #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE DuplicateRecordFields  #-}
+{-# LANGUAGE Trustworthy #-}
 
 module Data.Bitcoin.BlockInfo where
 
