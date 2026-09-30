@@ -16,12 +16,11 @@ let
     $$
     ;
   '';
-  inject_credentials = cfg: file: pkgs.writeScriptBin "inject_credentials" ''
-    cat >> ${file} <<EOF
-      "DB_PASSWORD": "$(cat $CREDENTIALS_DIRECTORY/DB_PASSWORD_SECRET)",
-      "BTC_PASSWORD": "$(cat $CREDENTIALS_DIRECTORY/BTC_PASSWORD_SECRET)"
-    }
-    EOF
+  inject_credentials = src_file: file: pkgs.writeScriptBin "inject_credentials" ''
+    cat ${src_file} | jq "\
+        .DB_PASSWORD = \"$(cat $CREDENTIALS_DIRECTORY/DB_PASSWORD_SECRET)\" \
+      | .BTC_PASSWORD = \"$(cat $CREDENTIALS_DIRECTORY/BTC_PASSWORD_SECRET)\" \
+      " > ${file}
     '';
 
   eachInstance = config.services.op-energy-backend;
@@ -62,18 +61,29 @@ let
           DB_PASSWORD_SECRET =  "/etc/nixos/private/DB_PASSWORD_SECRET";
         };
       };
-      config = lib.mkOption {
-        type = lib.types.str;
-        default = "";
-        example = ''
-            "DB_PORT": 5432,
-            "DB_HOST": "127.0.0.1",
-            "API_HTTP_PORT": 8999,
-            "BTC_URL": "http://127.0.0.1:8332",
-            "BTC_USER": "op-energy",
-            "BTC_POLL_RATE_SECS": 10,
-            "SCHEDULER_POLL_RATE_SECS": 10,
+      extraConfig = lib.mkOption {
+        type = lib.types.attrsOf (lib.types.oneOf [ lib.types.str lib.types.int ]);
+        description = ''
+          additional options to include into config file
         '';
+        default = {
+          DB_PORT = 5432;
+          DB_HOST = "127.0.0.1";
+          API_HTTP_PORT = 8999;
+          BTC_URL = "http://127.0.0.1:8332";
+          BTC_USER = "op-energy";
+          BTC_POLL_RATE_SECS = 10;
+          SCHEDULER_POLL_RATE_SECS = 10;
+        };
+        example = {
+          DB_PORT = 5432;
+          DB_HOST = "127.0.0.1";
+          API_HTTP_PORT = 8999;
+          BTC_URL = "http://127.0.0.1:8332";
+          BTC_USER = "op-energy";
+          BTC_POLL_RATE_SECS = 10;
+          SCHEDULER_POLL_RATE_SECS = 10;
+        };
       };
     };
   };
@@ -85,15 +95,17 @@ in
     description = "One or more op-energy-backends";
     example = {
       mainnet = {
-        config = ''
-            "DB_PORT": 5432,
-            "DB_HOST": "127.0.0.1",
-            "API_HTTP_PORT": 8999,
-            "BTC_URL": "http://127.0.0.1:8332",
-            "BTC_USER": "op-energy",
-            "BTC_POLL_RATE_SECS": 10,
-            "SCHEDULER_POLL_RATE_SECS": 10,
-        '';
+        db_name = "openergy";
+        db_user = "op-energy";
+        extraConfig = {
+          DB_PORT = 5432;
+          DB_HOST = "127.0.0.1";
+          API_HTTP_PORT = 8999;
+          BTC_URL = "http://127.0.0.1:8332";
+          BTC_USER = "op-energy";
+          BTC_POLL_RATE_SECS = 10;
+          SCHEDULER_POLL_RATE_SECS = 10;
+        };
       };
     };
   };
@@ -175,12 +187,12 @@ in
       ) eachInstance
       ) // ( lib.mapAttrs' (name: cfg: lib.nameValuePair "op-energy-backend-${name}" (
       let
-        openergy_config = pkgs.writeText "op-energy-config.json" ''
-        {
-          "DB_NAME": "${cfg.db_name}",
-          "DB_USER": "${cfg.db_user}",
-          ${cfg.config}
-        ''; # this renders config and stores in /nix/store
+        composed_config = cfg.extraConfig // {
+          DB_NAME = "${cfg.db_name}";
+          DB_USER = "${cfg.db_user}";
+        };
+        json_config = pkgs.writeText "op-energy-config.json"
+                          (builtins.toJSON composed_config);
       in {
         wantedBy = [ "multi-user.target" ];
         after = [
@@ -208,16 +220,14 @@ in
 
 
         path = with pkgs; [
-          pkgs.op-energy-backend
+          pkgs.op-energy-backend jq
         ];
         script = ''
           set -ex
           mkdir -p ~/.blockspan-service || true
           rm -f ~/.blockspan-service/config.json || true
-          cp ${openergy_config} ~/.blockspan-service/config.json
-          chmod u+w ~/.blockspan-service/config.json
+          ${inject_credentials json_config "~/.blockspan-service/config.json"}/bin/inject_credentials
           chmod og-rwx ~/.blockspan-service/config.json
-          ${inject_credentials cfg "~/.blockspan-service/config.json"}/bin/inject_credentials
           sleep ${toString cfg.startup_delay}s
           OPENERGY_BACKEND_CONFIG_FILE=~/.blockspan-service/config.json \
             op-energy-backend +RTS -c -N -s
