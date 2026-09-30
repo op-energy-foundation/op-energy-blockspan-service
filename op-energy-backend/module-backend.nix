@@ -26,12 +26,6 @@ let
   eachInstance = config.services.op-energy-backend;
   instanceOpts = args: {
     options = {
-      startup_delay = lib.mkOption {
-        type = lib.types.int;
-        default = 30;
-        example = 30;
-        description = "let service wait for dependent service to settle (primary bitcoind preps). Usually, you don't want to change it but CI tests can fail if service will start too early and crash due to bitcoind being not ready to serve";
-      };
       db_name = lib.mkOption {
         default = null;
         type = lib.types.str;
@@ -228,7 +222,6 @@ in
           rm -f ~/.blockspan-service/config.json || true
           ${inject_credentials json_config "~/.blockspan-service/config.json"}/bin/inject_credentials
           chmod og-rwx ~/.blockspan-service/config.json
-          sleep ${toString cfg.startup_delay}s
           OPENERGY_BACKEND_CONFIG_FILE=~/.blockspan-service/config.json \
             op-energy-backend +RTS -c -N -s
         '';
