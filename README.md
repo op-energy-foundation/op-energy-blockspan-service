@@ -109,16 +109,16 @@ in
         DB_PASSWORD_SECRET = "/etc/nixos/private/OP_ENERGY_BLOCKSPANS_MAINNET_DB_PASSWORD_SECRET";
         BTC_PASSWORD_SECRET = "/etc/nixos/private/OP_ENERGY_BLOCKSPANS_MAINNET_BTC_PASSWORD_SECRET";
       };
-      config = ''
-          "DB_PORT": 5432,
-          "DB_HOST": "127.0.0.1",
-          "API_HTTP_PORT": 8999,
-          "BTC_URL": "http://127.0.0.1:8332", # in case of using another node, define it's address and credentials
-          "BTC_USER": "op-energy", # and here
-          "BTC_POLL_RATE_SECS": 10,
-          "PROMETHEUS_PORT": 7999,
-          "SCHEDULER_POLL_RATE_SECS": 10,
-      '';
+      extraConfig = {
+        DB_PORT = 5432;
+        DB_HOST = "127.0.0.1";
+        API_HTTP_PORT = 8999;
+        BTC_URL = "http://127.0.0.1:8332"; # in case of using another node; define it's address and credentials
+        BTC_USER = "op-energy"; # and here
+        BTC_POLL_RATE_SECS = 10;
+        PROMETHEUS_PORT = 7999;
+        SCHEDULER_POLL_RATE_SECS = 10;
+      };
     };
   };
 
