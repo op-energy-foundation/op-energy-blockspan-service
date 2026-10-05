@@ -84,6 +84,14 @@ in pkgs.testers.nixosTest ({
         mode = "0400";
         text = "1d47aa35cf9a5d38eac6b51e25e7351fa2f23436832a654555b8aa7b52252428";
       };
+      environment.etc."nixos/private/LITD_WALLET_UNLOCK_PASSWORD" = {
+        mode = "0400";
+        text = "63da99a2f21fbccae7493a715527ff151fd5569a649d99083943037f3d158d6f";
+      };
+      environment.etc."nixos/private/LNBITS_FIRST_INSTALL_TOKEN" = {
+        mode = "0400";
+        text = "ee4f7ffeaf38a5f1c68ec53551ac846aaa64181b1e1cecf4cdc9ff5923d53153";
+      };
 
     };
 

@@ -69,3 +69,8 @@ INTERNAL_SERVICE_SHARED_SECRET=$(dd if=/dev/urandom bs=1 count=32 2>/dev/null | 
 printf "%s" "$INTERNAL_SERVICE_SHARED_SECRET" > $OUT_DIR/INTERNAL_SERVICE_SHARED_SECRET
 PSK=$(dd if=/dev/urandom bs=1 count=10 2>/dev/null | sha256sum | awk '{print $1}')
 printf "%s" "$PSK" > $OUT_DIR/LITD_UI_PASSWORD_SECRET
+PSK=$(dd if=/dev/urandom bs=1 count=10 2>/dev/null | sha256sum | awk '{print $1}')
+printf "%s" "$PSK" > $OUT_DIR/LITD_WALLET_UNLOCK_PASSWORD
+PSK=$(dd if=/dev/urandom bs=1 count=10 2>/dev/null | sha256sum | awk '{print $1}')
+printf "%s" "$PSK" > $OUT_DIR/LNBITS_FIRST_INSTALL_TOKEN
+
